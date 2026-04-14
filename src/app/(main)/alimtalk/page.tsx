@@ -25,8 +25,8 @@ const VARIABLE_INSERTS: { display: string; snippet: string }[] = [
   { display: '{ \uAC15\uC0AC\uBA85 }', snippet: '{\uAC15\uC0AC\uBA85}' },
   { display: '{ \uD559\uC6D0\uBA85 }', snippet: '{\uD559\uC6D0\uBA85}' },
   { display: '{ \uD559\uC0DD\uC774\uB984 }', snippet: '{\uD559\uC0DD\uC774\uB984}' },
-  { display: '{ \uB0B4\uC6A9 }', snippet: '{\uB0B4\uC6A9}' },
-  { display: '{ \uD074\uB798\uC2A4\uC774\uB984 }', snippet: '{\uD074\uB798\uC2A4\uC774\uB984}' },
+  { display: '{ \uB0A0\uC9DC }', snippet: '{\uB0A0\uC9DC}' },
+  { display: '{ \uBC18\uC774\uB984 }', snippet: '{\uBC18\uC774\uB984}' },
 ]
 
 function insertAtCursor(el: HTMLTextAreaElement, text: string) {
