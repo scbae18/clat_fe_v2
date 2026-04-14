@@ -17,7 +17,7 @@ export interface LessonSummary {
 export interface LessonItemDetail {
   id: number
   name: string
-  item_type: 'TEXT' | 'NUMBER' | 'SELECT' | 'COMPLETE' | 'ATTENDANCE'
+  item_type: 'TEXT' | 'NUMBER' | 'SELECT' | 'COMPLETE' | 'ATTENDANCE' | 'SCORE'
   is_common: boolean
   include_in_message: boolean
   sort_order: number
@@ -57,10 +57,12 @@ export interface StudentDataItem {
 
 export interface StudentData {
   student_id: number
+  student_name?: string
   items: StudentDataItem[]
 }
 
-export interface CreateLessonDto {
+/** POST /lessons (UpsertLessonDto, no lesson_id) */
+export interface CreateLessonBody {
   class_id: number
   template_id: number
   lesson_date: string
@@ -70,14 +72,26 @@ export interface CreateLessonDto {
   student_data: StudentData[]
 }
 
-export interface UpdateLessonDto {
-  lesson_id: number
-  class_id: number
-  lesson_date: string
+/** PUT /lessons/:id body (UpdateLessonDto) */
+export interface UpdateLessonBody {
   template_id?: number
   status?: 'DRAFT' | 'SAVED'
-  common_data: CommonDataItem[]
-  student_data: StudentData[]
+  common_data?: CommonDataItem[]
+  student_data?: StudentData[]
+}
+
+export interface LessonPreviewRow {
+  student_id: number
+  student_name: string
+  phone: string
+  parent_phone: string
+  message: string
+  message_for_parent: string
+}
+
+/** GET /lessons/:id/preview — envelope data field is { data: LessonPreviewRow[] } */
+export interface LessonPreviewResult {
+  data: LessonPreviewRow[]
 }
 
 export const lessonService = {
@@ -91,13 +105,13 @@ export const lessonService = {
     return data.data
   },
 
-  async createLesson(dto: CreateLessonDto): Promise<LessonDetail> {
+  async createLesson(dto: CreateLessonBody): Promise<LessonDetail> {
     const { data } = await axiosInstance.post('/lessons', dto)
     return data.data
   },
 
-  async updateLesson(dto: UpdateLessonDto): Promise<LessonDetail> {
-    const { data } = await axiosInstance.post('/lessons', dto)
+  async updateLesson(lessonId: number, dto: UpdateLessonBody): Promise<LessonDetail> {
+    const { data } = await axiosInstance.put(`/lessons/${lessonId}`, dto)
     return data.data
   },
 
@@ -105,9 +119,9 @@ export const lessonService = {
     await axiosInstance.post(`/lessons/${id}/save`)
   },
 
-  async previewLesson(id: number): Promise<any> {
+  async previewLesson(id: number): Promise<LessonPreviewResult> {
     const { data } = await axiosInstance.get(`/lessons/${id}/preview`)
-    return data.data
+    return data.data as LessonPreviewResult
   },
 
   async exportLesson(id: number): Promise<Blob> {

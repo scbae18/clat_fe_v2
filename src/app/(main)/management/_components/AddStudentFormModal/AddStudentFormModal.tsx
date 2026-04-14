@@ -109,8 +109,14 @@ export default function AddStudentFormModal({
     if (!file) return
     try {
       setIsBulkLoading(true)
-      await studentService.bulkCreateStudents(file)
-      addToast({ variant: 'success', message: '학생이 등록됐어요.' })
+      const bulkRes = await studentService.bulkCreateStudents(file)
+      addToast({
+        variant: 'success',
+        message:
+          bulkRes.fail_count > 0
+            ? `${bulkRes.success_count} ok, ${bulkRes.fail_count} failed`
+            : `${bulkRes.success_count} students added`,
+      })
       onBulkConfirm?.()
       handleClose()
     } catch {

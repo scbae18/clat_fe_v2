@@ -175,7 +175,13 @@ function ManagementContent() {
                   )
                   setClasses(res.data)
                   addClass.close()
-                  addToast({ variant: 'success', message: '반이 생성됐어요.' })
+                  addToast({
+                  variant: 'success',
+                  message:
+                    bulkRes.fail_count > 0
+                      ? `${bulkRes.success_count} ok, ${bulkRes.fail_count} failed`
+                      : `${bulkRes.success_count} students added`,
+                })
                 } catch (err) {
                   console.error('반 생성 실패', err)
                   addToast({ variant: 'error', message: '반 생성에 실패했어요.' })
@@ -193,9 +199,15 @@ function ManagementContent() {
             onClose={bulkUpload.close}
             onConfirm={async (file) => {
               try {
-                await studentService.bulkCreateStudents(file)
-                addToast({ variant: 'success', message: '학생이 등록됐어요.' })
-                studentService.getStudents().then((res) => setStudents(res.data))
+                const bulkRes = await studentService.bulkCreateStudents(file)
+                addToast({
+                  variant: 'success',
+                  message:
+                    bulkRes.fail_count > 0
+                      ? `${bulkRes.success_count} ok, ${bulkRes.fail_count} failed`
+                      : `${bulkRes.success_count} students added`,
+                })
+                studentService.getStudents().then((r) => setStudents(r.data))
               } catch {
                 addToast({ variant: 'error', message: '엑셀 업로드에 실패했어요.' })
               }

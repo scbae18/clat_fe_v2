@@ -60,15 +60,12 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     if (!lesson) return
     try {
       const attendanceItem = lesson.items.find((i) => i.item_type === 'ATTENDANCE')
-      await lessonService.updateLesson({
-        lesson_id: lessonId,
-        class_id: lesson.class_id,
-        lesson_date: lesson.lesson_date,
+      await lessonService.updateLesson(lessonId, {
         template_id: lesson.template_id,
         status: 'SAVED',
         common_data: Object.entries(commonValues).map(([id, value]) => ({
           template_item_id: Number(id),
-          value,
+          value: String(value ?? ''),
         })),
         student_data: students.map((s) => ({
           student_id: s.id,
@@ -77,15 +74,14 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
               ? [
                   {
                     template_item_id: attendanceItem.id,
-                    value: s.attendance ?? '',
+                    value: String(s.attendance ?? ''),
                     is_completed: false,
                   },
                 ]
               : []),
             ...s.items.map((item) => ({
               template_item_id: item.template_item_id,
-              value: item.value,
-              // Fix #2: null(미선택)은 null 그대로 전송, ?? false 제거
+              value: String(item.value ?? ''),
               is_completed: item.is_completed ?? undefined,
             })),
           ],
@@ -109,10 +105,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     confirmModal.close()
     templateModal.close()
     try {
-      await lessonService.updateLesson({
-        lesson_id: lessonId,
-        class_id: lesson.class_id,
-        lesson_date: lesson.lesson_date,
+      await lessonService.updateLesson(lessonId, {
         template_id: targetId,
         status: 'SAVED',
         common_data: [],

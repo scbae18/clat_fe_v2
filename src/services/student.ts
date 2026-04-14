@@ -9,10 +9,10 @@ export interface StudentClass {
 
 export interface CreateStudentDto {
   name: string
-  phone: string
-  parent_phone: string
-  school_name: string
-  class_ids: number[]
+  phone?: string
+  parent_phone?: string
+  school_name?: string
+  class_ids?: number[]
 }
 
 export interface UpdateStudentDto {
@@ -33,6 +33,12 @@ export interface BulkCreateStudentDto {
   phone: string
   parent_phone: string
   school_name: string
+}
+
+export interface BulkUploadResult {
+  success_count: number
+  fail_count: number
+  errors: Array<{ row: number; reason: string }>
 }
 
 export const studentService = {
@@ -66,11 +72,12 @@ export const studentService = {
     })
   },
 
-  async bulkCreateStudents(file: File): Promise<void> {
+  async bulkCreateStudents(file: File): Promise<BulkUploadResult> {
     const formData = new FormData()
     formData.append('file', file)
-    await axiosInstance.post('/students/bulk', formData, {
+    const { data } = await axiosInstance.post('/students/bulk', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
+    return data.data as BulkUploadResult
   },
 }

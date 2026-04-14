@@ -8,6 +8,9 @@ export interface StudentStats {
   total_complete_items: number
   total_incomplete_items: number
   completion_rate: number
+  monthly_completion_rate?: number
+  monthly_attendance_rate?: number
+  recent_scores?: unknown[]
 }
 
 export interface Student {
