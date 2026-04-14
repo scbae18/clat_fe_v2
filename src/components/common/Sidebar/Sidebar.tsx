@@ -17,14 +17,16 @@ import HomeIcon from '@/assets/icons/icon-home.svg'
 import EditIcon from '@/assets/icons/icon-edit.svg'
 import UsersIcon from '@/assets/icons/icon-users.svg'
 import ClipboardIcon from '@/assets/icons/icon-clipboard.svg'
+import MessageIcon from '@/assets/icons/icon-message.svg'
 import LogoIcon from '@/assets/logo/logo-symbol.svg'
 import LogoutIcon from '@/assets/icons/icon-logout.svg'
 
 const NAV_ITEMS = [
-  { href: '/home', label: '홈', icon: HomeIcon },
-  { href: '/lesson', label: '수업 입력', icon: EditIcon },
-  { href: '/management', label: '학생·반 관리', icon: UsersIcon },
-  { href: '/template', label: '수업 템플릿', icon: ClipboardIcon },
+  { href: '/home', label: '\uD648', icon: HomeIcon },
+  { href: '/lesson', label: '\uC218\uC5C5 \uC785\uB825', icon: EditIcon },
+  { href: '/management', label: '\uD559\uC0DD\u00B7\uBC18 \uAD00\uB9AC', icon: UsersIcon },
+  { href: '/template', label: '\uC218\uC5C5 \uD15C\uD50C\uB9BF', icon: ClipboardIcon },
+  { href: '/alimtalk', label: '\uC54C\uB9BC\uD1A1', icon: MessageIcon },
 ]
 
 export default function Sidebar() {
@@ -54,7 +56,7 @@ export default function Sidebar() {
 
         <button className={logoutButtonStyle} onClick={() => setIsLogoutModalOpen(true)}>
           <LogoutIcon width={20} height={20} />
-          로그아웃
+          {'\uB85C\uADF8\uC544\uC6C3'}
         </button>
       </nav>
 

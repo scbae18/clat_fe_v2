@@ -176,12 +176,9 @@ function ManagementContent() {
                   setClasses(res.data)
                   addClass.close()
                   addToast({
-                  variant: 'success',
-                  message:
-                    bulkRes.fail_count > 0
-                      ? `${bulkRes.success_count} ok, ${bulkRes.fail_count} failed`
-                      : `${bulkRes.success_count} students added`,
-                })
+                    variant: 'success',
+                    message: '\uBC18\uC774 \uCD94\uAC00\uB418\uC5C8\uC5B4\uC694.',
+                  })
                 } catch (err) {
                   console.error('반 생성 실패', err)
                   addToast({ variant: 'error', message: '반 생성에 실패했어요.' })
