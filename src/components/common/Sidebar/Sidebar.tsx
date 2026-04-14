@@ -18,6 +18,7 @@ import EditIcon from '@/assets/icons/icon-edit.svg'
 import UsersIcon from '@/assets/icons/icon-users.svg'
 import ClipboardIcon from '@/assets/icons/icon-clipboard.svg'
 import MessageIcon from '@/assets/icons/icon-message.svg'
+import StarIcon from '@/assets/icons/icon-star.svg'
 import LogoIcon from '@/assets/logo/logo-symbol.svg'
 import LogoutIcon from '@/assets/icons/icon-logout.svg'
 
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { href: '/management', label: '\uD559\uC0DD\u00B7\uBC18 \uAD00\uB9AC', icon: UsersIcon },
   { href: '/template', label: '\uC218\uC5C5 \uD15C\uD50C\uB9BF', icon: ClipboardIcon },
   { href: '/alimtalk', label: '\uC54C\uB9BC\uD1A1', icon: MessageIcon },
+  { href: '/ai', label: 'AI \uC870\uAD50', icon: StarIcon },
 ]
 
 export default function Sidebar() {
