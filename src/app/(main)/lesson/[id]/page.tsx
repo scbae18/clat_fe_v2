@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Text from '@/components/common/Text'
 import Button from '@/components/common/Button'
@@ -12,7 +12,7 @@ import MessageIcon from '@/assets/icons/icon-message.svg'
 import LessonTable from './_components/LessonTableSection/LessonTableSection'
 import CommonContent from './_components/CommonContent/CommonContent'
 import ProgressBar from './_components/ProgressBar/ProgressBar'
-import MessagePreview from './_components/MessagePreview/MessagePreview'
+import AlimtalkSendModal from './_components/AlimtalkSendModal/AlimtalkSendModal'
 import ConfirmModal from '@/components/common/ConfirmModal'
 import TemplateSelectModal from '../_components/TemplateSelectModal/TemplateSelectModal'
 import {
@@ -29,6 +29,13 @@ import useLessonDetail from '@/hooks/useLessonDetail'
 import useDisclosure from '@/hooks/useDisclosure'
 import { lessonService } from '@/services/lesson'
 import { useToastStore } from '@/stores/toastStore'
+import {
+  useAttendanceSessionStore,
+  ATTENDANCE_SESSION_ENDED_EVENT,
+} from '@/stores/attendanceSessionStore'
+import { attendanceService } from '@/services/attendance'
+import { resolveStudentCheckLinks } from '@/lib/attendanceUrls'
+import AttendanceStartModal from '@/components/attendance/AttendanceStartModal'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
@@ -45,7 +52,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     setCommonValues,
     students,
     setStudents,
-    messagePreview,
+    alimtalkSendModal,
     inputCount,
     isLoading,
     handleExcelDownload,
@@ -54,7 +61,56 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
 
   const templateModal = useDisclosure()
   const confirmModal = useDisclosure()
+  const attendanceStartModal = useDisclosure()
   const [pendingTemplateId, setPendingTemplateId] = useState<number | null>(null)
+
+  const activeAttendance = useAttendanceSessionStore((s) => s.active)
+  const setActiveAttendance = useAttendanceSessionStore((s) => s.setActive)
+  const bumpAttendanceDetail = useAttendanceSessionStore((s) => s.bumpAttendanceDetail)
+
+  useEffect(() => {
+    const onEnded = (e: Event) => {
+      const ce = e as CustomEvent<{ lessonRecordId: number }>
+      if (ce.detail?.lessonRecordId === lessonId) refetch()
+    }
+    window.addEventListener(ATTENDANCE_SESSION_ENDED_EVENT, onEnded)
+    return () => window.removeEventListener(ATTENDANCE_SESSION_ENDED_EVENT, onEnded)
+  }, [lessonId, refetch])
+
+  useEffect(() => {
+    if (!lessonId || !lesson || error === 'TEMPLATE_NOT_FOUND') return
+    attendanceService
+      .getSessionByLesson(lessonId)
+      .then((r) => {
+        if (r.session_id && r.is_active !== false && r.expires_at) {
+          setActiveAttendance({
+            sessionId: r.session_id,
+            lessonRecordId: lessonId,
+            className: lesson.class_name,
+            code: r.code ?? '',
+            expiresAt: r.expires_at,
+          })
+        } else {
+          const cur = useAttendanceSessionStore.getState().active
+          if (cur?.lessonRecordId === lessonId) setActiveAttendance(null)
+        }
+      })
+      .catch(() => {})
+  }, [lessonId, lesson, error, setActiveAttendance])
+
+  useEffect(() => {
+    const cur = useAttendanceSessionStore.getState().active
+    if (!cur || cur.lessonRecordId !== lessonId || !cur.sessionId) return
+    if (cur.studentLinks && cur.studentLinks.length > 0) return
+    if (students.length === 0) return
+    setActiveAttendance({
+      ...cur,
+      studentLinks: resolveStudentCheckLinks(
+        cur.sessionId,
+        students.map((s) => ({ id: s.id, name: s.name }))
+      ),
+    })
+  }, [lessonId, students, setActiveAttendance])
 
   const handleSave = async () => {
     if (!lesson) return
@@ -170,6 +226,11 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     .filter((i) => i.is_common)
     .map((i) => ({ id: i.id, label: i.name }))
 
+  const hasAttendanceItem = lesson.items.some((i) => i.item_type === 'ATTENDANCE')
+  const attendanceInProgress =
+    activeAttendance?.lessonRecordId === lessonId && activeAttendance != null
+  const attendanceLocked = lesson.attendance_locked === true
+
   return (
     <div className={pageStyle}>
       {/* 헤더 */}
@@ -192,6 +253,32 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           </Button>
         </div>
         <div className={headerButtonGroupStyle}>
+          {hasAttendanceItem && (
+            <Button
+              variant={attendanceInProgress || attendanceLocked ? 'secondary' : 'primary'}
+              size="sm"
+              onClick={() => {
+                if (attendanceInProgress) {
+                  bumpAttendanceDetail()
+                  return
+                }
+                if (attendanceLocked) {
+                  addToast({
+                    variant: 'warning',
+                    message: '이 수업은 이미 출결을 시작해서 다시 시작할 수 없어요.',
+                  })
+                  return
+                }
+                attendanceStartModal.open()
+              }}
+            >
+              {attendanceInProgress
+                ? '출결 진행 중'
+                : attendanceLocked
+                  ? '출결 시작 불가 (이미 진행됨)'
+                  : '출결 시작하기'}
+            </Button>
+          )}
           <Button
             variant="secondary"
             size="sm"
@@ -238,10 +325,10 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           leftIcon={<MessageIcon width={20} height={20} />}
           onClick={async () => {
             await handleSave()
-            messagePreview.open()
+            alimtalkSendModal.open()
           }}
         >
-          문자 미리보기
+          {'\uC54C\uB9BC\uD1A1 \uC804\uC1A1\uD558\uAE30'}
         </Button>
       </div>
 
@@ -267,11 +354,19 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
         confirmVariant="danger"
       />
 
-      <MessagePreview
-        isOpen={messagePreview.isOpen}
-        onClose={messagePreview.close}
+      <AlimtalkSendModal
+        isOpen={alimtalkSendModal.isOpen}
+        onClose={alimtalkSendModal.close}
         lessonId={lessonId}
-        lesson={lesson}
+      />
+
+      <AttendanceStartModal
+        isOpen={attendanceStartModal.isOpen}
+        onClose={attendanceStartModal.close}
+        lessonRecordId={lessonId}
+        className={lesson.class_name}
+        studentCount={students.length}
+        students={students.map((s) => ({ id: s.id, name: s.name }))}
       />
     </div>
   )

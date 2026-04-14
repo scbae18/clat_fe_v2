@@ -34,6 +34,7 @@ export interface LessonDetail {
   lesson_date: string
   status: 'DRAFT' | 'SAVED'
   is_adhoc: boolean
+  attendance_locked?: boolean
   common_data: CommonDataItem[]
   student_data: StudentData[]
   items: LessonItemDetail[]
@@ -94,6 +95,30 @@ export interface LessonPreviewResult {
   data: LessonPreviewRow[]
 }
 
+export interface SendLessonResult {
+  batch_id: number
+  total_count: number
+  success_count: number
+  fail_count: number
+  delivery_mode: 'mock' | 'live'
+}
+
+/** POST .../send returns `{ data: SendLessonResult }` from service → double `data` with TransformInterceptor. */
+function unwrapSendLessonResult(res: { data?: unknown }): SendLessonResult {
+  const inner = res.data as SendLessonResult | { data: SendLessonResult } | undefined
+  if (
+    inner &&
+    typeof inner === 'object' &&
+    'data' in inner &&
+    inner.data &&
+    typeof inner.data === 'object' &&
+    'batch_id' in inner.data
+  ) {
+    return inner.data
+  }
+  return inner as SendLessonResult
+}
+
 export const lessonService = {
   async getLessons(date: string): Promise<LessonListResponse> {
     const { data } = await axiosInstance.get('/lessons', { params: { date } })
@@ -122,6 +147,13 @@ export const lessonService = {
   async previewLesson(id: number): Promise<LessonPreviewResult> {
     const { data } = await axiosInstance.get(`/lessons/${id}/preview`)
     return data.data as LessonPreviewResult
+  },
+
+  async sendLesson(lessonId: number, studentIds: number[]): Promise<SendLessonResult> {
+    const { data } = await axiosInstance.post(`/lessons/${lessonId}/send`, {
+      student_ids: studentIds,
+    })
+    return unwrapSendLessonResult(data)
   },
 
   async exportLesson(id: number): Promise<Blob> {

@@ -2,10 +2,8 @@ import { useState, useEffect } from 'react'
 import type { LessonStudent } from '@/types/lessonStudent'
 import { lessonService, type LessonDetail } from '@/services/lesson'
 import { classService } from '@/services/class'
-import { exportLessonExcel } from '@/lib/exportExcel'
-import { format } from 'date-fns'
-import { ko } from 'date-fns/locale'
 import useDisclosure from './useDisclosure'
+import { useToastStore } from '@/stores/toastStore'
 
 export default function useLessonDetail(lessonId: number) {
   const [lesson, setLesson] = useState<LessonDetail | null>(null)
@@ -14,7 +12,8 @@ export default function useLessonDetail(lessonId: number) {
   const [isLoading, setIsLoading] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
   const [error, setError] = useState<'TEMPLATE_NOT_FOUND' | null>(null)
-  const messagePreview = useDisclosure()
+  const alimtalkSendModal = useDisclosure()
+  const addToast = useToastStore((s) => s.addToast)
 
   const refetch = () => {
     setError(null)
@@ -110,27 +109,22 @@ export default function useLessonDetail(lessonId: number) {
     })
   }).length
 
-  const handleExcelDownload = () => {
+  const handleExcelDownload = async () => {
     if (!lesson) return
-    const individualItems = lesson.items
-      .filter((i) => !i.is_common && i.item_type !== 'ATTENDANCE')
-      .map((i) => ({ id: i.id, label: i.name }))
-
-    exportLessonExcel({
-      title: `${format(new Date(lesson.lesson_date), 'M월 d일(E)', { locale: ko })} ${lesson.class_name} 수업 결과`,
-      commonItems: lesson.items
-        .filter((i) => i.is_common)
-        .map((i) => ({ id: i.id, label: i.name })),
-      commonValues,
-      students,
-      individualItems,
-      context: {
-        academyName: lesson.academy_name,
-        teacherName: '',
-        className: lesson.class_name,
-        lessonDate: format(new Date(lesson.lesson_date), 'M월 d일(E)', { locale: ko }),
-      },
-    })
+    try {
+      const blob = await lessonService.exportLesson(lesson.id)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `lesson-message-${lesson.id}.xlsx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      addToast({
+        variant: 'error',
+        message: '\uC5D1\uC140 \uB2E4\uC6B4\uB85C\uB4DC\uC5D0 \uC2E4\uD328\uD588\uC5B4\uC694.',
+      })
+    }
   }
 
   return {
@@ -141,7 +135,7 @@ export default function useLessonDetail(lessonId: number) {
     setCommonValues,
     students,
     setStudents,
-    messagePreview,
+    alimtalkSendModal,
     inputCount,
     isLoading,
     handleExcelDownload,

@@ -2,6 +2,7 @@ import Sidebar from '@/components/common/Sidebar'
 import { ToastContainer } from '@/components/common/Toast'
 import { colors } from '@/styles/tokens/colors'
 import UserInitializer from '@/components/common/UserInitializer'
+import AttendanceFloatingBarHost from '@/components/attendance/AttendanceFloatingBarHost'
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,6 +13,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         {children}
       </main>
       <ToastContainer />
+      <AttendanceFloatingBarHost />
     </div>
   )
 }
