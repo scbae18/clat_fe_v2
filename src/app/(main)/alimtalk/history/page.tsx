@@ -415,6 +415,23 @@ export default function AlimtalkHistoryPage() {
                                           {selected.parent.message_body}
                                         </div>
                                       )}
+                                      {selected.parent?.parent_dashboard_token && (
+                                        <div style={{ marginTop: 10 }}>
+                                          <button
+                                            type="button"
+                                            className={styles.studentNameChip}
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              window.open(
+                                                `/parent/${selected.parent!.parent_dashboard_token}`,
+                                                '_blank'
+                                              )
+                                            }}
+                                          >
+                                            {'\uD559\uBD80\uBAA8 \uB300\uC2DC\uBCF4\uB4DC \uC5F4\uAE30'}
+                                          </button>
+                                        </div>
+                                      )}
                                       {selected.student?.status === 'FAIL' &&
                                         selected.student.error_message && (
                                           <div
