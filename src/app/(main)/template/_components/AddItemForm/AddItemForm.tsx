@@ -31,10 +31,10 @@ import { colors } from '@/styles/tokens/colors'
 type ItemTypeId = 'number' | 'text' | 'choice' | 'completion'
 
 const ITEM_TYPES: Array<{ id: ItemTypeId; name: string; desc: string }> = [
-  { id: 'number', name: '숫자형', desc: '예: 시험 점수' },
-  { id: 'text', name: '텍스트형', desc: '예: 메모' },
-  { id: 'choice', name: '선택형', desc: '원하는 선택지를 직접 추가해요' },
-  { id: 'completion', name: '완료형', desc: '완료/미완료' },
+  { id: 'number', name: '\uC810\uC218\uD615', desc: '\uC608: \uC2DC\uD5D8\u00B7\uCABD\uC9C0\uC2DC\uD5D8 \uB4F1' },
+  { id: 'text', name: '\uD14D\uC2A4\uD2B8\uD615', desc: '\uC608: \uBA54\uBAA8' },
+  { id: 'choice', name: '\uC120\uD0DD\uD615', desc: '\uC6D0\uD558\uB294 \uC120\uD0DD\uC9C0\uB97C \uC9C1\uC811 \uCD94\uAC00\uD574\uC694' },
+  { id: 'completion', name: '\uC644\uB8CC\uD615', desc: '\uC644\uB8CC/\uBBF8\uC644\uB8CC' },
 ]
 
 interface AddItemFormProps {
@@ -86,19 +86,21 @@ export default function AddItemForm({ onAdd, onCancel }: AddItemFormProps) {
 
   return (
     <div className={formStyle}>
-      {/* 항목 이름 */}
       <div className={fieldStyle}>
-        <span className={labelStyle}>항목 이름 <span style={{ color: '#EF4453' }}>*</span></span>
+        <span className={labelStyle}>
+          {'\uD56D\uBAA9 \uC774\uB984'} <span style={{ color: '#EF4453' }}>*</span>
+        </span>
         <Input
           value={label}
           onChange={(e) => setLabel(e.target.value)}
-          placeholder="예) 금요일 과제"
+          placeholder={'\uC608) \uAE08\uC694\uC77C \uACFC\uC81C'}
         />
       </div>
 
-      {/* 항목 타입 */}
       <div className={fieldStyle}>
-        <span className={labelStyle}>항목 타입 <span style={{ color: '#EF4453' }}>*</span></span>
+        <span className={labelStyle}>
+          {'\uD56D\uBAA9 \uD0C0\uC785'} <span style={{ color: '#EF4453' }}>*</span>
+        </span>
         <div className={typeGridStyle}>
           {ITEM_TYPES.map((type) => {
             const isSelected = selectedType === type.id
@@ -121,7 +123,6 @@ export default function AddItemForm({ onAdd, onCancel }: AddItemFormProps) {
           })}
         </div>
 
-        {/* 선택형: 선택지 태그 입력 */}
         {selectedType === 'choice' && (
           <div className={tagInputContainerStyle}>
             {choices.map((choice, i) => (
@@ -137,30 +138,53 @@ export default function AddItemForm({ onAdd, onCancel }: AddItemFormProps) {
               value={choiceInput}
               onChange={handleChoiceChange}
               onKeyDown={handleChoiceKeyDown}
-              placeholder="쉼표로 구분"
+              placeholder={'\uC27C\uD45C\uB85C \uAD6C\uBD84'}
             />
           </div>
         )}
 
-        {/* 완료형: 안내 문구 */}
+        {selectedType === 'number' && (
+          <div className={completionInfoStyle}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <InfoIcon width={16} height={16} style={{ color: colors.primary500 }} />
+              <span className={completionInfoTitleStyle}>
+                {'\uC810\uC218\uD615\uC740 \uC774\uB7F0 \uAE30\uB2A5\uC744 \uC9C0\uC6D0\uD574\uC694'}
+              </span>
+            </div>
+            <ul className={completionInfoListStyle}>
+              <li>
+                {
+                  '\uC218\uC5C5 \uC785\uB825 \uD654\uBA74\uC5D0\uC11C \uBC18 \uD3C9\uADE0\u00B7\uCD5C\uACE0\uC810\uC744 \uC2E4\uC2DC\uAC04\uC73C\uB85C \uD655\uC778'
+                }
+              </li>
+              <li>
+                {
+                  '\uD559\uC0DD \uB300\uC2DC\uBCF4\uB4DC \uB4F1\uC5D0\uC11C \uC810\uC218 \uCD94\uC774\uB85C \uD65C\uC6A9'
+                }
+              </li>
+            </ul>
+          </div>
+        )}
+
         {selectedType === 'completion' && (
           <div className={completionInfoStyle}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <InfoIcon width={16} height={16} style={{ color: colors.primary500 }} />
-              <span className={completionInfoTitleStyle}>완료형은 이런 기능을 지원해요</span>
+              <span className={completionInfoTitleStyle}>
+                {'\uC644\uB8CC\uD615\uC740 \uC774\uB7F0 \uAE30\uB2A5\uC744 \uC9C0\uC6D0\uD574\uC694'}
+              </span>
             </div>
             <ul className={completionInfoListStyle}>
-              <li>미완료 학생 자동 분류</li>
-              <li>학생 관리 탭에서 한눈에 확인</li>
+              <li>{'\uBBF8\uC644\uB8CC \uD559\uC0DD \uC790\uB3D9 \uBD84\uB958'}</li>
+              <li>{'\uD559\uC0DD \uAD00\uB9AC \uD0ED\uC5D0\uC11C \uD55C\uB208\uC5D0 \uD655\uC778'}</li>
             </ul>
           </div>
         )}
       </div>
 
-      {/* 하단 버튼 */}
       <div className={actionsStyle}>
         <Button variant="ghost" size="sm" fullWidth onClick={onCancel}>
-          취소
+          {'\uCDE8\uC18C'}
         </Button>
         <Button
           variant="primary"
@@ -169,7 +193,7 @@ export default function AddItemForm({ onAdd, onCancel }: AddItemFormProps) {
           onClick={handleAdd}
           disabled={!label.trim() || !selectedType}
         >
-          추가
+          {'\uCD94\uAC00'}
         </Button>
       </div>
     </div>

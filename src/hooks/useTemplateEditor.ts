@@ -51,7 +51,7 @@ export default function useTemplateEditor(initial: InitialData = {}) {
   }, [commonItems, individualItems])
 
   const ITEM_TYPE_MAP: Record<TemplateItem['itemType'], string> = {
-    number: 'NUMBER',
+    number: 'SCORE',
     text: 'TEXT',
     choice: 'SELECT',
     completion: 'COMPLETE',

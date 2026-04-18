@@ -43,7 +43,9 @@ export default function Sidebar() {
       </div>
       <nav className={navStyle}>
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const isActive = pathname.startsWith(href)
+          const isActive =
+            pathname.startsWith(href) ||
+            (href === '/management' && pathname.startsWith('/students'))
           return (
             <Link
               key={href}

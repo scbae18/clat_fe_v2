@@ -154,3 +154,48 @@ export const checkboxLabelActiveStyle = style({
 export const activeRowStyle = style({
   backgroundColor: colors.success50,
 })
+
+/** SCORE column header: title + live stats row */
+export const scoreColHeaderStyle = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: '4px',
+  paddingTop: '4px',
+  paddingBottom: '4px',
+})
+
+export const scoreColStatsStyle = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.labelSm.fontWeight,
+  color: colors.gray500,
+  letterSpacing: '-0.03em',
+  lineHeight: '140%',
+  whiteSpace: 'nowrap',
+})
+
+export const scoreInputStyle = style({
+  width: '100%',
+  minWidth: '48px',
+  height: '24px',
+  padding: '0 4px',
+  margin: 0,
+  border: 'none',
+  borderRadius: '6px',
+  backgroundColor: colors.gray50,
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  color: colors.gray700,
+  letterSpacing: '-0.03em',
+  outline: 'none',
+  boxSizing: 'border-box',
+  selectors: {
+    '&::placeholder': {
+      color: colors.gray300,
+    },
+    '&:focus': {
+      backgroundColor: colors.white,
+      boxShadow: `0 0 0 1px ${colors.primary200}`,
+    },
+  },
+})

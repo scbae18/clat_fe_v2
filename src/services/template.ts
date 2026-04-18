@@ -4,7 +4,7 @@ import type { TemplateItem as EditorItem } from '@/app/(main)/template/_types/te
 export interface TemplateItemDetail {
   id: number
   name: string
-   item_type: 'TEXT' | 'NUMBER' | 'SELECT' | 'COMPLETE' | 'ATTENDANCE' | 'SCORE'
+   item_type: 'TEXT' | 'SELECT' | 'COMPLETE' | 'ATTENDANCE' | 'SCORE'
   is_common: boolean
   include_in_message: boolean
   is_default_attendance: boolean

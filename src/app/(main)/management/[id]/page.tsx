@@ -16,7 +16,6 @@ import PlusIcon from '@/assets/icons/icon-plus.svg'
 import AddStudentModal from './_components/AddStudentModal/AddStudentModal'
 import ConfirmModal from '@/components/common/ConfirmModal'
 import ClassFormModal from '../_components/ClassFormModal/ClassFormModal'
-import StudentDetailModal from '../_components/StudentDetailModal/StudentDetailModal'
 import { classService, type ClassDetail } from '@/services/class'
 import { useToastStore } from '@/stores/toastStore'
 import type { Student } from '@/types/student'
@@ -40,8 +39,6 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
   const [students, setStudents] = useState<Student[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [deleteStudentTarget, setDeleteStudentTarget] = useState<number | null>(null)
-  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null)
-
   useEffect(() => {
     classService
       .getClass(classId)
@@ -191,7 +188,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
           students={students}
           middleColumns={[]}
           onDelete={(id) => setDeleteStudentTarget(id)}
-          onRowClick={(id) => setSelectedStudentId(id)}
+          onRowClick={(id) => router.push(`/students/${id}`)}
         />
       </section>
 
@@ -242,10 +239,6 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
         />
       </div>
 
-      <StudentDetailModal
-        studentId={selectedStudentId}
-        onClose={() => setSelectedStudentId(null)}
-      />
     </div>
   )
 }

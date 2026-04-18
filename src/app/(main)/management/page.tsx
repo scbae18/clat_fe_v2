@@ -27,7 +27,6 @@ import ConfirmModal from '@/components/common/ConfirmModal'
 import { studentService } from '@/services/student'
 import type { Student } from '@/types/student'
 import { useToastStore } from '@/stores/toastStore'
-import StudentDetailModal from './_components/StudentDetailModal/StudentDetailModal'
 
 const FILTER_OPTIONS = [
   { label: '전체', value: 'all' },
@@ -46,8 +45,6 @@ function ManagementContent() {
   const [students, setStudents] = useState<Student[]>([])
   const [isLoadingStudents, setIsLoadingStudents] = useState(false)
   const addToast = useToastStore((s) => s.addToast)
-  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null)
-
   const formatSchedule = (schedules: { day_of_week: number }[]) =>
     schedules.map((s) => DAY_NAMES[s.day_of_week]).join('·')
 
@@ -234,7 +231,7 @@ function ManagementContent() {
               },
             ]}
             onDelete={(id) => setDeleteStudentTarget(id)}
-            onRowClick={(id) => setSelectedStudentId(id)}
+            onRowClick={(id) => router.push(`/students/${id}`)}
           />
 
           <ConfirmModal
@@ -247,11 +244,6 @@ function ManagementContent() {
             confirmVariant="danger"
           />
 
-          <StudentDetailModal
-            studentId={selectedStudentId}
-            onClose={() => setSelectedStudentId(null)}
-            onUpdated={() => studentService.getStudents().then((res) => setStudents(res.data))}
-          />
         </>
       )}
     </>

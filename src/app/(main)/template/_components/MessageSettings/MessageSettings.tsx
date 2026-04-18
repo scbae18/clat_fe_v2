@@ -32,7 +32,7 @@ import {
 } from './MessageSettings.css'
 
 const ITEM_TYPE_LABELS: Record<string, string> = {
-  number: '숫자형',
+  number: '\uC810\uC218\uD615',
   text: '텍스트형',
   choice: '선택형',
   completion: '완료형',

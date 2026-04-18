@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import CheckIcon from '@/assets/icons/icon-check.svg'
 import type { LessonStudent, Attendance, CompletionStatus } from '@/types/lessonStudent'
 import type { LessonItemDetail } from '@/services/lesson'
@@ -17,13 +18,26 @@ import {
   thInnerStyle,
   checkboxLabelStyle,
   checkboxLabelActiveStyle,
-  activeRowStyle,
+  scoreColHeaderStyle,
+  scoreColStatsStyle,
+  scoreInputStyle,
 } from './LessonTable.css'
 
 interface LessonTableSectionProps {
   students: LessonStudent[]
   templateItems: LessonItemDetail[]
   onChange: (students: LessonStudent[]) => void
+}
+
+function parseLessonScore(raw: string): number | null {
+  const t = String(raw).trim()
+  if (!t) return null
+  const n = parseFloat(t.replace(/[^0-9.-]/g, ''))
+  return Number.isFinite(n) ? n : null
+}
+
+function isScoreItem(item: LessonItemDetail) {
+  return item.item_type === 'SCORE' || item.item_type === 'NUMBER'
 }
 
 function AttendanceCell({
@@ -67,16 +81,18 @@ function CompletionCell({
   return (
     <div className={cellButtonGroupStyle}>
       <button
-        className={cellButtonRecipe({ variant: value === '완료' ? 'done' : 'default' })}
-        onClick={() => onChange(value === '완료' ? null : '완료')}
+        className={cellButtonRecipe({ variant: value === '\uC644\uB8CC' ? 'done' : 'default' })}
+        onClick={() => onChange(value === '\uC644\uB8CC' ? null : '\uC644\uB8CC')}
       >
-        완료
+        {'\uC644\uB8CC'}
       </button>
       <button
-        className={cellButtonRecipe({ variant: value === '미완료' ? 'undone' : 'default' })}
-        onClick={() => onChange(value === '미완료' ? null : '미완료')}
+        className={cellButtonRecipe({
+          variant: value === '\uBBF8\uC644\uB8CC' ? 'undone' : 'default',
+        })}
+        onClick={() => onChange(value === '\uBBF8\uC644\uB8CC' ? null : '\uBBF8\uC644\uB8CC')}
       >
-        미완료
+        {'\uBBF8\uC644\uB8CC'}
       </button>
     </div>
   )
@@ -106,12 +122,68 @@ function SelectCell({
   )
 }
 
+function ScoreCell({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <input
+      className={scoreInputStyle}
+      type="text"
+      inputMode="decimal"
+      autoComplete="off"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={'\u2014'}
+      aria-label={'\uC810\uC218'}
+    />
+  )
+}
+
+const SCORE_STATS_EMPTY = '\uC785\uB825 \uC2DC \uD3C9\uADE0\u00B7\uCD5C\uACE0 \uD45C\uC2DC'
+
+function formatScoreStats(avg: number, max: number) {
+  return (
+    '\uD3C9\uADE0 ' +
+    avg.toFixed(1) +
+    '\uC810 \u00B7 \uCD5C\uACE0 ' +
+    String(Math.round(max)) +
+    '\uC810'
+  )
+}
+
 export default function LessonTable({
   students,
   templateItems,
   onChange,
 }: LessonTableSectionProps) {
-  const dynamicItems = templateItems.filter((i) => !i.is_common && i.item_type !== 'ATTENDANCE')
+  const dynamicItems = useMemo(
+    () => templateItems.filter((i) => !i.is_common && i.item_type !== 'ATTENDANCE'),
+    [templateItems]
+  )
+
+  const scoreStatsByItemId = useMemo(() => {
+    const m = new Map<number, { avg: number; max: number } | null>()
+    for (const item of dynamicItems) {
+      if (!isScoreItem(item)) continue
+      const nums: number[] = []
+      for (const s of students) {
+        const v = s.items.find((i) => i.template_item_id === item.id)?.value ?? ''
+        const n = parseLessonScore(v)
+        if (n !== null) nums.push(n)
+      }
+      if (nums.length === 0) m.set(item.id, null)
+      else
+        m.set(item.id, {
+          max: Math.max(...nums),
+          avg: nums.reduce((a, b) => a + b, 0) / nums.length,
+        })
+    }
+    return m
+  }, [dynamicItems, students])
 
   const updateAttendance = (studentId: number, value: Attendance) => {
     onChange(students.map((s) => (s.id === studentId ? { ...s, attendance: value } : s)))
@@ -158,11 +230,24 @@ export default function LessonTable({
               </div>
             </div>
           </th>
-          {dynamicItems.map((item) => (
-            <th key={item.id} className={thShrinkStyle}>
-              {item.name}
-            </th>
-          ))}
+          {dynamicItems.map((item) => {
+            const isScore = isScoreItem(item)
+            const stats = isScore ? scoreStatsByItemId.get(item.id) ?? null : null
+            return (
+              <th key={item.id} className={thShrinkStyle}>
+                {isScore ? (
+                  <div className={scoreColHeaderStyle}>
+                    <span>{item.name}</span>
+                    <span className={scoreColStatsStyle}>
+                      {stats ? formatScoreStats(stats.avg, stats.max) : SCORE_STATS_EMPTY}
+                    </span>
+                  </div>
+                ) : (
+                  item.name
+                )}
+              </th>
+            )
+          })}
         </tr>
       </thead>
       <tbody>
@@ -190,13 +275,13 @@ export default function LessonTable({
                   </td>
                 )
               }
-              
+
               if (item.item_type === 'COMPLETE') {
                 const status: CompletionStatus =
                   studentItem?.is_completed === true
-                    ? '완료'
+                    ? '\uC644\uB8CC'
                     : studentItem?.is_completed === false
-                      ? '미완료'
+                      ? '\uBBF8\uC644\uB8CC'
                       : null
                 return (
                   <td key={item.id} className={tdShrinkStyle}>
@@ -207,13 +292,25 @@ export default function LessonTable({
                           student.id,
                           item.id,
                           v ?? '',
-                          v === '완료' ? true : v === '미완료' ? false : null
+                          v === '\uC644\uB8CC' ? true : v === '\uBBF8\uC644\uB8CC' ? false : null
                         )
                       }
                     />
                   </td>
                 )
               }
+
+              if (isScoreItem(item)) {
+                return (
+                  <td key={item.id} className={tdShrinkStyle}>
+                    <ScoreCell
+                      value={studentItem?.value ?? ''}
+                      onChange={(v) => updateItem(student.id, item.id, v)}
+                    />
+                  </td>
+                )
+              }
+
               return (
                 <td key={item.id} className={tdStyle}>
                   <div
