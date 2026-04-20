@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import CheckIcon from '@/assets/icons/icon-check.svg'
 import type { LessonStudent, Attendance, CompletionStatus } from '@/types/lessonStudent'
 import type { LessonItemDetail } from '@/services/lesson'
+import { cohortScoreMetric, joinScoreStorage, splitScoreStorage } from '@/lib/lessonScore'
 import {
   tableStyle,
   tdStyle,
@@ -20,20 +21,16 @@ import {
   checkboxLabelActiveStyle,
   scoreColHeaderStyle,
   scoreColStatsStyle,
+  scoreHeaderMaxRowStyle,
+  scoreHeaderMaxLabelStyle,
   scoreInputStyle,
+  scoreInputNarrowStyle,
 } from './LessonTable.css'
 
 interface LessonTableSectionProps {
   students: LessonStudent[]
   templateItems: LessonItemDetail[]
   onChange: (students: LessonStudent[]) => void
-}
-
-function parseLessonScore(raw: string): number | null {
-  const t = String(raw).trim()
-  if (!t) return null
-  const n = parseFloat(t.replace(/[^0-9.-]/g, ''))
-  return Number.isFinite(n) ? n : null
 }
 
 function isScoreItem(item: LessonItemDetail) {
@@ -122,36 +119,67 @@ function SelectCell({
   )
 }
 
-function ScoreCell({
+function getScoreColumnMax(students: LessonStudent[], itemId: number): string {
+  for (const s of students) {
+    const v = s.items.find((i) => i.template_item_id === itemId)?.value ?? ''
+    const { max } = splitScoreStorage(v)
+    if (max) return max
+  }
+  return ''
+}
+
+function applyScoreMaxToAllStudents(
+  students: LessonStudent[],
+  itemId: number,
+  maxStr: string
+): LessonStudent[] {
+  return students.map((s) => {
+    const it = s.items.find((i) => i.template_item_id === itemId)
+    const { earned } = splitScoreStorage(it?.value ?? '')
+    return {
+      ...s,
+      items: s.items.map((i) =>
+        i.template_item_id === itemId ? { ...i, value: joinScoreStorage(earned, maxStr) } : i
+      ),
+    }
+  })
+}
+
+function ScoreEarnedCell({
   value,
+  columnMax,
   onChange,
 }: {
   value: string
+  columnMax: string
   onChange: (v: string) => void
 }) {
+  const { earned } = splitScoreStorage(value)
   return (
     <input
       className={scoreInputStyle}
       type="text"
       inputMode="decimal"
       autoComplete="off"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
+      value={earned}
+      onChange={(ev) => onChange(joinScoreStorage(ev.target.value, columnMax))}
       placeholder={'\u2014'}
-      aria-label={'\uC810\uC218'}
+      aria-label={'\uC5BB\uC740 \uC810\uC218'}
     />
   )
 }
 
 const SCORE_STATS_EMPTY = '\uC785\uB825 \uC2DC \uD3C9\uADE0\u00B7\uCD5C\uACE0 \uD45C\uC2DC'
 
-function formatScoreStats(avg: number, max: number) {
+function formatScoreStats(avg: number, max: number, usePercent: boolean) {
+  const unit = usePercent ? '%' : '\uC810'
   return (
     '\uD3C9\uADE0 ' +
     avg.toFixed(1) +
-    '\uC810 \u00B7 \uCD5C\uACE0 ' +
-    String(Math.round(max)) +
-    '\uC810'
+    unit +
+    ' \u00B7 \uCD5C\uACE0 ' +
+    String(Math.round(max * 10) / 10) +
+    unit
   )
 }
 
@@ -166,20 +194,28 @@ export default function LessonTable({
   )
 
   const scoreStatsByItemId = useMemo(() => {
-    const m = new Map<number, { avg: number; max: number } | null>()
+    const m = new Map<number, { avg: number; max: number; usePercent: boolean } | null>()
     for (const item of dynamicItems) {
       if (!isScoreItem(item)) continue
       const nums: number[] = []
+      let withSlash = 0
+      let withoutSlash = 0
       for (const s of students) {
         const v = s.items.find((i) => i.template_item_id === item.id)?.value ?? ''
-        const n = parseLessonScore(v)
+        const raw = String(v).trim()
+        if (!raw) continue
+        if (raw.includes('/')) withSlash++
+        else withoutSlash++
+        const n = cohortScoreMetric(v)
         if (n !== null) nums.push(n)
       }
       if (nums.length === 0) m.set(item.id, null)
+      else if (withSlash > 0 && withoutSlash > 0) m.set(item.id, null)
       else
         m.set(item.id, {
           max: Math.max(...nums),
           avg: nums.reduce((a, b) => a + b, 0) / nums.length,
+          usePercent: withSlash > 0,
         })
     }
     return m
@@ -239,8 +275,25 @@ export default function LessonTable({
                   <div className={scoreColHeaderStyle}>
                     <span>{item.name}</span>
                     <span className={scoreColStatsStyle}>
-                      {stats ? formatScoreStats(stats.avg, stats.max) : SCORE_STATS_EMPTY}
+                      {stats
+                        ? formatScoreStats(stats.avg, stats.max, stats.usePercent)
+                        : SCORE_STATS_EMPTY}
                     </span>
+                    <div className={scoreHeaderMaxRowStyle}>
+                      <span className={scoreHeaderMaxLabelStyle}>{'\uB9CC\uC810'}</span>
+                      <input
+                        className={scoreInputNarrowStyle}
+                        type="text"
+                        inputMode="decimal"
+                        autoComplete="off"
+                        value={getScoreColumnMax(students, item.id)}
+                        onChange={(ev) =>
+                          onChange(applyScoreMaxToAllStudents(students, item.id, ev.target.value))
+                        }
+                        placeholder={'\uC804\uCCB4 \uACF5\uC6A9'}
+                        aria-label={'\uC774 \uD56D\uBAA9 \uB9CC\uC810'}
+                      />
+                    </div>
                   </div>
                 ) : (
                   item.name
@@ -301,10 +354,12 @@ export default function LessonTable({
               }
 
               if (isScoreItem(item)) {
+                const colMax = getScoreColumnMax(students, item.id)
                 return (
                   <td key={item.id} className={tdShrinkStyle}>
-                    <ScoreCell
+                    <ScoreEarnedCell
                       value={studentItem?.value ?? ''}
+                      columnMax={colMax}
                       onChange={(v) => updateItem(student.id, item.id, v)}
                     />
                   </td>

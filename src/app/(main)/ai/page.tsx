@@ -60,7 +60,7 @@ const FEEDBACK_LENGTHS: LengthMeta[] = [
 
 const INCLUDE_FIELDS: Array<{ key: keyof AiSettings; label: string }> = [
   { key: 'include_improvement', label: '보완할 점' },
-  { key: 'include_homework', label: '틀린 문제 유형' },
+  { key: 'include_homework', label: '과제·수업 메모' },
   { key: 'include_attendance', label: '출결' },
   { key: 'include_score', label: '점수' },
   { key: 'include_praise', label: '칭찬 포인트' },

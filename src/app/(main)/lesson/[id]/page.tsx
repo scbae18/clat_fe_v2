@@ -57,6 +57,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     isLoading,
     handleExcelDownload,
     refetch,
+    refetchAfterAttendanceEnd,
   } = useLessonDetail(lessonId)
 
   const templateModal = useDisclosure()
@@ -71,11 +72,11 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
   useEffect(() => {
     const onEnded = (e: Event) => {
       const ce = e as CustomEvent<{ lessonRecordId: number }>
-      if (ce.detail?.lessonRecordId === lessonId) refetch()
+      if (ce.detail?.lessonRecordId === lessonId) refetchAfterAttendanceEnd()
     }
     window.addEventListener(ATTENDANCE_SESSION_ENDED_EVENT, onEnded)
     return () => window.removeEventListener(ATTENDANCE_SESSION_ENDED_EVENT, onEnded)
-  }, [lessonId, refetch])
+  }, [lessonId, refetchAfterAttendanceEnd])
 
   useEffect(() => {
     if (!lessonId || !lesson || error === 'TEMPLATE_NOT_FOUND') return

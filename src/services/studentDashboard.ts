@@ -3,6 +3,7 @@ import axiosInstance from '@/lib/api/axiosInstance'
 export type ScorePeriod = 'recent5' | 'recent10' | '1month' | '3month' | 'all'
 
 export interface ScoreHistoryPoint {
+  lesson_record_id: number
   lesson_date: string
   class_name: string
   item_name: string

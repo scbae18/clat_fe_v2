@@ -163,27 +163,62 @@ export const todoName = style({
   whiteSpace: 'nowrap',
 })
 
+export const todoHomework = style({
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: 600,
+  color: colors.gray900,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  flexShrink: 0,
+})
+
+export const todoClassBlue = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  maxWidth: '100%',
+  backgroundColor: colors.primary100,
+  color: colors.primary500,
+  fontSize: '10px',
+  fontWeight: 600,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  padding: '4px 8px',
+  borderRadius: '6px',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+})
+
+export const todoTemplateGreen = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  maxWidth: '100%',
+  backgroundColor: colors.success50,
+  color: colors.success500,
+  fontSize: '10px',
+  fontWeight: 600,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  padding: '4px 8px',
+  borderRadius: '6px',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+})
+
 export const todoTags = style({
   display: 'flex',
   alignItems: 'center',
+  justifyContent: 'flex-end',
+  flexWrap: 'wrap',
   gap: '4px',
-  flexShrink: 0,
+  flexShrink: 1,
+  minWidth: 0,
 })
 
 export const tagLate = style({
   backgroundColor: '#FEE5E5',
   color: colors.error500,
-  borderRadius: '6px',
-  padding: '4px 8px',
-  fontSize: '10px',
-  fontWeight: 600,
-  lineHeight: '140%',
-  letterSpacing: '-0.03em',
-})
-
-export const tagType = style({
-  backgroundColor: colors.primary100,
-  color: colors.primary400,
   borderRadius: '6px',
   padding: '4px 8px',
   fontSize: '10px',
@@ -207,16 +242,6 @@ export const timelineRail = style({
   top: '8px',
   bottom: '10px',
   borderLeft: `2px dotted ${colors.primary300}`,
-})
-
-export const dot = style({
-  position: 'absolute',
-  left: '-1px',
-  top: '2px',
-  width: '6px',
-  height: '6px',
-  borderRadius: '50%',
-  backgroundColor: colors.primary400,
 })
 
 export const recentDate = style({

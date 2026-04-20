@@ -1,5 +1,10 @@
-import { style } from '@vanilla-extract/css'
+import { keyframes, style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
+
+const chartEnter = keyframes({
+  '0%': { opacity: 0, transform: 'translateY(10px)' },
+  '100%': { opacity: 1, transform: 'translateY(0)' },
+})
 
 export const pageRoot = style({
   width: '100%',
@@ -193,10 +198,10 @@ export const incompleteList = style({
 
 export const incompleteRow = style({
   position: 'relative',
-  height: '51px',
+  minHeight: '51px',
   background: colors.gray50,
   borderRadius: '12px',
-  padding: '0 16px',
+  padding: '10px 16px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -214,18 +219,59 @@ export const incompleteLeft = style({
   alignItems: 'center',
   gap: '12px',
   minWidth: 0,
+  flexShrink: 0,
 })
 
-export const incompleteName = style({
+export const incompleteHomeworkMain = style({
   fontSize: '16px',
   fontWeight: 600,
   lineHeight: 1.4,
   letterSpacing: '-0.03em',
-  color: colors.gray700,
+  color: colors.gray900,
+})
+
+export const incompleteTagsRow = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  flexWrap: 'wrap',
+  gap: '8px',
+  minWidth: 0,
+  flex: 1,
+})
+
+export const incompleteClassAccent = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  maxWidth: '100%',
+  background: colors.primary100,
+  color: colors.primary500,
+  fontSize: '12px',
+  fontWeight: 600,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  padding: '4px 8px',
+  borderRadius: '6px',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
-  maxWidth: '200px',
+})
+
+export const incompleteTemplateAccent = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  maxWidth: '100%',
+  background: colors.success50,
+  color: colors.success500,
+  fontSize: '12px',
+  fontWeight: 600,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  padding: '4px 8px',
+  borderRadius: '6px',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 })
 
 export const badgeOverdue = style({
@@ -237,20 +283,6 @@ export const badgeOverdue = style({
   letterSpacing: '-0.03em',
   padding: '4px 8px',
   borderRadius: '6px',
-  flexShrink: 0,
-})
-
-export const badgeNote = style({
-  background: colors.primary100,
-  color: colors.primary400,
-  fontSize: '12px',
-  fontWeight: 600,
-  lineHeight: 1.4,
-  letterSpacing: '-0.03em',
-  padding: '4px 8px',
-  borderRadius: '6px',
-  border: 'none',
-  cursor: 'pointer',
   flexShrink: 0,
 })
 
@@ -349,6 +381,18 @@ export const chartWrap = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '4px',
+})
+
+export const chartAxisHint = style({
+  fontSize: '11px',
+  fontWeight: 500,
+  color: colors.gray500,
+  letterSpacing: '-0.02em',
+  margin: '0 0 4px',
+})
+
+export const chartMotion = style({
+  animation: `${chartEnter} 0.42s ease-out both`,
 })
 
 export const chartSvgArea = style({

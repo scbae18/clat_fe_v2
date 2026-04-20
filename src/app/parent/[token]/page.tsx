@@ -196,11 +196,15 @@ export default function ParentDashboardPage({ params }: { params: Promise<{ toke
                 </div>
                 <div className={styles.todoList}>
                   {(data.incomplete_items ?? []).slice(0, 4).map((it, idx) => (
-                    <div key={`${it.item_name}-${idx}`} className={styles.todoItem}>
-                      <span className={styles.todoName}>{it.item_name}</span>
+                    <div
+                      key={`${it.lesson_date}-${it.class_name}-${it.template_name}-${idx}`}
+                      className={styles.todoItem}
+                    >
+                      <span className={styles.todoHomework}>{'\uACFC\uC81C'}</span>
                       <div className={styles.todoTags}>
+                        <span className={styles.todoClassBlue}>{it.class_name}</span>
+                        <span className={styles.todoTemplateGreen}>{it.template_name}</span>
                         <span className={styles.tagLate}>{`${daysAgo(it.lesson_date)}\uC77C \uC9C0\uB0A8`}</span>
-                        <span className={styles.tagType}>{it.template_name}</span>
                       </div>
                     </div>
                   ))}
@@ -223,7 +227,6 @@ export default function ParentDashboardPage({ params }: { params: Promise<{ toke
                   <div className={styles.timelineRail} />
                   {(data.recent_lessons ?? []).slice(0, 2).map((r, idx) => (
                     <div key={`${r.lesson_date}-${idx}`} style={{ position: 'relative' }}>
-                      <div className={styles.dot} />
                       <div className={styles.recentDate}>{formatKoreanDate(r.lesson_date)}</div>
                       <div className={styles.recentRow}>
                         <span className={styles.recentClass}>{r.class_name}</span>

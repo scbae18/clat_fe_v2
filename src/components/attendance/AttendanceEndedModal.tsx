@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Modal from '@/components/common/Modal'
 import {
   rootStyle,
@@ -51,6 +51,8 @@ export default function AttendanceEndedModal({
   absentCount,
 }: Props) {
   const router = useRouter()
+  const pathname = usePathname()
+  const lessonPath = `/lesson/${lessonRecordId}`
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md">
       <div className={rootStyle}>
@@ -83,7 +85,7 @@ export default function AttendanceEndedModal({
           className={ctaBtnStyle}
           onClick={() => {
             onClose()
-            router.push(`/lesson/${lessonRecordId}`)
+            if (pathname !== lessonPath) router.push(lessonPath)
           }}
         >
           {'\uC218\uC5C5 \uC785\uB825\uD558\uAE30 \u2192'}

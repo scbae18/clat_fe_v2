@@ -57,9 +57,8 @@ const MSG = {
   vsClassAvg: '\ubc18 \ud3c9\uade0 \ub300\ube44',
   monthAttend: '\uc774\ubc88 \ub2ec \ucd9c\uc11d\uc728',
   incompleteTitle: '\ubbf8\uc644\ub8cc \ud56d\ubaa9',
+  homeworkMain: '\uacfc\uc81c',
   noIncomplete: '\ubbf8\uc644\ub8cc \ud56d\ubaa9\uc774 \uc5c6\uc5b4\uc694.',
-  wrongNote: '\uc624\ub2f5\ub178\ud2b8',
-  wrongNoteToast: '\uc624\ub2f5\ub178\ud2b8 \uae30\ub2a5\uc740 \uc900\ube44 \uc911\uc774\uc5d0\uc694.',
   tabScores: '\uc810\uc218 \ucd94\uc774',
   tabLessons: '\uc218\uc5c5 \uc774\ub825',
   tabAlim: '\uc54c\ub9bc\ud1a1',
@@ -467,24 +466,12 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
                   >
                     <div className={styles.incompleteLeft}>
                       <CheckIcon width={24} height={24} style={{ flexShrink: 0 }} />
-                      <span className={styles.incompleteName}>{item.item_name}</span>
+                      <span className={styles.incompleteHomeworkMain}>{MSG.homeworkMain}</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div className={styles.incompleteTagsRow}>
+                      <span className={styles.incompleteClassAccent}>{item.class_name}</span>
+                      <span className={styles.incompleteTemplateAccent}>{item.template_name}</span>
                       <span className={styles.badgeOverdue}>{overdueLabel(item.lesson_date)}</span>
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        className={styles.badgeNote}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          addToast({ variant: 'warning', message: MSG.wrongNoteToast })
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') e.stopPropagation()
-                        }}
-                      >
-                        {MSG.wrongNote}
-                      </span>
                     </div>
                   </button>
                 ))
@@ -534,7 +521,7 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
                       </button>
                     ))}
                   </div>
-                  <ScoreLineChart rows={scoreRows} />
+                  <ScoreLineChart rows={scoreRows} motionKey={`${period}-${scoreRows.length}`} />
                   <div className={styles.aiBox}>
                     <div className={styles.aiTitleRow}>
                       <SparkleIcon />

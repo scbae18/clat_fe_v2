@@ -174,6 +174,20 @@ export const scoreColStatsStyle = style({
   whiteSpace: 'nowrap',
 })
 
+export const scoreHeaderMaxRowStyle = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '6px',
+  marginTop: '2px',
+})
+
+export const scoreHeaderMaxLabelStyle = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.labelSm.fontWeight,
+  color: colors.gray500,
+  flexShrink: 0,
+})
+
 export const scoreInputStyle = style({
   width: '100%',
   minWidth: '48px',
@@ -199,3 +213,12 @@ export const scoreInputStyle = style({
     },
   },
 })
+
+export const scoreInputNarrowStyle = style([
+  scoreInputStyle,
+  {
+    minWidth: '36px',
+    width: '44px',
+    flex: '1 1 36px',
+  },
+])
