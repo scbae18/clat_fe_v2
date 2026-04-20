@@ -12,40 +12,67 @@ import {
   submitButtonStyle,
   footerLinkStyle,
   footerLinkAnchorStyle,
-} from './login.css'
+} from '../login/login.css'
 import Input from '@/components/common/Input/Input'
 import Button from '@/components/common/Button/Button'
 import Text from '@/components/common/Text/Text'
 import Logo from '@/assets/logo/logo-full.svg'
 import { colors } from '@/styles/tokens/colors'
 
-function LoginContent() {
+const MIN_PASSWORD_LEN = 8
+
+function SignupContent() {
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [passwordConfirm, setPasswordConfirm] = useState('')
 
   const router = useRouter()
   const searchParams = useSearchParams()
-  const passwordRef = useRef<HTMLInputElement>(null)
+  const passwordConfirmRef = useRef<HTMLInputElement>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const passwordsMismatch =
+    passwordConfirm.length > 0 && password !== passwordConfirm
+  const passwordTooShort = password.length > 0 && password.length < MIN_PASSWORD_LEN
+
+  const canSubmit =
+    name.trim().length > 0 &&
+    email.length > 0 &&
+    password.length >= MIN_PASSWORD_LEN &&
+    password === passwordConfirm &&
+    !isLoading
+
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
+    if (password !== passwordConfirm) {
+      setError('비밀번호가 일치하지 않습니다.')
+      passwordConfirmRef.current?.focus()
+      return
+    }
+    if (password.length < MIN_PASSWORD_LEN) {
+      setError(`비밀번호는 ${MIN_PASSWORD_LEN}자 이상이어야 합니다.`)
+      return
+    }
+
     setIsLoading(true)
-
     try {
-      await auth.login({ email, password })
+      await auth.signup({ email: email.trim(), password, name: name.trim() })
 
-      // redirect 파라미터가 상대경로인 경우에만 사용, 아니면 홈으로
       const redirect = searchParams.get('redirect')
       const safeRedirect =
         redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/'
       router.push(safeRedirect)
-    } catch (err: any) {
-      const message = err.response?.data?.message ?? '이메일 또는 비밀번호를 확인해주세요.'
+    } catch (err: unknown) {
+      const ax = err as { response?: { data?: { error?: { message?: string }; message?: string } } }
+      const message =
+        ax.response?.data?.error?.message ??
+        ax.response?.data?.message ??
+        '회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.'
       setError(message)
-      passwordRef.current?.focus()
     } finally {
       setIsLoading(false)
     }
@@ -54,7 +81,6 @@ function LoginContent() {
   return (
     <div className={containerStyle}>
       <div className={loginBoxStyle}>
-        {/* 로고 섹션 */}
         <div className={logoSectionStyle}>
           <Logo height={80} style={{ width: 'auto' }} />
           <Text variant="headingMd" color="gray500">
@@ -62,8 +88,14 @@ function LoginContent() {
           </Text>
         </div>
 
-        {/* 로그인 폼 */}
-        <form className={formStyle} onSubmit={handleLogin}>
+        <form className={formStyle} onSubmit={handleSignup}>
+          <Input
+            placeholder="이름"
+            shape="capsule"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoComplete="name"
+          />
           <Input
             placeholder="이메일"
             shape="capsule"
@@ -73,14 +105,34 @@ function LoginContent() {
             autoComplete="email"
           />
           <Input
-            placeholder="비밀번호"
+            placeholder="비밀번호 (8자 이상)"
             shape="capsule"
-            ref={passwordRef}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             type="password"
-            autoComplete="current-password"
+            autoComplete="new-password"
           />
+          <Input
+            placeholder="비밀번호 확인"
+            shape="capsule"
+            ref={passwordConfirmRef}
+            value={passwordConfirm}
+            onChange={(e) => setPasswordConfirm(e.target.value)}
+            type="password"
+            autoComplete="new-password"
+          />
+
+          {passwordTooShort && (
+            <Text variant="bodyMd" color="error500">
+              비밀번호는 {MIN_PASSWORD_LEN}자 이상이어야 합니다.
+            </Text>
+          )}
+          {passwordsMismatch && (
+            <Text variant="bodyMd" color="error500">
+              비밀번호가 일치하지 않습니다.
+            </Text>
+          )}
+
           <Button
             variant="primary"
             size="lg"
@@ -88,9 +140,9 @@ function LoginContent() {
             fullWidth
             type="submit"
             className={submitButtonStyle}
-            disabled={!email || !password || isLoading}
+            disabled={!canSubmit}
           >
-            {isLoading ? '로그인 중...' : '로그인'}
+            {isLoading ? '가입 중...' : '회원가입'}
           </Button>
 
           {error && (
@@ -100,11 +152,10 @@ function LoginContent() {
           )}
         </form>
 
-        {/* 하단 링크 */}
         <div className={footerLinkStyle}>
-          <Link href="/signup" className={footerLinkAnchorStyle}>
+          <Link href="/login" className={footerLinkAnchorStyle}>
             <Text variant="bodyLg" color="gray300">
-              회원가입
+              로그인
             </Text>
           </Link>
           <div style={{ width: 1, height: 16, backgroundColor: colors.gray300 }} />
@@ -117,10 +168,10 @@ function LoginContent() {
   )
 }
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <Suspense>
-      <LoginContent />
+      <SignupContent />
     </Suspense>
   )
 }

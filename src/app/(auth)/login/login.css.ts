@@ -44,3 +44,9 @@ export const footerLinkStyle = style({
   gap: '16px',
   marginTop: '24px',
 })
+
+export const footerLinkAnchorStyle = style({
+  textDecoration: 'none',
+  cursor: 'pointer',
+  color: 'inherit',
+})

@@ -7,6 +7,12 @@ interface LoginRequest {
   password: string
 }
 
+interface SignupRequest {
+  email: string
+  password: string
+  name: string
+}
+
 interface AuthTokens {
   access_token: string
   refresh_token: string
@@ -56,6 +62,17 @@ export const auth = {
     const { data } = await axiosInstance.post<LoginResponse>('/auth/login', { email, password })
     setTokens(data.data.access_token, data.data.refresh_token)
     useUserStore.getState().setUser(data.data.user) // 추가
+    return data.data.user
+  },
+
+  async signup({ email, password, name }: SignupRequest) {
+    const { data } = await axiosInstance.post<LoginResponse>('/auth/signup', {
+      email,
+      password,
+      name,
+    })
+    setTokens(data.data.access_token, data.data.refresh_token)
+    useUserStore.getState().setUser(data.data.user)
     return data.data.user
   },
 
