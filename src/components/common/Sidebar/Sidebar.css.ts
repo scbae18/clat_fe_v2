@@ -56,8 +56,7 @@ export const navItemActiveStyle = style({
 })
 
 export const logoutButtonStyle = style({
-  marginTop: 'auto',
-  marginBottom: '40px',
+  marginBottom: '24px',
   display: 'flex',
   alignItems: 'center',
   gap: '16px',
@@ -74,4 +73,70 @@ export const logoutButtonStyle = style({
   ':hover': {
     color: colors.gray300,
   },
+})
+
+export const userCardStyle = style({
+  marginTop: 'auto',
+  marginBottom: '8px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+  padding: '10px 12px',
+  borderRadius: '12px',
+  textDecoration: 'none',
+  color: colors.gray300,
+  transition: 'background 0.2s, color 0.2s',
+  ':hover': {
+    background: 'rgba(255,255,255,0.06)',
+    color: colors.white,
+  },
+})
+
+export const userCardActiveStyle = style({
+  background: 'rgba(255,255,255,0.08)',
+  color: colors.white,
+})
+
+export const userAvatarStyle = style({
+  flexShrink: 0,
+  width: '36px',
+  height: '36px',
+  borderRadius: '50%',
+  background: `linear-gradient(135deg, ${colors.primary300} 0%, ${colors.primary500} 100%)`,
+  color: colors.white,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '14px',
+  fontWeight: 700,
+  letterSpacing: '-0.03em',
+})
+
+export const userTextWrapStyle = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  minWidth: 0,
+})
+
+export const userNameStyle = style({
+  fontSize: '13px',
+  fontWeight: 600,
+  lineHeight: 1.3,
+  letterSpacing: '-0.03em',
+  color: 'inherit',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+})
+
+export const userEmailStyle = style({
+  fontSize: '11px',
+  fontWeight: 500,
+  lineHeight: 1.3,
+  letterSpacing: '-0.03em',
+  color: colors.gray500,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 })

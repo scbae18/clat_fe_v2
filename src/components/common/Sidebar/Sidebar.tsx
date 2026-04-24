@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { auth } from '@/services/auth'
+import { useUserStore } from '@/stores/userStore'
 import {
   sidebarStyle,
   sidebarTopStyle,
@@ -11,6 +12,12 @@ import {
   navItemStyle,
   navItemActiveStyle,
   logoutButtonStyle,
+  userCardStyle,
+  userCardActiveStyle,
+  userAvatarStyle,
+  userTextWrapStyle,
+  userNameStyle,
+  userEmailStyle,
 } from './Sidebar.css'
 import LogoutConfirmModal from './_components/LogoutConfirmModal'
 import HomeIcon from '@/assets/icons/icon-home.svg'
@@ -31,10 +38,19 @@ const NAV_ITEMS = [
   { href: '/ai', label: 'AI \uC870\uAD50', icon: StarIcon },
 ]
 
+function avatarInitial(name: string | undefined): string {
+  const t = (name ?? '').trim()
+  if (!t) return '?'
+  return t.charAt(0).toUpperCase()
+}
+
 export default function Sidebar() {
   const pathname = usePathname()
+  const user = useUserStore((s) => s.user)
 
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
+
+  const meActive = pathname.startsWith('/me')
 
   return (
     <aside className={sidebarStyle}>
@@ -57,6 +73,18 @@ export default function Sidebar() {
             </Link>
           )
         })}
+
+        <Link
+          href="/me"
+          className={`${userCardStyle}${meActive ? ` ${userCardActiveStyle}` : ''}`}
+          aria-label={'\uB0B4 \uC815\uBCF4'}
+        >
+          <span className={userAvatarStyle}>{avatarInitial(user?.name)}</span>
+          <span className={userTextWrapStyle}>
+            <span className={userNameStyle}>{user?.name ?? '\uB0B4 \uC815\uBCF4'}</span>
+            <span className={userEmailStyle}>{user?.email ?? '\u2014'}</span>
+          </span>
+        </Link>
 
         <button className={logoutButtonStyle} onClick={() => setIsLogoutModalOpen(true)}>
           <LogoutIcon width={20} height={20} />

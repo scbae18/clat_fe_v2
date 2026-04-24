@@ -87,6 +87,30 @@ export const profileName = style({
   color: colors.gray900,
 })
 
+export const profileEditButton = style({
+  marginLeft: 'auto',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '4px',
+  height: '32px',
+  padding: '0 12px',
+  borderRadius: '999px',
+  border: `1px solid ${colors.gray100}`,
+  background: colors.white,
+  color: colors.gray700,
+  fontSize: '13px',
+  fontWeight: 500,
+  lineHeight: 1.4,
+  letterSpacing: '-0.02em',
+  cursor: 'pointer',
+  transition: 'background 0.15s ease, border-color 0.15s ease, color 0.15s ease',
+  ':hover': {
+    background: colors.gray50,
+    borderColor: colors.gray200,
+    color: colors.gray900,
+  },
+})
+
 export const infoGrid = style({
   display: 'grid',
   gridTemplateColumns: '110px 1fr',
@@ -143,6 +167,17 @@ export const statMiniValue = style({
   lineHeight: 1.4,
   letterSpacing: '-0.03em',
   color: colors.gray700,
+  display: 'inline-flex',
+  alignItems: 'baseline',
+})
+
+export const statMiniValueMax = style({
+  fontSize: '14px',
+  fontWeight: 500,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  color: colors.gray500,
+  marginLeft: '2px',
 })
 
 export const statTrendRow = style({
@@ -296,7 +331,7 @@ export const panelCard = style({
   background: colors.white,
   border: `1px solid ${colors.gray50}`,
   borderRadius: '20px',
-  overflow: 'hidden',
+  overflow: 'visible',
   minHeight: '731px',
   display: 'flex',
   flexDirection: 'column',
@@ -490,10 +525,66 @@ export const aiTitle = style({
 export const aiBody = style({
   fontSize: '14px',
   fontWeight: 500,
-  lineHeight: 1.4,
+  lineHeight: 1.55,
   letterSpacing: '-0.03em',
   color: colors.gray700,
   whiteSpace: 'pre-wrap',
+  margin: 0,
+})
+
+export const aiSections = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
+  marginTop: '4px',
+})
+
+export const aiSection = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '6px',
+})
+
+export const aiSectionTitle = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  alignSelf: 'flex-start',
+  fontSize: '12px',
+  fontWeight: 600,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  color: colors.primary500,
+  background: colors.white,
+  border: `1px solid ${colors.primary100}`,
+  borderRadius: '999px',
+  padding: '4px 10px',
+})
+
+export const aiSectionBody = style({
+  fontSize: '14px',
+  fontWeight: 500,
+  lineHeight: 1.55,
+  letterSpacing: '-0.03em',
+  color: colors.gray700,
+  margin: 0,
+  whiteSpace: 'pre-wrap',
+})
+
+export const aiList = style({
+  margin: 0,
+  paddingLeft: '18px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+  listStyle: 'disc',
+})
+
+export const aiListItem = style({
+  fontSize: '14px',
+  fontWeight: 500,
+  lineHeight: 1.55,
+  letterSpacing: '-0.03em',
+  color: colors.gray700,
 })
 
 export const aiToolbar = style({

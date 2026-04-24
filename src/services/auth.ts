@@ -35,14 +35,36 @@ interface RefreshResponse {
   data: AuthTokens
 }
 
+interface UserDto {
+  id: number
+  email: string
+  name: string
+  created_at: string
+}
+
 interface MeResponse {
   success: boolean
-  data: {
-    id: number
-    email: string
-    name: string
-    created_at: string
-  }
+  data: UserDto
+}
+
+interface UpdateMeRequest {
+  name?: string
+  email?: string
+  current_password?: string
+}
+
+interface UpdateMeResponse {
+  success: boolean
+  data: UserDto
+}
+
+interface ChangePasswordRequest {
+  current_password: string
+  new_password: string
+}
+
+interface WithdrawRequest {
+  password: string
 }
 
 const setTokens = (accessToken: string, refreshToken: string) => {
@@ -99,6 +121,22 @@ export const auth = {
   async me() {
     const { data } = await axiosInstance.get<MeResponse>('/auth/me')
     return data.data
+  },
+
+  async updateMe(payload: UpdateMeRequest) {
+    const { data } = await axiosInstance.patch<UpdateMeResponse>('/auth/me', payload)
+    useUserStore.getState().setUser(data.data)
+    return data.data
+  },
+
+  async changePassword(payload: ChangePasswordRequest) {
+    await axiosInstance.patch('/auth/password', payload)
+  },
+
+  async withdraw(payload: WithdrawRequest) {
+    await axiosInstance.delete('/auth/withdraw', { data: payload })
+    clearTokens()
+    useUserStore.getState().setUser(null)
   },
 }
 

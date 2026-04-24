@@ -1,11 +1,13 @@
 'use client'
 
-import { use, useCallback, useEffect, useState } from 'react'
+import { use, useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { differenceInCalendarDays, parseISO } from 'date-fns'
 import ArrowLeftIcon from '@/assets/icons/icon-arrow-left.svg'
 import CheckIcon from '@/assets/icons/icon-check.svg'
+import EditIcon from '@/assets/icons/icon-edit.svg'
 import InfoIcon from '@/assets/icons/icon-info.svg'
+import useDisclosure from '@/hooks/useDisclosure'
 import { studentService } from '@/services/student'
 import {
   studentDashboardService,
@@ -15,7 +17,9 @@ import {
 import type { IncompleteItem, StudentDetail } from '@/types/student'
 import { useToastStore } from '@/stores/toastStore'
 import { colors } from '@/styles/tokens/colors'
+import { parseLessonScoreValue, cohortScoreMetric } from '@/lib/lessonScore'
 import ChoiceConfirmModal from '@/components/common/ChoiceConfirmModal/ChoiceConfirmModal'
+import AddStudentFormModal from '@/app/(main)/management/_components/AddStudentFormModal/AddStudentFormModal'
 import ScoreLineChart from './ScoreLineChart'
 import * as styles from './studentDashboard.css'
 
@@ -40,6 +44,9 @@ const MSG = {
   completeActionLabel: '\uc644\ub8cc \ucc98\ub9ac',
   completeOk: '\uc644\ub8cc \ucc98\ub9ac\ub418\uc5c8\uc5b4\uc694.',
   completeFail: '\uc644\ub8cc \ucc98\ub9ac\uc5d0 \uc2e4\ud328\ud588\uc5b4\uc694.',
+  editStudent: '\ud559\uc0dd \uc815\ubcf4 \uc218\uc815',
+  editStudentOk: '\ud559\uc0dd \uc815\ubcf4\uac00 \uc218\uc815\ub410\uc5b4\uc694.',
+  editStudentFail: '\ud559\uc0dd \uc815\ubcf4 \uc218\uc815\uc5d0 \uc2e4\ud328\ud588\uc5b4\uc694.',
   loading: '\ubd88\ub7ec\uc624\ub294 \uc911\u2026',
   back: '\ub4a4\ub85c',
   pageTitle: '\ud559\uc0dd \ub300\uc2dc\ubcf4\ub4dc',
@@ -86,6 +93,55 @@ function parseScoreEntry(raw: unknown): { value: string } | null {
   const v = (raw as { value?: unknown }).value
   if (typeof v !== 'string') return null
   return { value: v }
+}
+
+function formatScoreNum(n: number): string {
+  if (!Number.isFinite(n)) return '—'
+  if (Number.isInteger(n)) return String(n)
+  return n.toFixed(1)
+}
+
+type AiSection = { title: string; items: string[]; kind: 'list' | 'para' }
+
+function parseAiAnalysis(raw: string | null | undefined): AiSection[] {
+  if (!raw) return []
+  const cleaned = raw.replace(/\*\*/g, '').replace(/(^|[^*])\*(?!\*)/g, '$1')
+  const re = /【\s*([^】]+?)\s*】/g
+  type Hit = { title: string; start: number; end: number }
+  const hits: Hit[] = []
+  let m: RegExpExecArray | null
+  while ((m = re.exec(cleaned)) !== null) {
+    hits.push({ title: m[1].trim(), start: m.index, end: m.index + m[0].length })
+  }
+  if (hits.length === 0) return []
+  const sections: AiSection[] = []
+  for (let i = 0; i < hits.length; i++) {
+    const h = hits[i]
+    const bodyEnd = i + 1 < hits.length ? hits[i + 1].start : cleaned.length
+    const body = cleaned.slice(h.end, bodyEnd).trim()
+    if (!body) {
+      sections.push({ title: h.title, items: [], kind: 'para' })
+      continue
+    }
+    const lines = body
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean)
+    const bulletLines = lines.filter((l) => /^[-•·]/.test(l))
+    if (bulletLines.length > 0 && bulletLines.length >= Math.ceil(lines.length / 2)) {
+      const items = lines
+        .map((l) => l.replace(/^[-•·]\s?/, '').trim())
+        .filter(Boolean)
+      sections.push({ title: h.title, items, kind: 'list' })
+    } else {
+      sections.push({
+        title: h.title,
+        items: [lines.length ? lines.join(' ') : body],
+        kind: 'para',
+      })
+    }
+  }
+  return sections
 }
 
 function IconBuilding() {
@@ -198,6 +254,7 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
   const [aiLoading, setAiLoading] = useState(false)
   const [completePending, setCompletePending] = useState<IncompleteItem | null>(null)
   const [completeSubmitting, setCompleteSubmitting] = useState(false)
+  const editStudent = useDisclosure()
 
   const loadDetail = useCallback(async () => {
     setLoading(true)
@@ -271,14 +328,15 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
   const recentList = (detail?.stats.recent_scores ?? []) as unknown[]
   const rs0 = parseScoreEntry(recentList[0])
   const rs1 = parseScoreEntry(recentList[1])
-  const recentScoreNum = rs0
-    ? parseFloat(String(rs0.value).replace(/[^0-9.-]/g, ''))
-    : NaN
-  const prevScoreNum = rs1 ? parseFloat(String(rs1.value).replace(/[^0-9.-]/g, '')) : NaN
+  const recentScoreParsed = rs0 ? parseLessonScoreValue(rs0.value) : null
+  const recentScoreMetric = cohortScoreMetric(rs0?.value ?? null)
+  const prevScoreMetric = cohortScoreMetric(rs1?.value ?? null)
   const scoreDelta =
-    Number.isFinite(recentScoreNum) && Number.isFinite(prevScoreNum)
-      ? Math.round(recentScoreNum - prevScoreNum)
+    recentScoreMetric != null && prevScoreMetric != null
+      ? Math.round(recentScoreMetric - prevScoreMetric)
       : null
+  const scoreDeltaIsPercent =
+    recentScoreParsed?.max != null || (rs1 ? parseLessonScoreValue(rs1.value)?.max != null : false)
 
   const completionDelta =
     detail != null
@@ -308,6 +366,8 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
       setCompleteSubmitting(false)
     }
   }
+
+  const aiSections = useMemo(() => parseAiAnalysis(aiText), [aiText])
 
   const overdueLabel = (lessonDate: string) => {
     try {
@@ -347,6 +407,16 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
             <div className={styles.profileTop}>
               <div className={styles.avatar} />
               <div className={styles.profileName}>{detail.name}</div>
+              <button
+                type="button"
+                className={styles.profileEditButton}
+                onClick={editStudent.open}
+                aria-label={MSG.editStudent}
+                title={MSG.editStudent}
+              >
+                <EditIcon width={16} height={16} />
+                <span>{MSG.editStudent}</span>
+              </button>
             </div>
             <div className={styles.infoGrid}>
               <div className={styles.infoLabelCell}>
@@ -413,16 +483,29 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
                 </button>
               </span>
               <span className={styles.statMiniValue}>
-                {Number.isFinite(recentScoreNum)
-                  ? `${Math.round(recentScoreNum)}\uc810`
-                  : '—'}
+                {recentScoreParsed && recentScoreParsed.earned != null ? (
+                  recentScoreParsed.max != null ? (
+                    <>
+                      {formatScoreNum(recentScoreParsed.earned)}
+                      <span className={styles.statMiniValueMax}>
+                        {' / '}
+                        {formatScoreNum(recentScoreParsed.max)}
+                        {'\uc810'}
+                      </span>
+                    </>
+                  ) : (
+                    `${formatScoreNum(recentScoreParsed.earned)}\uc810`
+                  )
+                ) : (
+                  '—'
+                )}
               </span>
               <div className={styles.statTrendRow}>
                 <span className={styles.statTrendMuted}>{MSG.vsClassAvg}</span>
                 {scoreDelta != null && scoreDelta !== 0 ? (
                   <span className={scoreDelta > 0 ? styles.statTrendMuted : styles.statTrendDown}>
                     {scoreDelta > 0 ? MSG.arrowUp : MSG.arrowDown} {Math.abs(scoreDelta)}
-                    {'\uc810'}
+                    {scoreDeltaIsPercent ? '%' : '\uc810'}
                   </span>
                 ) : (
                   <span className={styles.statTrendMuted}>—</span>
@@ -527,9 +610,38 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
                       <SparkleIcon />
                       <span className={styles.aiTitle}>{MSG.aiTitle}</span>
                     </div>
-                    <p className={styles.aiBody}>
-                      {aiLoading ? MSG.analyzing : aiText ?? MSG.aiEmpty}
-                    </p>
+                    {aiLoading ? (
+                      <p className={styles.aiBody}>{MSG.analyzing}</p>
+                    ) : aiSections.length > 0 ? (
+                      <div className={styles.aiSections}>
+                        {aiSections.map((s, idx) => (
+                          <div
+                            key={`${s.title}-${idx}`}
+                            className={styles.aiSection}
+                          >
+                            <span className={styles.aiSectionTitle}>{s.title}</span>
+                            {s.kind === 'list' ? (
+                              <ul className={styles.aiList}>
+                                {s.items.map((item, i) => (
+                                  <li
+                                    key={`${idx}-${i}`}
+                                    className={styles.aiListItem}
+                                  >
+                                    {item}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className={styles.aiSectionBody}>
+                                {s.items.join(' ')}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className={styles.aiBody}>{aiText ?? MSG.aiEmpty}</p>
+                    )}
                     <div className={styles.aiToolbar}>
                       <button
                         type="button"
@@ -624,6 +736,31 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
         confirmTone="primary"
         confirmDisabled={completeSubmitting}
       />
+
+      {detail && (
+        <AddStudentFormModal
+          isOpen={editStudent.isOpen}
+          onClose={editStudent.close}
+          mode="edit"
+          defaultValues={{
+            name: detail.name,
+            phone: detail.phone,
+            parent_phone: detail.parent_phone,
+            school_name: detail.school_name,
+            class_ids: detail.classes.map((c) => c.id),
+          }}
+          onConfirm={async (data) => {
+            try {
+              await studentService.updateStudent(detail.id, data)
+              await loadDetail()
+              editStudent.close()
+              addToast({ variant: 'success', message: MSG.editStudentOk })
+            } catch {
+              addToast({ variant: 'error', message: MSG.editStudentFail })
+            }
+          }}
+        />
+      )}
     </div>
   )
 }

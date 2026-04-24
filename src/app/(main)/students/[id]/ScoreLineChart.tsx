@@ -175,7 +175,7 @@ export default function ScoreLineChart({
 
   const w = 564
   const h = 260
-  const padX = 36
+  const padX = 48
   const padY = 28
 
   const hideTip = useCallback(() => setTip(null), [])
@@ -198,9 +198,11 @@ export default function ScoreLineChart({
     return <div className={styles.emptyState}>{MSG.empty}</div>
   }
 
-  const gridY = [0.25, 0.5, 0.75].map((t) => padY + (h - padY * 2) * (1 - t))
+  const gridTicks = [0, 0.25, 0.5, 0.75, 1]
+  const gridY = gridTicks.map((t) => padY + (h - padY * 2) * (1 - t))
   const xCount = xKeys.length
   const anyFrac = rows.some((r) => String(r.value ?? '').includes('/'))
+  const yAxisUnit = anyFrac ? '%' : ''
 
   return (
     <div ref={wrapRef} className={styles.chartWrap}>
@@ -268,17 +270,31 @@ export default function ScoreLineChart({
           style={{ display: 'block' }}
           onMouseLeave={hideTip}
         >
-        {gridY.map((y) => (
-          <line
-            key={y}
-            x1={padX}
-            x2={w - padX}
-            y1={y}
-            y2={y}
-            stroke={colors.gray50}
-            strokeWidth={1}
-          />
-        ))}
+        {gridY.map((y, i) => {
+          const t = gridTicks[i]
+          const val = yMin + (yMax - yMin) * t
+          return (
+            <g key={`grid-${i}`}>
+              <line
+                x1={padX}
+                x2={w - padX}
+                y1={y}
+                y2={y}
+                stroke={colors.gray50}
+                strokeWidth={1}
+              />
+              <text
+                x={padX - 8}
+                y={y + 3}
+                textAnchor="end"
+                fill={colors.gray500}
+                fontSize="10"
+              >
+                {`${Math.round(val)}${yAxisUnit}`}
+              </text>
+            </g>
+          )
+        })}
         {xLabels.map((label, i) => {
           const innerW = w - padX * 2
           const x = padX + (innerW * i) / Math.max(1, xCount - 1)
