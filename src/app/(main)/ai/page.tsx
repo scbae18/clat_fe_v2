@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Button from '@/components/common/Button/Button'
 import useToast from '@/hooks/useToast'
@@ -66,7 +66,7 @@ function attendanceClass(a: RecentLessonSummary['attendance']): string {
   return styles.tagAttendance
 }
 
-export default function AiStudentsRiskPage() {
+function AiStudentsRiskContent() {
   const searchParams = useSearchParams()
   const toast = useToast()
 
@@ -356,5 +356,13 @@ export default function AiStudentsRiskPage() {
         )}
       </section>
     </div>
+  )
+}
+
+export default function AiStudentsRiskPage() {
+  return (
+    <Suspense fallback={null}>
+      <AiStudentsRiskContent />
+    </Suspense>
   )
 }
