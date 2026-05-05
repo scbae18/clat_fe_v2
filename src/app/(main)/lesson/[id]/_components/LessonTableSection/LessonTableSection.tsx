@@ -236,7 +236,11 @@ export default function LessonTable({
         if (s.id !== studentId) return s
         const items = s.items.map((item) =>
           item.template_item_id === templateItemId
-            ? { ...item, value, is_completed: is_completed ?? item.is_completed }
+            ? {
+                ...item,
+                value,
+                is_completed: is_completed === undefined ? item.is_completed : is_completed,
+              }
             : item
         )
         return { ...s, items }

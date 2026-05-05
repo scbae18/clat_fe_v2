@@ -29,7 +29,7 @@ export const thStyle = style({
 })
 
 export const tdStyle = style({
-  height: '48px',
+  minHeight: '48px',
   borderBottom: `1px solid ${colors.gray100}`,
   selectors: {
     'tr:last-child &': {
@@ -40,8 +40,8 @@ export const tdStyle = style({
 
 export const inputStyle = style({
   width: '100%',
-  height: '100%',
-  padding: '0 16px',
+  minHeight: '48px',
+  padding: '12px 16px',
   border: 'none',
   outline: 'none',
   fontSize: fontStyles.bodyMd.fontSize,
@@ -49,6 +49,8 @@ export const inputStyle = style({
   color: colors.gray700,
   letterSpacing: '-0.03em',
   backgroundColor: 'transparent',
+  resize: 'vertical',
+  lineHeight: 1.5,
   selectors: {
     '&::placeholder': {
       color: colors.gray300,
