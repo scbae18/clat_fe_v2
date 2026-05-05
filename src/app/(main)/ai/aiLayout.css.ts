@@ -6,18 +6,21 @@ export const pageRoot = style({
 })
 
 export const pageTitle = style({
+  fontFamily: 'Pretendard, sans-serif',
   margin: '0 0 8px',
-  fontSize: '32px',
+  fontSize: '28px',
   fontWeight: 700,
-  lineHeight: '140%',
+  lineHeight: 1.4,
   letterSpacing: '-0.03em',
   color: colors.gray900,
 })
 
 export const pageSubtitle = style({
+  fontFamily: 'Pretendard, sans-serif',
   margin: '0 0 24px',
   fontSize: '14px',
   fontWeight: 500,
-  color: colors.gray500,
+  lineHeight: 1.4,
   letterSpacing: '-0.02em',
+  color: colors.gray500,
 })

@@ -47,6 +47,27 @@ function scoreColor(level: RiskLevel): string {
   return 'rgb(29, 170, 127)'
 }
 
+function levelAccentColor(level: RiskLevel): string {
+  if (level === 'HIGH') return '#EF4453'
+  if (level === 'MEDIUM') return '#FDAD22'
+  if (level === 'LOW') return '#1DAA7F'
+  return '#5774DA'
+}
+
+function levelTintColor(level: RiskLevel): string {
+  if (level === 'HIGH') return '#FFF1F1'
+  if (level === 'MEDIUM') return '#FFF9EB'
+  if (level === 'LOW') return '#EDFCF5'
+  return '#F1F4FD'
+}
+
+function levelBorderColor(level: RiskLevel): string {
+  if (level === 'HIGH') return '#FDCED0'
+  if (level === 'MEDIUM') return '#FFEEC6'
+  if (level === 'LOW') return '#ABEFD2'
+  return '#C8D5F5'
+}
+
 function decisionLabel(d: RiskDecision): string {
   if (d === 'ACTED') return '처리함'
   if (d === 'SNOOZED') return '보류'
@@ -149,6 +170,7 @@ function AiStudentsRiskContent() {
               className={`${styles.listItem}${
                 s.studentId === selectedId ? ` ${styles.listItemActive}` : ''
               }`}
+              style={{ borderLeft: `3px solid ${levelAccentColor(s.level)}` }}
               onClick={() => setSelectedId(s.studentId)}
             >
               <div className={styles.listLeft}>
@@ -179,7 +201,13 @@ function AiStudentsRiskContent() {
           </div>
         ) : (
           <>
-            <div className={styles.detailCard}>
+            <div
+              className={styles.detailCard}
+              style={{
+                borderTop: `4px solid ${levelAccentColor(selected.level)}`,
+                borderColor: levelBorderColor(selected.level),
+              }}
+            >
               <header className={styles.detailHeader}>
                 <div className={styles.studentIdentity}>
                   <RiskBadge level={selected.level} size="lg" />
@@ -206,7 +234,12 @@ function AiStudentsRiskContent() {
                 ) : null}
               </header>
 
-              <div className={styles.oneLinerBox}>{selected.brief.oneLiner}</div>
+              <div
+                className={styles.oneLinerBox}
+                style={{ backgroundColor: levelTintColor(selected.level) }}
+              >
+                {selected.brief.oneLiner}
+              </div>
 
               {selected.brief.causes.length > 0 ? (
                 <>

@@ -4,20 +4,24 @@ import { colors } from '@/styles/tokens/colors'
 export const wrap = style({
   display: 'flex',
   alignItems: 'center',
-  gap: '4px',
-  borderBottom: `1px solid ${colors.gray75}`,
+  gap: '24px',
+  borderBottom: `1px solid ${colors.gray100}`,
+  paddingBottom: '12px',
   marginBottom: '32px',
 })
 
 export const tab = style({
-  position: 'relative',
-  padding: '12px 16px',
-  fontSize: '15px',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '20px',
   fontWeight: 600,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
   color: colors.gray500,
-  cursor: 'pointer',
   textDecoration: 'none',
-  letterSpacing: '-0.02em',
+  cursor: 'pointer',
+  borderBottom: '2px solid transparent',
+  paddingBottom: '10px',
+  marginBottom: '-13px',
   transition: 'color 0.15s',
   selectors: {
     '&:hover': { color: colors.gray700 },
@@ -25,19 +29,10 @@ export const tab = style({
 })
 
 export const tabActive = style({
-  color: colors.primary500,
+  color: colors.gray900,
+  borderBottomColor: colors.primary500,
   selectors: {
-    '&::after': {
-      content: '""',
-      position: 'absolute',
-      left: '8px',
-      right: '8px',
-      bottom: '-1px',
-      height: '2px',
-      backgroundColor: colors.primary500,
-      borderRadius: '2px',
-    },
-    '&:hover': { color: colors.primary500 },
+    '&:hover': { color: colors.gray900 },
   },
 })
 
