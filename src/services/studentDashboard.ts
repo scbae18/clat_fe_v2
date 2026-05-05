@@ -27,6 +27,7 @@ export interface AlimtalkHistoryRow {
   phone_type: string
   sent_at: string
   batch_type: string
+  class_name?: string
   delivery_mode: 'mock' | 'live'
   status: string
   preview: string

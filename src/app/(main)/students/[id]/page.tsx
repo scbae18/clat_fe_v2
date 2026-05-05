@@ -78,10 +78,10 @@ const MSG = {
   thClass: '\ubc18',
   thTemplate: '\ud15c\ud50c\ub9bf',
   noAlim: '\uc54c\ub9bc\ud1a1 \uc774\ub825\uc774 \uc5c6\uc5b4\uc694.',
-  thSent: '\ubc1c\uc1a1',
+  thSentDate: '\ubc1c\uc1a1 \ub0a0\uc9dc',
+  thSentTime: '\ubc1c\uc1a1 \uc2dc\uac04',
   thType: '\uc720\ud615',
-  thChannel: '\ucc44\ub110',
-  thPreview: '\ubbf8\ub9ac\ubcf4\uae30',
+  thSentClass: '\ubc18',
   today: '\uc624\ub298',
   daysOverdue: (n: number) => `${n}\uc77c \uc9c0\ub0a8`,
   arrowUp: '\u2197',
@@ -691,10 +691,10 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
                     <table className={styles.listTable}>
                       <thead>
                         <tr>
-                          <th className={styles.th}>{MSG.thSent}</th>
+                          <th className={styles.th}>{MSG.thSentDate}</th>
+                          <th className={styles.th}>{MSG.thSentTime}</th>
                           <th className={styles.th}>{MSG.thType}</th>
-                          <th className={styles.th}>{MSG.thChannel}</th>
-                          <th className={styles.th}>{MSG.thPreview}</th>
+                          <th className={styles.th}>{MSG.thSentClass}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -704,16 +704,16 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
                               {new Date(row.sent_at).toLocaleString('ko-KR', {
                                 month: '2-digit',
                                 day: '2-digit',
+                              })}
+                            </td>
+                            <td className={styles.td}>
+                              {new Date(row.sent_at).toLocaleString('ko-KR', {
                                 hour: '2-digit',
                                 minute: '2-digit',
                               })}
                             </td>
                             <td className={styles.td}>{row.batch_type}</td>
-                            <td className={styles.td}>
-                              {row.phone_type}
-                              {row.delivery_mode === 'mock' ? ' · mock' : ''}
-                            </td>
-                            <td className={styles.td}>{row.preview}</td>
+                            <td className={styles.td}>{row.class_name ?? '-'}</td>
                           </tr>
                         ))}
                       </tbody>
