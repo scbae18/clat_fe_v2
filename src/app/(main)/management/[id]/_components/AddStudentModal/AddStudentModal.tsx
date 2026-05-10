@@ -48,6 +48,7 @@ export default function AddStudentModal({
   const filtered = candidates
     .filter((s) => !currentStudentIds.includes(s.id))
     .filter((s) => s.name.includes(search) || s.phone.includes(search))
+    .sort((a, b) => a.name.localeCompare(b.name, 'ko'))
 
   const handleClose = () => {
     setSearch('')

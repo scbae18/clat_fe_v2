@@ -8,6 +8,7 @@ import { studentService } from '@/services/student'
 import { useToastStore } from '@/stores/toastStore'
 import useDisclosure from '@/hooks/useDisclosure'
 import type { StudentDetail, IncompleteItem } from '@/types/student'
+import { formatLessonDateKo } from '@/lib/formatLessonDate'
 import CloseIcon from '@/assets/icons/icon-close.svg'
 import CheckIcon from '@/assets/icons/icon-check.svg'
 import AddStudentFormModal from '../AddStudentFormModal/AddStudentFormModal'
@@ -190,9 +191,11 @@ export default function StudentDetailModal({
                   detail.incomplete_items.map((item: IncompleteItem) => (
                     <div key={item.lesson_student_data_id} className={trackingItemStyle}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span className={trackingLabelStyle}>{item.item_name}</span>
+                        <span className={trackingLabelStyle}>
+                          {formatLessonDateKo(item.lesson_date)}
+                        </span>
                         <span style={{ fontSize: '12px', color: '#9492A9' }}>
-                          {item.lesson_date} · {item.class_name}
+                          {item.item_name} · {item.class_name}
                         </span>
                       </div>
                       <button

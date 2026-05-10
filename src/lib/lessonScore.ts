@@ -39,6 +39,6 @@ export function splitScoreStorage(raw: string): { earned: string; max: string } 
 export function joinScoreStorage(earned: string, max: string): string {
   const e = earned.trim()
   const m = max.trim()
-  if (m) return `${e === '' ? '0' : e}/${m}`
+  if (m) return e === '' ? `/${m}` : `${e}/${m}`
   return e
 }

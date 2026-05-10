@@ -163,6 +163,8 @@ export const scoreColHeaderStyle = style({
   gap: '4px',
   paddingTop: '4px',
   paddingBottom: '4px',
+  whiteSpace: 'normal',
+  minWidth: '120px',
 })
 
 export const scoreColStatsStyle = style({
@@ -217,8 +219,9 @@ export const scoreInputStyle = style({
 export const scoreInputNarrowStyle = style([
   scoreInputStyle,
   {
-    minWidth: '36px',
-    width: '44px',
-    flex: '1 1 36px',
+    minWidth: '88px',
+    width: 'auto',
+    flex: '1 1 88px',
+    maxWidth: '140px',
   },
 ])

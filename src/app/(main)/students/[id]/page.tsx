@@ -18,6 +18,7 @@ import type { IncompleteItem, StudentDetail } from '@/types/student'
 import { useToastStore } from '@/stores/toastStore'
 import { colors } from '@/styles/tokens/colors'
 import { parseLessonScoreValue, cohortScoreMetric } from '@/lib/lessonScore'
+import { formatLessonDateKo } from '@/lib/formatLessonDate'
 import ChoiceConfirmModal from '@/components/common/ChoiceConfirmModal/ChoiceConfirmModal'
 import AddStudentFormModal from '@/app/(main)/management/_components/AddStudentFormModal/AddStudentFormModal'
 import ScoreLineChart from './ScoreLineChart'
@@ -553,7 +554,9 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
                     </div>
                     <div className={styles.incompleteTagsRow}>
                       <span className={styles.incompleteClassAccent}>{item.class_name}</span>
-                      <span className={styles.incompleteTemplateAccent}>{item.template_name}</span>
+                      <span className={styles.incompleteTemplateAccent}>
+                        {formatLessonDateKo(item.lesson_date)}
+                      </span>
                       <span className={styles.badgeOverdue}>{overdueLabel(item.lesson_date)}</span>
                     </div>
                   </button>

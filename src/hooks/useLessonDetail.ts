@@ -141,6 +141,8 @@ export default function useLessonDetail(lessonId: number) {
           }
         })
 
+        initialized.sort((a, b) => a.name.localeCompare(b.name, 'ko'))
+
         setStudents(initialized)
       })
       .catch((err: any) => {

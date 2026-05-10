@@ -1,7 +1,20 @@
 'use client'
 
 import { FormEvent, useMemo, useState } from 'react'
+import Image from 'next/image'
+import { usePathname } from 'next/navigation'
+import chatbotLauncherIcon from '@/assets/logo/App Icon.jpg'
 import * as styles from './ChatbotWidget.css'
+
+/** 강사용 도움말 — 학부모·출결·인증 화면에서는 미표시 */
+const CHATBOT_HIDDEN_PREFIXES = ['/login', '/signup', '/parent', '/check'] as const
+
+function shouldHideChatbot(pathname: string | null): boolean {
+  if (!pathname) return false
+  return CHATBOT_HIDDEN_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  )
+}
 
 type ChatMessage = {
   role: 'assistant' | 'user'
@@ -20,6 +33,7 @@ function Bubble({ role, content }: ChatMessage) {
 }
 
 export default function ChatbotWidget() {
+  const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [input, setInput] = useState('')
@@ -27,7 +41,7 @@ export default function ChatbotWidget() {
     {
       role: 'assistant',
       content:
-        '안녕하세요. CLAT 사용 도우미입니다.\n출결, 알림톡, 수업입력, 학부모 링크, 학생 대시보드 질문을 해 주세요.',
+        '무엇이든 물어보세요.\n출결·알림톡·수업 입력·학생 화면까지 안내해 드려요.',
     },
   ])
 
@@ -74,22 +88,23 @@ export default function ChatbotWidget() {
     }
   }
 
+  if (shouldHideChatbot(pathname)) return null
+
   return (
     <div className={styles.shell}>
       {isOpen ? (
-        <div className={styles.panel} role="dialog" aria-label="CLAT 챗봇">
+        <div className={styles.panel} role="dialog" aria-label="도움말">
           <div className={styles.header}>
-            <div className={styles.headerTitleWrap}>
-              <span className={styles.headerTitle}>CLAT 챗봇</span>
-              <span className={styles.headerSub}>선생님용 사용 도우미</span>
-            </div>
+            <span className={styles.headerTitle}>도움말</span>
             <button
               type="button"
               onClick={() => setIsOpen(false)}
               className={styles.closeButton}
-              aria-label="챗봇 닫기"
+              aria-label="닫기"
             >
-              ×
+              <span className={styles.closeIcon} aria-hidden>
+                ×
+              </span>
             </button>
           </div>
 
@@ -98,10 +113,7 @@ export default function ChatbotWidget() {
               <Bubble key={`${msg.role}-${idx}`} {...msg} />
             ))}
             {isSending ? (
-              <Bubble
-                role="assistant"
-                content="관련 메뉴얼을 찾는 중이에요..."
-              />
+              <Bubble role="assistant" content="잠시만요…" />
             ) : null}
           </div>
 
@@ -109,7 +121,7 @@ export default function ChatbotWidget() {
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="질문을 입력하세요. 예: 출결 코드 만료되면 어떻게 해?"
+              placeholder="예: 출결 코드가 만료되면?"
               rows={2}
               className={styles.textarea}
             />
@@ -124,9 +136,16 @@ export default function ChatbotWidget() {
         type="button"
         className={styles.launcher}
         onClick={() => setIsOpen((prev) => !prev)}
-        aria-label="챗봇 열기"
+        aria-label="도움말 열기"
       >
-        💬 도움
+        <Image
+          src={chatbotLauncherIcon}
+          alt=""
+          width={64}
+          height={64}
+          className={styles.launcherImage}
+          priority
+        />
       </button>
     </div>
   )
