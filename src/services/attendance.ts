@@ -153,10 +153,14 @@ export const attendanceService = {
     ok: boolean
     class_name?: string
     expires_at?: string
+    lesson_date?: string
     student_name?: string | null
     already_checked?: boolean
     closed?: boolean
     message?: string
+    reason_code?: string
+    session_active?: boolean
+    current_status?: AttendanceCheckStatus | null
   }> {
     const { data } = await publicAxios.get(`/attendance/public/sessions/${sessionId}`, {
       params: { student_id: studentId },
@@ -166,10 +170,14 @@ export const attendanceService = {
       ok: boolean
       class_name?: string
       expires_at?: string
+      lesson_date?: string
       student_name?: string | null
       already_checked?: boolean
       closed?: boolean
       message?: string
+      reason_code?: string
+      session_active?: boolean
+      current_status?: AttendanceCheckStatus | null
     }
   },
 

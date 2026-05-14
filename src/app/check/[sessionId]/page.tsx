@@ -1,11 +1,13 @@
 'use client'
 
-import { Suspense, use, useCallback, useEffect, useRef, useState } from 'react'
+import { Suspense, use, useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { attendanceService, type AttendanceCheckStatus } from '@/services/attendance'
 import * as styles from './checkSession.css'
+
+type PublicSessionPayload = Awaited<ReturnType<typeof attendanceService.getPublicCheckSession>>
 
 const LABEL: Record<AttendanceCheckStatus, string> = {
   PRESENT: '\uCD9C\uC11D',
@@ -83,6 +85,47 @@ function formatLessonDateLabel(raw: string | undefined) {
   return format(d, 'M월 d일(E)', { locale: ko })
 }
 
+/** @returns true if handled as terminal (출석/지각 완료 또는 마감·결석) */
+function applyPublicSessionToState(
+  r: PublicSessionPayload,
+  set: {
+    setDone: Dispatch<
+      SetStateAction<{
+        status: AttendanceCheckStatus
+        class_name?: string
+        lesson_date?: string
+      } | null>
+    >
+    setBlocked: Dispatch<SetStateAction<{ title: string; sub?: string } | null>>
+    setClassName: (v: string) => void
+    setExpiresAt: (v: string | null) => void
+    setStudentName: (v: string | null) => void
+  }
+): boolean {
+  if (r.current_status === 'PRESENT' || r.current_status === 'LATE') {
+    set.setDone({
+      status: r.current_status,
+      class_name: r.class_name,
+      lesson_date: r.lesson_date,
+    })
+    set.setBlocked(null)
+    return true
+  }
+  if (r.closed) {
+    set.setBlocked({
+      title: '\uCD9C\uACB0\uC774 \uB9C8\uAC10\uB410\uC5B4\uC694',
+      sub:
+        r.message ??
+        '\uC81C\uD55C \uC2DC\uAC04 \uB0B4 \uCD9C\uACB0 \uCF54\uB4DC\uB97C \uC785\uB825\uD558\uC9C0 \uC54A\uC544 \uACB0\uC11D \uCC98\uB9AC\uB418\uC5C8\uC5B4\uC694. \uC120\uC0DD\uB2D8\uAED8 \uBB38\uC758\uD574 \uC8FC\uC138\uC694.',
+    })
+    return true
+  }
+  set.setClassName(r.class_name ?? '')
+  set.setExpiresAt(r.expires_at ?? null)
+  set.setStudentName(r.student_name ?? null)
+  return false
+}
+
 function CheckSessionInner({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId: sidStr } = use(params)
   const sessionId = Number(sidStr)
@@ -115,23 +158,13 @@ function CheckSessionInner({ params }: { params: Promise<{ sessionId: string }> 
       .getPublicCheckSession(sessionId, studentId)
       .then((r) => {
         if (cancelled) return
-        if (r.closed) {
-          setBlocked({
-            title: '\uCD9C\uACB0\uC774 \uB9C8\uAC10\uB410\uC5B4\uC694',
-            sub:
-              '\uCD9C\uACB0 \uAC00\uB2A5 \uC2DC\uAC04\uC774 \uC9C0\uB0AC\uC5B4\uC694. \uC120\uC0DD\uB2D8\uAED8 \uC9C1\uC811 \uBB38\uC758\uD574\uC8FC\uC138\uC694.',
-          })
-          return
-        }
-        if (r.already_checked) {
-          setBlocked({
-            title: '\uC774\uBBF8 \uCD9C\uACB0 \uCC98\uB9AC\uB41C \uD559\uC0DD\uC785\uB2C8\uB2E4',
-          })
-          return
-        }
-        setClassName(r.class_name ?? '')
-        setExpiresAt(r.expires_at ?? null)
-        setStudentName(r.student_name ?? null)
+        applyPublicSessionToState(r, {
+          setDone,
+          setBlocked,
+          setClassName,
+          setExpiresAt,
+          setStudentName,
+        })
       })
       .catch(() => {
         if (!cancelled) {
@@ -144,6 +177,31 @@ function CheckSessionInner({ params }: { params: Promise<{ sessionId: string }> 
       cancelled = true
     }
   }, [sessionId, studentId])
+
+  /** 서버에서 만료·종료 반영 후 화면을 맞춤 (타이머 0 또는 세션 상태 변경) */
+  useEffect(() => {
+    if (!Number.isFinite(sessionId) || !Number.isFinite(studentId)) return
+    if (blocked != null || done != null || loadErr != null) return
+    if (!expiresAt) return
+    if (remain > 0) return
+    let cancelled = false
+    attendanceService
+      .getPublicCheckSession(sessionId, studentId)
+      .then((r) => {
+        if (cancelled) return
+        applyPublicSessionToState(r, {
+          setDone,
+          setBlocked,
+          setClassName,
+          setExpiresAt,
+          setStudentName,
+        })
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [sessionId, studentId, remain, expiresAt, blocked, done, loadErr])
 
   useEffect(() => {
     if (!Number.isFinite(sessionId) || !Number.isFinite(studentId)) return
@@ -227,7 +285,9 @@ function CheckSessionInner({ params }: { params: Promise<{ sessionId: string }> 
             </h1>
             <div>
               <p className={styles.successSub} style={{ marginBottom: 0 }}>
-                {'\uC120\uC0DD\uB2D8\uAED8 \uCD9C\uC11D\uC774'}
+                {done.status === 'LATE'
+                  ? '\uC120\uC0DD\uB2D8\uAED8 \uC9C0\uAC01\uC774'
+                  : '\uC120\uC0DD\uB2D8\uAED8 \uCD9C\uC11D\uC774'}
               </p>
               <p className={styles.successSub}>
                 {'\uC790\uB3D9\uC73C\uB85C \uC804\uB2EC\uB410\uC5B4\uC694'}
