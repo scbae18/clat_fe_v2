@@ -65,7 +65,6 @@ const MSG = {
   vsClassAvg: '\ubc18 \ud3c9\uade0 \ub300\ube44',
   monthAttend: '\uc774\ubc88 \ub2ec \ucd9c\uc11d\uc728',
   incompleteTitle: '\ubbf8\uc644\ub8cc \ud56d\ubaa9',
-  homeworkMain: '\uacfc\uc81c',
   noIncomplete: '\ubbf8\uc644\ub8cc \ud56d\ubaa9\uc774 \uc5c6\uc5b4\uc694.',
   tabScores: '\uc810\uc218 \ucd94\uc774',
   tabLessons: '\uc218\uc5c5 \uc774\ub825',
@@ -550,7 +549,7 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
                   >
                     <div className={styles.incompleteLeft}>
                       <CheckIcon width={24} height={24} style={{ flexShrink: 0 }} />
-                      <span className={styles.incompleteHomeworkMain}>{MSG.homeworkMain}</span>
+                      <span className={styles.incompleteHomeworkMain}>{item.item_name}</span>
                     </div>
                     <div className={styles.incompleteTagsRow}>
                       <span className={styles.incompleteClassAccent}>{item.class_name}</span>
