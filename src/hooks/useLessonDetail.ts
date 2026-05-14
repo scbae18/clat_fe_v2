@@ -103,11 +103,13 @@ export default function useLessonDetail(lessonId: number) {
         // 이름만 classStudents에서 가져오기
         const classStudents = await classService.getClassStudents(data.class_id, data.lesson_date)
         const nameMap = new Map(classStudents.map((s) => [s.id, s.name]))
+        const apiNameMap = new Map(
+          data.student_data.map((sd) => [sd.student_id, sd.student_name ?? '']),
+        )
 
-        const baseStudentIds =
-          data.student_data.length > 0
-            ? data.student_data.map((sd) => sd.student_id)
-            : classStudents.map((s) => s.id)
+        // 수업일 기준 반 명단만 행으로 쓴다. 제외된 학생은 서버에서 student_data에서 빠지므로
+        // 예전처럼 student_data 순서로만 그리면 이름 없는 빈 행이 생기지 않는다.
+        const baseStudentIds = classStudents.map((s) => s.id)
 
         const initialized: LessonStudent[] = baseStudentIds.map((studentId) => {
           const sd = data.student_data.find((s) => s.student_id === studentId)
@@ -127,7 +129,7 @@ export default function useLessonDetail(lessonId: number) {
 
           return {
             id: studentId,
-            name: nameMap.get(studentId) ?? '',
+            name: nameMap.get(studentId) ?? apiNameMap.get(studentId) ?? '',
             attendance,
             items: individualItems.map((item) => {
               const existing = sdItems.find((si) => si.template_item_id === item.id)
