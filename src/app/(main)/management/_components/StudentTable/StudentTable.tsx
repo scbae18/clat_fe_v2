@@ -4,6 +4,7 @@ import { ReactNode } from 'react'
 import TrashIcon from '@/assets/icons/icon-trash.svg'
 import { colors } from '@/styles/tokens/colors'
 import type { Student } from '@/types/student'
+import { formatCompletionRatePercent } from '@/lib/completionRate'
 import {
   tableStyle,
   trStyle,
@@ -39,7 +40,7 @@ function getCellPaddingRight(totalColumns: number): number {
 }
 
 function getProgressColor(rate: number, totalIncomplete: number): string {
-  if (rate === 0 && totalIncomplete === 0) return colors.gray500
+  if (totalIncomplete === 0) return colors.success500
   if (rate >= 0.7) return colors.success500
   if (rate >= 0.4) return colors.warning500
   return colors.error500
@@ -85,6 +86,7 @@ export default function StudentTable({
       </thead>
       <tbody>
         {students.map((student) => {
+          const completionPct = formatCompletionRatePercent(student.completion_rate)
           const color = getProgressColor(student.completion_rate, student.total_incomplete_items)
           return (
             <tr
@@ -107,10 +109,10 @@ export default function StudentTable({
                   <div className={progressTrackStyle}>
                     <div
                       className={progressBarStyle}
-                      style={{ width: `${student.completion_rate * 100}%`, backgroundColor: color }}
+                      style={{ width: `${completionPct}%`, backgroundColor: color }}
                     />
                   </div>
-                  <span className={percentTextStyle}>{student.completion_rate * 100}%</span>
+                  <span className={percentTextStyle}>{completionPct}%</span>
                   <span className={remainingTextStyle} style={{ color }}>
                     {student.completion_rate === 1
                       ? '모두 완료'

@@ -19,6 +19,7 @@ import { useToastStore } from '@/stores/toastStore'
 import { colors } from '@/styles/tokens/colors'
 import { parseLessonScoreValue, cohortScoreMetric } from '@/lib/lessonScore'
 import { formatLessonDateKo } from '@/lib/formatLessonDate'
+import { formatCompletionRatePercent } from '@/lib/completionRate'
 import ChoiceConfirmModal from '@/components/common/ChoiceConfirmModal/ChoiceConfirmModal'
 import AddStudentFormModal from '@/app/(main)/management/_components/AddStudentFormModal/AddStudentFormModal'
 import ScoreLineChart from './ScoreLineChart'
@@ -322,8 +323,8 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
   const academyName = detail?.classes[0]?.academy_name?.trim() || '-'
   const classNames = detail?.classes.map((c) => c.name).join(', ') || '-'
 
-  const monthlyCompletionPct = Math.round((detail?.stats.monthly_completion_rate ?? 0) * 100)
-  const monthlyAttendancePct = Math.round((detail?.stats.monthly_attendance_rate ?? 0) * 100)
+  const monthlyCompletionPct = formatCompletionRatePercent(detail?.stats.monthly_completion_rate)
+  const monthlyAttendancePct = formatCompletionRatePercent(detail?.stats.monthly_attendance_rate)
 
   const recentList = (detail?.stats.recent_scores ?? []) as unknown[]
   const rs0 = parseScoreEntry(recentList[0])

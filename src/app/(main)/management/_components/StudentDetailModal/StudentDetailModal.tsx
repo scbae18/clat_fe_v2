@@ -8,6 +8,10 @@ import { studentService } from '@/services/student'
 import { useToastStore } from '@/stores/toastStore'
 import useDisclosure from '@/hooks/useDisclosure'
 import type { StudentDetail, IncompleteItem } from '@/types/student'
+import {
+  completionRateFromCounts,
+  formatCompletionRatePercent,
+} from '@/lib/completionRate'
 import { formatLessonDateKo } from '@/lib/formatLessonDate'
 import CloseIcon from '@/assets/icons/icon-close.svg'
 import CheckIcon from '@/assets/icons/icon-check.svg'
@@ -73,10 +77,10 @@ export default function StudentDetailModal({
                 ...prev.stats,
                 total_incomplete_items: prev.stats.total_incomplete_items - 1,
                 total_complete_items: prev.stats.total_complete_items + 1,
-
-                completion_rate:
-                  (prev.stats.total_complete_items + 1) /
-                  (prev.stats.total_complete_items + 1 + prev.stats.total_incomplete_items - 1),
+                completion_rate: completionRateFromCounts(
+                  prev.stats.total_complete_items + 1,
+                  prev.stats.total_incomplete_items - 1
+                ),
               },
             }
           : prev
@@ -162,7 +166,7 @@ export default function StudentDetailModal({
                 <div className={statCardStyle}>
                   <span className={statLabelStyle}>완료율</span>
                   <span className={statValueStyle} style={{ color: '#1DAA7F' }}>
-                    {Math.round(detail.stats.completion_rate * 100)}%
+                    {formatCompletionRatePercent(detail.stats.completion_rate)}%
                   </span>
                 </div>
                 <div className={statCardStyle}>
