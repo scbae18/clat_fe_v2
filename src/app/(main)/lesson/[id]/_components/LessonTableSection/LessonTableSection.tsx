@@ -1,7 +1,10 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import CheckIcon from '@/assets/icons/icon-check.svg'
+import UsersIcon from '@/assets/icons/icon-users.svg'
+import CloseIcon from '@/assets/icons/icon-close.svg'
+import Chip from '@/components/common/Chip'
 import type { LessonStudent, Attendance, CompletionStatus } from '@/types/lessonStudent'
 import type { LessonItemDetail } from '@/services/lesson'
 import { cohortScoreMetric, joinScoreStorage, splitScoreStorage } from '@/lib/lessonScore'
@@ -25,6 +28,14 @@ import {
   scoreHeaderMaxLabelStyle,
   scoreInputStyle,
   scoreInputNarrowStyle,
+  activeRowTdStyle,
+  toolbarStyle,
+  searchBarStyle,
+  searchLeadingIconStyle,
+  searchInputStyle,
+  searchClearButtonStyle,
+  emptyStateStyle,
+  emptyStateIconStyle,
 } from './LessonTable.css'
 
 interface LessonTableSectionProps {
@@ -35,6 +46,10 @@ interface LessonTableSectionProps {
 
 function isScoreItem(item: LessonItemDetail) {
   return item.item_type === 'SCORE' || item.item_type === 'NUMBER'
+}
+
+function getTdClassName(base: string, studentId: number, focusedStudentId: number | null) {
+  return focusedStudentId === studentId ? `${base} ${activeRowTdStyle}` : base
 }
 
 function AttendanceCell({
@@ -188,10 +203,29 @@ export default function LessonTable({
   templateItems,
   onChange,
 }: LessonTableSectionProps) {
+  const tableRef = useRef<HTMLTableElement>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [focusedStudentId, setFocusedStudentId] = useState<number | null>(null)
+
   const dynamicItems = useMemo(
     () => templateItems.filter((i) => !i.is_common && i.item_type !== 'ATTENDANCE'),
     [templateItems]
   )
+
+  const filteredStudents = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+    if (!query) return students
+    return students.filter((s) => s.name.toLowerCase().includes(query))
+  }, [students, searchQuery])
+
+  const handleRowFocus = (studentId: number) => {
+    setFocusedStudentId(studentId)
+  }
+
+  const handleTableBlur = (e: React.FocusEvent<HTMLTableElement>) => {
+    if (tableRef.current?.contains(e.relatedTarget as Node)) return
+    setFocusedStudentId(null)
+  }
 
   const scoreStatsByItemId = useMemo(() => {
     const m = new Map<number, { avg: number; max: number; usePercent: boolean } | null>()
@@ -200,7 +234,7 @@ export default function LessonTable({
       const nums: number[] = []
       let withSlash = 0
       let withoutSlash = 0
-      for (const s of students) {
+      for (const s of filteredStudents) {
         const v = s.items.find((i) => i.template_item_id === item.id)?.value ?? ''
         const raw = String(v).trim()
         if (!raw) continue
@@ -219,7 +253,7 @@ export default function LessonTable({
         })
     }
     return m
-  }, [dynamicItems, students])
+  }, [dynamicItems, filteredStudents])
 
   const updateAttendance = (studentId: number, value: Attendance) => {
     onChange(students.map((s) => (s.id === studentId ? { ...s, attendance: value } : s)))
@@ -248,13 +282,59 @@ export default function LessonTable({
     )
   }
 
-  const allAttend = students.every((s) => s.attendance === '출석')
+  const allAttend =
+    filteredStudents.length > 0 && filteredStudents.every((s) => s.attendance === '출석')
   const handleAllAttend = (checked: boolean) => {
-    onChange(students.map((s) => ({ ...s, attendance: checked ? '출석' : null })))
+    const visibleIds = new Set(filteredStudents.map((s) => s.id))
+    onChange(
+      students.map((s) =>
+        visibleIds.has(s.id) ? { ...s, attendance: checked ? '출석' : null } : s
+      )
+    )
   }
 
+  const searchLabel =
+    searchQuery.trim().length > 0
+      ? `${filteredStudents.length}명 / 전체 ${students.length}명`
+      : `전체 ${students.length}명`
+
   return (
-    <table className={tableStyle}>
+    <div>
+      <div className={toolbarStyle}>
+        <label className={searchBarStyle}>
+          <UsersIcon width={18} height={18} className={searchLeadingIconStyle} aria-hidden />
+          <input
+            type="search"
+            className={searchInputStyle}
+            placeholder="학생 이름 검색"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="학생 이름 검색"
+          />
+          {searchQuery.length > 0 && (
+            <button
+              type="button"
+              className={searchClearButtonStyle}
+              onClick={() => setSearchQuery('')}
+              aria-label="검색어 지우기"
+            >
+              <CloseIcon width={16} height={16} />
+            </button>
+          )}
+        </label>
+        <Chip
+          variant={searchQuery.trim().length > 0 ? 'active' : 'default'}
+          label={searchLabel}
+        />
+      </div>
+
+      {filteredStudents.length === 0 ? (
+        <div className={emptyStateStyle} role="status">
+          <UsersIcon width={24} height={24} className={emptyStateIconStyle} aria-hidden />
+          <span>검색 결과가 없어요.</span>
+        </div>
+      ) : (
+        <table ref={tableRef} className={tableStyle} onBlur={handleTableBlur}>
       <thead>
         <tr>
           <th className={thCompactStyle}>학생</th>
@@ -308,12 +388,16 @@ export default function LessonTable({
         </tr>
       </thead>
       <tbody>
-        {students.map((student) => (
+        {filteredStudents.map((student) => (
           <tr key={student.id}>
-            <td className={tdCompactStyle}>
+            <td className={getTdClassName(tdCompactStyle, student.id, focusedStudentId)}>
               <span className={nameCellStyle}>{student.name}</span>
             </td>
-            <td className={tdCompactStyle}>
+            <td
+              className={getTdClassName(tdCompactStyle, student.id, focusedStudentId)}
+              onMouseDown={() => handleRowFocus(student.id)}
+              onFocusCapture={() => handleRowFocus(student.id)}
+            >
               <AttendanceCell
                 value={student.attendance}
                 onChange={(v) => updateAttendance(student.id, v)}
@@ -321,9 +405,22 @@ export default function LessonTable({
             </td>
             {dynamicItems.map((item) => {
               const studentItem = student.items.find((i) => i.template_item_id === item.id)
+              const tdClass = getTdClassName(
+                item.item_type === 'SELECT' ||
+                  item.item_type === 'COMPLETE' ||
+                  isScoreItem(item)
+                  ? tdShrinkStyle
+                  : tdStyle,
+                student.id,
+                focusedStudentId
+              )
+              const focusHandlers = {
+                onMouseDown: () => handleRowFocus(student.id),
+                onFocusCapture: () => handleRowFocus(student.id),
+              }
               if (item.item_type === 'SELECT') {
                 return (
-                  <td key={item.id} className={tdShrinkStyle}>
+                  <td key={item.id} className={tdClass} {...focusHandlers}>
                     <SelectCell
                       options={item.options ?? []}
                       value={studentItem?.value ?? ''}
@@ -341,7 +438,7 @@ export default function LessonTable({
                       ? '\uBBF8\uC644\uB8CC'
                       : null
                 return (
-                  <td key={item.id} className={tdShrinkStyle}>
+                  <td key={item.id} className={tdClass} {...focusHandlers}>
                     <CompletionCell
                       value={status}
                       onChange={(v) =>
@@ -360,7 +457,7 @@ export default function LessonTable({
               if (isScoreItem(item)) {
                 const colMax = getScoreColumnMax(students, item.id)
                 return (
-                  <td key={item.id} className={tdShrinkStyle}>
+                  <td key={item.id} className={tdClass} {...focusHandlers}>
                     <ScoreEarnedCell
                       value={studentItem?.value ?? ''}
                       columnMax={colMax}
@@ -371,7 +468,7 @@ export default function LessonTable({
               }
 
               return (
-                <td key={item.id} className={tdStyle}>
+                <td key={item.id} className={tdClass} {...focusHandlers}>
                   <div
                     contentEditable
                     suppressContentEditableWarning
@@ -387,6 +484,8 @@ export default function LessonTable({
           </tr>
         ))}
       </tbody>
-    </table>
+        </table>
+      )}
+    </div>
   )
 }
