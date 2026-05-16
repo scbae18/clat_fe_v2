@@ -22,6 +22,7 @@ import {
   thInnerStyle,
   checkboxLabelStyle,
   checkboxLabelActiveStyle,
+  attendanceInputLockedStyle,
   scoreColHeaderStyle,
   scoreColStatsStyle,
   scoreHeaderMaxRowStyle,
@@ -37,6 +38,9 @@ import {
   emptyStateStyle,
   emptyStateIconStyle,
 } from './LessonTable.css'
+
+/** 수업 입력 테이블에서 출결 버튼 수동 입력 차단 (출결 시작하기 플로우만 사용) */
+const LOCK_ATTENDANCE_INPUT = true
 
 interface LessonTableSectionProps {
   students: LessonStudent[]
@@ -60,20 +64,29 @@ function AttendanceCell({
   onChange: (v: Attendance) => void
 }) {
   return (
-    <div className={cellButtonGroupStyle}>
+    <div
+      className={`${cellButtonGroupStyle}${LOCK_ATTENDANCE_INPUT ? ` ${attendanceInputLockedStyle}` : ''}`}
+      aria-disabled={LOCK_ATTENDANCE_INPUT}
+    >
       <button
+        type="button"
+        disabled={LOCK_ATTENDANCE_INPUT}
         className={cellButtonRecipe({ variant: value === '출석' ? 'attend' : 'default' })}
         onClick={() => onChange(value === '출석' ? null : '출석')}
       >
         출석
       </button>
       <button
+        type="button"
+        disabled={LOCK_ATTENDANCE_INPUT}
         className={cellButtonRecipe({ variant: value === '지각' ? 'late' : 'default' })}
         onClick={() => onChange(value === '지각' ? null : '지각')}
       >
         지각
       </button>
       <button
+        type="button"
+        disabled={LOCK_ATTENDANCE_INPUT}
         className={cellButtonRecipe({ variant: value === '결석' ? 'absent' : 'default' })}
         onClick={() => onChange(value === '결석' ? null : '결석')}
       >
@@ -342,8 +355,12 @@ export default function LessonTable({
             <div className={thInnerStyle}>
               출결
               <div
-                className={`${checkboxLabelStyle}${allAttend ? ` ${checkboxLabelActiveStyle}` : ''}`}
-                onClick={() => handleAllAttend(!allAttend)}
+                className={`${checkboxLabelStyle}${allAttend ? ` ${checkboxLabelActiveStyle}` : ''}${LOCK_ATTENDANCE_INPUT ? ` ${attendanceInputLockedStyle}` : ''}`}
+                aria-disabled={LOCK_ATTENDANCE_INPUT}
+                onClick={() => {
+                  if (LOCK_ATTENDANCE_INPUT) return
+                  handleAllAttend(!allAttend)
+                }}
               >
                 <CheckIcon width={14} height={14} />
                 전체 출석
