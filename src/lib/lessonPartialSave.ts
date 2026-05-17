@@ -1,79 +1,116 @@
 import type { LessonStudent } from '@/types/lessonStudent'
 import type { LessonItemDetail, StudentData, StudentDataItem, UpdateLessonBody } from '@/services/lesson'
 
-export function findChangedStudentIds(prev: LessonStudent[], next: LessonStudent[]): number[] {
+/** 학생 + 템플릿 항목(칸) 단위 dirty 키 */
+export function studentCellKey(studentId: number, templateItemId: number): string {
+  return `${studentId}:${templateItemId}`
+}
+
+export function parseStudentCellKey(key: string): { studentId: number; templateItemId: number } {
+  const sep = key.indexOf(':')
+  return {
+    studentId: Number(key.slice(0, sep)),
+    templateItemId: Number(key.slice(sep + 1)),
+  }
+}
+
+export function findChangedStudentCells(
+  prev: LessonStudent[],
+  next: LessonStudent[],
+  attendanceItemId?: number,
+): string[] {
   const prevMap = new Map(prev.map((s) => [s.id, s]))
-  const changed: number[] = []
+  const keys: string[] = []
 
   for (const student of next) {
     const before = prevMap.get(student.id)
+
     if (!before) {
-      changed.push(student.id)
+      if (attendanceItemId) keys.push(studentCellKey(student.id, attendanceItemId))
+      for (const item of student.items) {
+        keys.push(studentCellKey(student.id, item.template_item_id))
+      }
       continue
     }
-    if (before.attendance !== student.attendance) {
-      changed.push(student.id)
-      continue
+
+    if (before.attendance !== student.attendance && attendanceItemId) {
+      keys.push(studentCellKey(student.id, attendanceItemId))
     }
-    if (before.items.length !== student.items.length) {
-      changed.push(student.id)
-      continue
-    }
-    let itemChanged = false
-    for (let i = 0; i < student.items.length; i++) {
-      const a = before.items[i]
-      const b = student.items[i]
+
+    const beforeItems = new Map(before.items.map((i) => [i.template_item_id, i]))
+    for (const item of student.items) {
+      const prevItem = beforeItems.get(item.template_item_id)
       if (
-        a.template_item_id !== b.template_item_id ||
-        a.value !== b.value ||
-        a.is_completed !== b.is_completed
+        !prevItem ||
+        prevItem.value !== item.value ||
+        prevItem.is_completed !== item.is_completed
       ) {
-        itemChanged = true
-        break
+        keys.push(studentCellKey(student.id, item.template_item_id))
       }
     }
-    if (itemChanged) changed.push(student.id)
   }
 
-  return changed
+  return keys
 }
 
-function buildStudentItems(
+function groupDirtyCellsByStudent(
+  dirtyCells: Iterable<string>,
+): Map<number, Set<number>> {
+  const byStudent = new Map<number, Set<number>>()
+  for (const key of dirtyCells) {
+    const { studentId, templateItemId } = parseStudentCellKey(key)
+    if (!byStudent.has(studentId)) byStudent.set(studentId, new Set())
+    byStudent.get(studentId)!.add(templateItemId)
+  }
+  return byStudent
+}
+
+function buildItemsForDirtyCells(
   student: LessonStudent,
-  attendanceItem: LessonItemDetail | undefined,
+  dirtyItemIds: Set<number>,
+  attendanceItemId?: number,
 ): StudentDataItem[] {
-  return [
-    ...(attendanceItem
-      ? [
-          {
-            template_item_id: attendanceItem.id,
-            value: String(student.attendance ?? ''),
-            is_completed: false as const,
-          },
-        ]
-      : []),
-    ...student.items.map((item) => ({
-      template_item_id: item.template_item_id,
+  const items: StudentDataItem[] = []
+
+  for (const templateItemId of dirtyItemIds) {
+    if (attendanceItemId && templateItemId === attendanceItemId) {
+      items.push({
+        template_item_id: templateItemId,
+        value: String(student.attendance ?? ''),
+        is_completed: false,
+      })
+      continue
+    }
+
+    const item = student.items.find((i) => i.template_item_id === templateItemId)
+    if (!item) continue
+
+    items.push({
+      template_item_id: templateItemId,
       value: String(item.value ?? ''),
       is_completed: item.is_completed ?? undefined,
-    })),
-  ]
+    })
+  }
+
+  return items
 }
 
 export function buildPartialLessonUpdateBody(params: {
   dirtyCommonIds: Iterable<number>
-  dirtyStudentIds: Iterable<number>
+  dirtyStudentCells: Iterable<string>
   commonValues: Record<number, string>
   students: LessonStudent[]
   lessonItems: LessonItemDetail[]
   status?: 'DRAFT' | 'SAVED'
 }): UpdateLessonBody | null {
   const dirtyCommon = [...params.dirtyCommonIds]
-  const dirtyStudents = [...params.dirtyStudentIds]
-  if (dirtyCommon.length === 0 && dirtyStudents.length === 0) return null
+  const dirtyCells = [...params.dirtyStudentCells]
+  if (dirtyCommon.length === 0 && dirtyCells.length === 0) return null
 
   const attendanceItem = params.lessonItems.find((i) => i.item_type === 'ATTENDANCE')
-  const dirtyStudentSet = new Set(dirtyStudents)
+  const attendanceItemId = attendanceItem?.id
+  const byStudent = groupDirtyCellsByStudent(dirtyCells)
+  const studentMap = new Map(params.students.map((s) => [s.id, s]))
 
   const body: UpdateLessonBody = {}
   if (params.status) body.status = params.status
@@ -85,16 +122,18 @@ export function buildPartialLessonUpdateBody(params: {
     }))
   }
 
-  if (dirtyStudents.length > 0) {
-    body.student_data = params.students
-      .filter((s) => dirtyStudentSet.has(s.id))
-      .map(
-        (s): StudentData => ({
-          student_id: s.id,
-          items: buildStudentItems(s, attendanceItem),
-        }),
-      )
+  if (byStudent.size > 0) {
+    body.student_data = []
+    for (const [studentId, dirtyItemIds] of byStudent) {
+      const student = studentMap.get(studentId)
+      if (!student) continue
+      const items = buildItemsForDirtyCells(student, dirtyItemIds, attendanceItemId)
+      if (items.length === 0) continue
+      body.student_data.push({ student_id: studentId, items })
+    }
+    if (body.student_data.length === 0) delete body.student_data
   }
 
+  if (!body.common_data && !body.student_data) return null
   return body
 }

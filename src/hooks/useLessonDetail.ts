@@ -4,7 +4,11 @@ import { lessonService, type LessonDetail } from '@/services/lesson'
 import { classService } from '@/services/class'
 import useDisclosure from './useDisclosure'
 import { useToastStore } from '@/stores/toastStore'
-import { buildPartialLessonUpdateBody, findChangedStudentIds } from '@/lib/lessonPartialSave'
+import {
+  buildPartialLessonUpdateBody,
+  findChangedStudentCells,
+  studentCellKey,
+} from '@/lib/lessonPartialSave'
 
 export default function useLessonDetail(lessonId: number) {
   const [lesson, setLesson] = useState<LessonDetail | null>(null)
@@ -14,21 +18,23 @@ export default function useLessonDetail(lessonId: number) {
   const [refreshKey, setRefreshKey] = useState(0)
   const [error, setError] = useState<'TEMPLATE_NOT_FOUND' | null>(null)
   const [dirtyCommonIds, setDirtyCommonIds] = useState<Set<number>>(() => new Set())
-  const [dirtyStudentIds, setDirtyStudentIds] = useState<Set<number>>(() => new Set())
+  const [dirtyStudentCells, setDirtyStudentCells] = useState<Set<string>>(() => new Set())
   const alimtalkSendModal = useDisclosure()
   const addToast = useToastStore((s) => s.addToast)
   const studentsRef = useRef(students)
   studentsRef.current = students
+  const lessonRef = useRef(lesson)
+  lessonRef.current = lesson
 
   const clearDirty = useCallback(() => {
     setDirtyCommonIds(new Set())
-    setDirtyStudentIds(new Set())
+    setDirtyStudentCells(new Set())
   }, [])
 
-  const markStudentsDirty = useCallback((ids: Iterable<number>) => {
-    setDirtyStudentIds((prev) => {
+  const markStudentCellsDirty = useCallback((keys: Iterable<string>) => {
+    setDirtyStudentCells((prev) => {
       const next = new Set(prev)
-      for (const id of ids) next.add(id)
+      for (const key of keys) next.add(key)
       return next
     })
   }, [])
@@ -52,12 +58,15 @@ export default function useLessonDetail(lessonId: number) {
     (next: LessonStudent[] | ((prev: LessonStudent[]) => LessonStudent[])) => {
       setStudents((prev) => {
         const resolved = typeof next === 'function' ? next(prev) : next
-        const changedIds = findChangedStudentIds(prev, resolved)
-        if (changedIds.length > 0) markStudentsDirty(changedIds)
+        const attendanceItemId = lessonRef.current?.items.find(
+          (i) => i.item_type === 'ATTENDANCE',
+        )?.id
+        const changedCells = findChangedStudentCells(prev, resolved, attendanceItemId)
+        if (changedCells.length > 0) markStudentCellsDirty(changedCells)
         return resolved
       })
     },
-    [markStudentsDirty],
+    [markStudentCellsDirty],
   )
 
   /** 출결 종료 후 서버 출결·잠금만 반영하고, 저장 전에 입력한 공통/개별 값은 유지 */
@@ -208,7 +217,7 @@ export default function useLessonDetail(lessonId: number) {
 
     const body = buildPartialLessonUpdateBody({
       dirtyCommonIds,
-      dirtyStudentIds,
+      dirtyStudentCells,
       commonValues,
       students: studentsRef.current,
       lessonItems: lesson.items,
@@ -227,9 +236,11 @@ export default function useLessonDetail(lessonId: number) {
         body.common_data?.forEach((c) => next.delete(c.template_item_id))
         return next
       })
-      setDirtyStudentIds((prev) => {
+      setDirtyStudentCells((prev) => {
         const next = new Set(prev)
-        body.student_data?.forEach((s) => next.delete(s.student_id))
+        body.student_data?.forEach((s) => {
+          s.items.forEach((item) => next.delete(studentCellKey(s.student_id, item.template_item_id)))
+        })
         return next
       })
       addToast({ variant: 'success', message: '저장됐어요.' })
@@ -238,7 +249,7 @@ export default function useLessonDetail(lessonId: number) {
       addToast({ variant: 'error', message: '저장에 실패했어요.' })
       return false
     }
-  }, [lesson, lessonId, dirtyCommonIds, dirtyStudentIds, commonValues, addToast])
+  }, [lesson, lessonId, dirtyCommonIds, dirtyStudentCells, commonValues, addToast])
 
   const inputCount = students.filter((s) => {
     if (s.attendance === null) return false
@@ -266,7 +277,7 @@ export default function useLessonDetail(lessonId: number) {
     }
   }
 
-  const hasUnsavedChanges = dirtyCommonIds.size > 0 || dirtyStudentIds.size > 0
+  const hasUnsavedChanges = dirtyCommonIds.size > 0 || dirtyStudentCells.size > 0
 
   return {
     lesson,
