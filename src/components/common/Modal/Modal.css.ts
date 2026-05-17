@@ -22,23 +22,34 @@ export const modalRecipe = recipe({
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
+    maxHeight: '90vh',
+    overflow: 'hidden',
   },
   variants: {
     size: {
       sm: {
         width: '420px',
+        maxWidth: 'calc(100vw - 32px)',
         borderRadius: '16px',
         padding: '24px',
       },
       md: {
         width: '640px',
+        maxWidth: 'calc(100vw - 32px)',
         borderRadius: '24px',
         padding: '48px',
-        maxHeight: '90vh',
       },
     },
   },
   defaultVariants: {
     size: 'md',
   },
+})
+
+/** Modal body: scrolls when content exceeds viewport; keeps footer/actions reachable */
+export const modalBodyStyle = style({
+  flex: '1 1 auto',
+  minHeight: 0,
+  overflowY: 'auto',
+  overscrollBehavior: 'contain',
 })

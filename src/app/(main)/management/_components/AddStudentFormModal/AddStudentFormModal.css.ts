@@ -28,6 +28,27 @@ export const classChipGroupStyle = style({
   display: 'flex',
   flexWrap: 'wrap',
   gap: '8px',
+  maxHeight: '160px',
+  overflowY: 'auto',
+})
+
+export const headerStyle = style({
+  marginBottom: '24px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  flexShrink: 0,
+})
+
+export const requiredMarkStyle = style({
+  color: colors.error500,
+})
+
+export const actionsStyle = style({
+  display: 'flex',
+  gap: '8px',
+  flexShrink: 0,
+  paddingTop: '8px',
 })
 
 export const classChipRecipe = recipe({
@@ -69,9 +90,4 @@ export const classChipRecipe = recipe({
   defaultVariants: {
     selected: false,
   },
-})
-
-export const actionsStyle = style({
-  display: 'flex',
-  gap: '8px',
 })

@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { overlayStyle, modalRecipe } from './Modal.css'
+import { overlayStyle, modalRecipe, modalBodyStyle } from './Modal.css'
 
 interface ModalProps {
   isOpen: boolean
@@ -19,7 +19,7 @@ export default function Modal({ isOpen, onClose, size = 'md', children }: ModalP
         className={modalRecipe({ size })}
         onClick={(e) => e.stopPropagation()}
       >
-        {children}
+        <div className={modalBodyStyle}>{children}</div>
       </div>
     </div>
   )

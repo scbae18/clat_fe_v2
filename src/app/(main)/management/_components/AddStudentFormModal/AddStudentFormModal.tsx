@@ -15,6 +15,8 @@ import {
   labelStyle,
   classChipGroupStyle,
   classChipRecipe,
+  headerStyle,
+  requiredMarkStyle,
   actionsStyle,
 } from './AddStudentFormModal.css'
 
@@ -129,14 +131,7 @@ export default function AddStudentFormModal({
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} size="md">
-      <div
-        style={{
-          marginBottom: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
+      <div className={headerStyle}>
         <Text variant="headingLg" as="h2">
           {mode === 'add' ? '학생 등록' : '학생 정보 수정'}
         </Text>
@@ -163,7 +158,7 @@ export default function AddStudentFormModal({
       <div className={fieldGroupStyle}>
         <div className={fieldStyle}>
           <span className={labelStyle}>
-            학생명 <span style={{ color: '#EF4453' }}>*</span>
+            학생명 <span className={requiredMarkStyle}>*</span>
           </span>
           <Input variant="gray" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
