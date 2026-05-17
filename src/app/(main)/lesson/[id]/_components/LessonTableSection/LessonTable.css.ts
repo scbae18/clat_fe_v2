@@ -151,13 +151,6 @@ export const checkboxLabelActiveStyle = style({
   color: colors.primary500,
 })
 
-/** 수업 입력 화면 출결 UI 잠금 (프론트 전용, 출결 시작 플로우 사용) */
-export const attendanceInputLockedStyle = style({
-  pointerEvents: 'none',
-  opacity: 0.55,
-  userSelect: 'none',
-})
-
 export const activeRowStyle = style({
   backgroundColor: colors.success50,
 })

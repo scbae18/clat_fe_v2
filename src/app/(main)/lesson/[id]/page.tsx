@@ -39,6 +39,9 @@ import AttendanceStartModal from '@/components/attendance/AttendanceStartModal'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
+/** 헤더 「출결 시작하기」 버튼만 프론트에서 비활성 (테이블 출결 선택은 유지) */
+const LOCK_ATTENDANCE_START_BUTTON = true
+
 export default function LessonDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const lessonId = Number(id)
@@ -258,6 +261,9 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
             <Button
               variant={attendanceInProgress || attendanceLocked ? 'secondary' : 'primary'}
               size="sm"
+              disabled={
+                LOCK_ATTENDANCE_START_BUTTON && !attendanceInProgress && !attendanceLocked
+              }
               onClick={() => {
                 if (attendanceInProgress) {
                   bumpAttendanceDetail()
@@ -270,6 +276,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
                   })
                   return
                 }
+                if (LOCK_ATTENDANCE_START_BUTTON) return
                 attendanceStartModal.open()
               }}
             >

@@ -22,7 +22,6 @@ import {
   thInnerStyle,
   checkboxLabelStyle,
   checkboxLabelActiveStyle,
-  attendanceInputLockedStyle,
   scoreColHeaderStyle,
   scoreColStatsStyle,
   scoreHeaderMaxRowStyle,
@@ -38,9 +37,6 @@ import {
   emptyStateStyle,
   emptyStateIconStyle,
 } from './LessonTable.css'
-
-/** 수업 입력 테이블에서 출결 버튼 수동 입력 차단 (출결 시작하기 플로우만 사용) */
-const LOCK_ATTENDANCE_INPUT = true
 
 interface LessonTableSectionProps {
   students: LessonStudent[]
@@ -64,29 +60,20 @@ function AttendanceCell({
   onChange: (v: Attendance) => void
 }) {
   return (
-    <div
-      className={`${cellButtonGroupStyle}${LOCK_ATTENDANCE_INPUT ? ` ${attendanceInputLockedStyle}` : ''}`}
-      aria-disabled={LOCK_ATTENDANCE_INPUT}
-    >
+    <div className={cellButtonGroupStyle}>
       <button
-        type="button"
-        disabled={LOCK_ATTENDANCE_INPUT}
         className={cellButtonRecipe({ variant: value === '출석' ? 'attend' : 'default' })}
         onClick={() => onChange(value === '출석' ? null : '출석')}
       >
         출석
       </button>
       <button
-        type="button"
-        disabled={LOCK_ATTENDANCE_INPUT}
         className={cellButtonRecipe({ variant: value === '지각' ? 'late' : 'default' })}
         onClick={() => onChange(value === '지각' ? null : '지각')}
       >
         지각
       </button>
       <button
-        type="button"
-        disabled={LOCK_ATTENDANCE_INPUT}
         className={cellButtonRecipe({ variant: value === '결석' ? 'absent' : 'default' })}
         onClick={() => onChange(value === '결석' ? null : '결석')}
       >
@@ -199,15 +186,14 @@ function ScoreEarnedCell({
 
 const SCORE_STATS_EMPTY = '\uC785\uB825 \uC2DC \uD3C9\uADE0\u00B7\uCD5C\uACE0 \uD45C\uC2DC'
 
-function formatScoreStats(avg: number, max: number, usePercent: boolean) {
-  const unit = usePercent ? '%' : '\uC810'
+function formatScoreStats(avg: number, max: number) {
   return (
     '\uD3C9\uADE0 ' +
     avg.toFixed(1) +
-    unit +
+    '\uC810' +
     ' \u00B7 \uCD5C\uACE0 ' +
     String(Math.round(max * 10) / 10) +
-    unit
+    '\uC810'
   )
 }
 
@@ -241,7 +227,7 @@ export default function LessonTable({
   }
 
   const scoreStatsByItemId = useMemo(() => {
-    const m = new Map<number, { avg: number; max: number; usePercent: boolean } | null>()
+    const m = new Map<number, { avg: number; max: number } | null>()
     for (const item of dynamicItems) {
       if (!isScoreItem(item)) continue
       const nums: number[] = []
@@ -262,7 +248,6 @@ export default function LessonTable({
         m.set(item.id, {
           max: Math.max(...nums),
           avg: nums.reduce((a, b) => a + b, 0) / nums.length,
-          usePercent: withSlash > 0,
         })
     }
     return m
@@ -355,12 +340,8 @@ export default function LessonTable({
             <div className={thInnerStyle}>
               출결
               <div
-                className={`${checkboxLabelStyle}${allAttend ? ` ${checkboxLabelActiveStyle}` : ''}${LOCK_ATTENDANCE_INPUT ? ` ${attendanceInputLockedStyle}` : ''}`}
-                aria-disabled={LOCK_ATTENDANCE_INPUT}
-                onClick={() => {
-                  if (LOCK_ATTENDANCE_INPUT) return
-                  handleAllAttend(!allAttend)
-                }}
+                className={`${checkboxLabelStyle}${allAttend ? ` ${checkboxLabelActiveStyle}` : ''}`}
+                onClick={() => handleAllAttend(!allAttend)}
               >
                 <CheckIcon width={14} height={14} />
                 전체 출석
@@ -377,7 +358,7 @@ export default function LessonTable({
                     <span>{item.name}</span>
                     <span className={scoreColStatsStyle}>
                       {stats
-                        ? formatScoreStats(stats.avg, stats.max, stats.usePercent)
+                        ? formatScoreStats(stats.avg, stats.max)
                         : SCORE_STATS_EMPTY}
                     </span>
                     <div className={scoreHeaderMaxRowStyle}>

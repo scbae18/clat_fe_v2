@@ -22,11 +22,11 @@ export function parseLessonScoreValue(raw: string | null | undefined): ParsedLes
   return { earned, max: null, percent: null }
 }
 
-/** 반 통계용: 만점 있으면 환산%, 없으면 원점수 */
+/** 반 통계(평균·최고): 항상 획득 점수. 4/10이면 4 — 환산% 아님 */
 export function cohortScoreMetric(raw: string | null | undefined): number | null {
   const p = parseLessonScoreValue(raw)
   if (!p || p.earned == null) return null
-  return p.percent != null ? p.percent : p.earned
+  return p.earned
 }
 
 export function splitScoreStorage(raw: string): { earned: string; max: string } {
