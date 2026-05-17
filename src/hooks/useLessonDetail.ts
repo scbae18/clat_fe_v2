@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { LessonStudent } from '@/types/lessonStudent'
 import { lessonService, type LessonDetail } from '@/services/lesson'
 import { classService } from '@/services/class'
 import useDisclosure from './useDisclosure'
 import { useToastStore } from '@/stores/toastStore'
+import { buildPartialLessonUpdateBody, findChangedStudentIds } from '@/lib/lessonPartialSave'
 
 export default function useLessonDetail(lessonId: number) {
   const [lesson, setLesson] = useState<LessonDetail | null>(null)
@@ -12,13 +13,52 @@ export default function useLessonDetail(lessonId: number) {
   const [isLoading, setIsLoading] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
   const [error, setError] = useState<'TEMPLATE_NOT_FOUND' | null>(null)
+  const [dirtyCommonIds, setDirtyCommonIds] = useState<Set<number>>(() => new Set())
+  const [dirtyStudentIds, setDirtyStudentIds] = useState<Set<number>>(() => new Set())
   const alimtalkSendModal = useDisclosure()
   const addToast = useToastStore((s) => s.addToast)
+  const studentsRef = useRef(students)
+  studentsRef.current = students
+
+  const clearDirty = useCallback(() => {
+    setDirtyCommonIds(new Set())
+    setDirtyStudentIds(new Set())
+  }, [])
+
+  const markStudentsDirty = useCallback((ids: Iterable<number>) => {
+    setDirtyStudentIds((prev) => {
+      const next = new Set(prev)
+      for (const id of ids) next.add(id)
+      return next
+    })
+  }, [])
 
   const refetch = () => {
     setError(null)
+    clearDirty()
     setRefreshKey((k) => k + 1)
   }
+
+  const updateCommonValue = useCallback((id: number, value: string) => {
+    setCommonValues((prev) => ({ ...prev, [id]: value }))
+    setDirtyCommonIds((prev) => {
+      const next = new Set(prev)
+      next.add(id)
+      return next
+    })
+  }, [])
+
+  const updateStudents = useCallback(
+    (next: LessonStudent[] | ((prev: LessonStudent[]) => LessonStudent[])) => {
+      setStudents((prev) => {
+        const resolved = typeof next === 'function' ? next(prev) : next
+        const changedIds = findChangedStudentIds(prev, resolved)
+        if (changedIds.length > 0) markStudentsDirty(changedIds)
+        return resolved
+      })
+    },
+    [markStudentsDirty],
+  )
 
   /** 출결 종료 후 서버 출결·잠금만 반영하고, 저장 전에 입력한 공통/개별 값은 유지 */
   const refetchAfterAttendanceEnd = useCallback(async () => {
@@ -94,6 +134,7 @@ export default function useLessonDetail(lessonId: number) {
           values[item.template_item_id] = item.value
         })
         setCommonValues(values)
+        clearDirty()
 
         const individualItems = data.items.filter(
           (i) => !i.is_common && i.item_type !== 'ATTENDANCE'
@@ -160,7 +201,44 @@ export default function useLessonDetail(lessonId: number) {
     return () => {
       cancelled = true
     }
-  }, [lessonId, refreshKey])
+  }, [lessonId, refreshKey, clearDirty])
+
+  const saveDirtyChanges = useCallback(async (): Promise<boolean> => {
+    if (!lesson) return false
+
+    const body = buildPartialLessonUpdateBody({
+      dirtyCommonIds,
+      dirtyStudentIds,
+      commonValues,
+      students: studentsRef.current,
+      lessonItems: lesson.items,
+      status: 'SAVED',
+    })
+
+    if (!body) {
+      addToast({ variant: 'warning', message: '저장할 변경 내용이 없어요.' })
+      return true
+    }
+
+    try {
+      await lessonService.updateLesson(lessonId, body)
+      setDirtyCommonIds((prev) => {
+        const next = new Set(prev)
+        body.common_data?.forEach((c) => next.delete(c.template_item_id))
+        return next
+      })
+      setDirtyStudentIds((prev) => {
+        const next = new Set(prev)
+        body.student_data?.forEach((s) => next.delete(s.student_id))
+        return next
+      })
+      addToast({ variant: 'success', message: '저장됐어요.' })
+      return true
+    } catch {
+      addToast({ variant: 'error', message: '저장에 실패했어요.' })
+      return false
+    }
+  }, [lesson, lessonId, dirtyCommonIds, dirtyStudentIds, commonValues, addToast])
 
   const inputCount = students.filter((s) => {
     if (s.attendance === null) return false
@@ -188,17 +266,21 @@ export default function useLessonDetail(lessonId: number) {
     }
   }
 
+  const hasUnsavedChanges = dirtyCommonIds.size > 0 || dirtyStudentIds.size > 0
+
   return {
     lesson,
     setLesson,
     error,
     commonValues,
-    setCommonValues,
+    updateCommonValue,
     students,
-    setStudents,
+    updateStudents,
     alimtalkSendModal,
     inputCount,
     isLoading,
+    hasUnsavedChanges,
+    saveDirtyChanges,
     handleExcelDownload,
     refetch,
     refetchAfterAttendanceEnd,

@@ -52,12 +52,13 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     lesson,
     error,
     commonValues,
-    setCommonValues,
+    updateCommonValue,
     students,
-    setStudents,
+    updateStudents,
     alimtalkSendModal,
     inputCount,
     isLoading,
+    saveDirtyChanges,
     handleExcelDownload,
     refetch,
     refetchAfterAttendanceEnd,
@@ -115,43 +116,6 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
       ),
     })
   }, [lessonId, students, setActiveAttendance])
-
-  const handleSave = async () => {
-    if (!lesson) return
-    try {
-      const attendanceItem = lesson.items.find((i) => i.item_type === 'ATTENDANCE')
-      await lessonService.updateLesson(lessonId, {
-        template_id: lesson.template_id,
-        status: 'SAVED',
-        common_data: Object.entries(commonValues).map(([id, value]) => ({
-          template_item_id: Number(id),
-          value: String(value ?? ''),
-        })),
-        student_data: students.map((s) => ({
-          student_id: s.id,
-          items: [
-            ...(attendanceItem
-              ? [
-                  {
-                    template_item_id: attendanceItem.id,
-                    value: String(s.attendance ?? ''),
-                    is_completed: false,
-                  },
-                ]
-              : []),
-            ...s.items.map((item) => ({
-              template_item_id: item.template_item_id,
-              value: String(item.value ?? ''),
-              is_completed: item.is_completed ?? undefined,
-            })),
-          ],
-        })),
-      })
-      addToast({ variant: 'success', message: '저장됐어요.' })
-    } catch {
-      addToast({ variant: 'error', message: '저장에 실패했어요.' })
-    }
-  }
 
   const handleTemplateSelect = (templateId: number) => {
     setPendingTemplateId(templateId)
@@ -299,7 +263,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
             variant="primary"
             size="sm"
             leftIcon={<SaveIcon width={20} height={20} />}
-            onClick={handleSave}
+            onClick={() => void saveDirtyChanges()}
           >
             저장
           </Button>
@@ -313,7 +277,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           <CommonContent
             items={commonItems}
             values={commonValues}
-            onChange={(id, value) => setCommonValues((prev) => ({ ...prev, [id]: value }))}
+            onChange={updateCommonValue}
           />
         </div>
       )}
@@ -321,7 +285,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
       {/* 개별 내용 */}
       <div className={sectionStyle}>
         <Text variant="headingMd">개별 내용</Text>
-        <LessonTable students={students} templateItems={lesson.items} onChange={setStudents} />
+        <LessonTable students={students} templateItems={lesson.items} onChange={updateStudents} />
       </div>
 
       {/* 하단 진행도 */}
@@ -332,8 +296,8 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           size="sm"
           leftIcon={<MessageIcon width={20} height={20} />}
           onClick={async () => {
-            await handleSave()
-            alimtalkSendModal.open()
+            const ok = await saveDirtyChanges()
+            if (ok) alimtalkSendModal.open()
           }}
         >
           {'\uC54C\uB9BC\uD1A1 \uC804\uC1A1\uD558\uAE30'}
