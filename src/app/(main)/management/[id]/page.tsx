@@ -19,6 +19,7 @@ import ClassFormModal from '../_components/ClassFormModal/ClassFormModal'
 import { classService, type ClassDetail } from '@/services/class'
 import { useToastStore } from '@/stores/toastStore'
 import type { Student } from '@/types/student'
+import { sortStudentsByNameKo } from '@/lib/sortStudents'
 import { backButtonStyle } from '../management.css'
 
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토']
@@ -44,9 +45,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
       .getClass(classId)
       .then((data) => {
         setClassDetail(data)
-        setStudents(
-          [...data.students].sort((a, b) => a.name.localeCompare(b.name, 'ko'))
-        )
+        setStudents(sortStudentsByNameKo(data.students))
       })
       .catch(() => {
         addToast({ variant: 'error', message: '반 정보를 불러오지 못했어요.' })
@@ -177,11 +176,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
               try {
                 await classService.addStudents(classId, ids)
                 const updated = await classService.getClass(classId)
-                setStudents(
-                  [...updated.students].sort((a, b) =>
-                    a.name.localeCompare(b.name, 'ko')
-                  )
-                )
+                setStudents(sortStudentsByNameKo(updated.students))
                 addStudent.close()
                 addToast({ variant: 'success', message: '학생이 추가됐어요.' })
               } catch {

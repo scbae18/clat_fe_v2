@@ -27,6 +27,7 @@ import ConfirmModal from '@/components/common/ConfirmModal'
 import { studentService } from '@/services/student'
 import type { Student } from '@/types/student'
 import { useToastStore } from '@/stores/toastStore'
+import { sortStudentsByNameKo } from '@/lib/sortStudents'
 
 const FILTER_OPTIONS = [
   { label: '전체', value: 'all' },
@@ -53,7 +54,7 @@ function ManagementContent() {
     setIsLoadingStudents(true)
     studentService
       .getStudents()
-      .then((res) => setStudents(res.data))
+      .then((res) => setStudents(sortStudentsByNameKo(res.data)))
       .catch((err) => console.error('학생 목록 조회 실패', err))
       .finally(() => setIsLoadingStudents(false))
   }, [tab])
@@ -201,7 +202,9 @@ function ManagementContent() {
                       ? `${bulkRes.success_count} ok, ${bulkRes.fail_count} failed`
                       : `${bulkRes.success_count} students added`,
                 })
-                studentService.getStudents().then((r) => setStudents(r.data))
+                studentService
+                  .getStudents()
+                  .then((r) => setStudents(sortStudentsByNameKo(r.data)))
               } catch {
                 addToast({ variant: 'error', message: '엑셀 업로드에 실패했어요.' })
               }
@@ -213,7 +216,7 @@ function ManagementContent() {
             onConfirm={async (data) => {
               try {
                 const newStudent = await studentService.createStudent(data)
-                setStudents((prev) => [...prev, newStudent])
+                setStudents((prev) => sortStudentsByNameKo([...prev, newStudent]))
                 addStudent.close()
                 addToast({ variant: 'success', message: '학생이 등록됐어요.' })
               } catch (err) {
