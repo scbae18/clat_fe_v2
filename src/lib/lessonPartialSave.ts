@@ -95,28 +95,26 @@ function buildItemsForDirtyCells(
   return items
 }
 
-export function buildPartialLessonUpdateBody(params: {
-  dirtyCommonIds: Iterable<number>
-  dirtyStudentCells: Iterable<string>
+export function buildLessonUpdateBodyForTargets(params: {
+  commonIds: number[]
+  studentCells: string[]
   commonValues: Record<number, string>
   students: LessonStudent[]
   lessonItems: LessonItemDetail[]
   status?: 'DRAFT' | 'SAVED'
 }): UpdateLessonBody | null {
-  const dirtyCommon = [...params.dirtyCommonIds]
-  const dirtyCells = [...params.dirtyStudentCells]
-  if (dirtyCommon.length === 0 && dirtyCells.length === 0) return null
+  if (params.commonIds.length === 0 && params.studentCells.length === 0) return null
 
   const attendanceItem = params.lessonItems.find((i) => i.item_type === 'ATTENDANCE')
   const attendanceItemId = attendanceItem?.id
-  const byStudent = groupDirtyCellsByStudent(dirtyCells)
+  const byStudent = groupDirtyCellsByStudent(params.studentCells)
   const studentMap = new Map(params.students.map((s) => [s.id, s]))
 
   const body: UpdateLessonBody = {}
   if (params.status) body.status = params.status
 
-  if (dirtyCommon.length > 0) {
-    body.common_data = dirtyCommon.map((id) => ({
+  if (params.commonIds.length > 0) {
+    body.common_data = params.commonIds.map((id) => ({
       template_item_id: id,
       value: String(params.commonValues[id] ?? ''),
     }))
@@ -136,4 +134,22 @@ export function buildPartialLessonUpdateBody(params: {
 
   if (!body.common_data && !body.student_data) return null
   return body
+}
+
+export function buildPartialLessonUpdateBody(params: {
+  dirtyCommonIds: Iterable<number>
+  dirtyStudentCells: Iterable<string>
+  commonValues: Record<number, string>
+  students: LessonStudent[]
+  lessonItems: LessonItemDetail[]
+  status?: 'DRAFT' | 'SAVED'
+}): UpdateLessonBody | null {
+  return buildLessonUpdateBodyForTargets({
+    commonIds: [...params.dirtyCommonIds],
+    studentCells: [...params.dirtyStudentCells],
+    commonValues: params.commonValues,
+    students: params.students,
+    lessonItems: params.lessonItems,
+    status: params.status,
+  })
 }

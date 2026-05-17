@@ -23,6 +23,7 @@ import {
   backButtonStyle,
   headerLeftStyle,
   headerButtonGroupStyle,
+  autoSaveHintStyle,
   templateChipButtonStyle,
 } from './lessonDetail.css'
 import useLessonDetail from '@/hooks/useLessonDetail'
@@ -58,6 +59,8 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     alimtalkSendModal,
     inputCount,
     isLoading,
+    isAutoSaving,
+    hasUnsavedChanges,
     saveDirtyChanges,
     handleExcelDownload,
     refetch,
@@ -259,6 +262,11 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           >
             엑셀 다운로드
           </Button>
+          {(isAutoSaving || hasUnsavedChanges) && (
+            <span className={autoSaveHintStyle}>
+              {isAutoSaving ? '저장 중…' : '저장 대기'}
+            </span>
+          )}
           <Button
             variant="primary"
             size="sm"

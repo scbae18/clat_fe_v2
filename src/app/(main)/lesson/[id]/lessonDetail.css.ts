@@ -38,7 +38,16 @@ export const headerLeftStyle = style({
 
 export const headerButtonGroupStyle = style({
   display: 'flex',
+  alignItems: 'center',
   gap: '8px',
+})
+
+export const autoSaveHintStyle = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.labelSm.fontWeight,
+  color: colors.gray500,
+  letterSpacing: '-0.03em',
+  whiteSpace: 'nowrap',
 })
 
 export const footerStyle = style({
