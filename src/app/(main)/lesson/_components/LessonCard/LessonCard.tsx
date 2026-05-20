@@ -1,9 +1,11 @@
 import Text from '@/components/common/Text'
 import Button from '@/components/common/Button'
 import Chip from '@/components/common/Chip'
+import TrashIcon from '@/assets/icons/icon-trash.svg'
 import {
   cardStyle,
   chipGroupStyle,
+  deleteButtonStyle,
   progressWrapperStyle,
   progressLabelStyle,
   progressTrackStyle,
@@ -19,6 +21,7 @@ interface LessonCardProps {
   inputCount: number
   isDone: boolean
   onClick: () => void
+  onDelete?: () => void
 }
 
 export default function LessonCard({
@@ -30,9 +33,23 @@ export default function LessonCard({
   inputCount,
   isDone,
   onClick,
+  onDelete,
 }: LessonCardProps) {
   return (
     <div className={cardStyle}>
+      {onDelete ? (
+        <button
+          type="button"
+          className={deleteButtonStyle}
+          onClick={(e) => {
+            e.stopPropagation()
+            onDelete()
+          }}
+          aria-label="수업 데이터 삭제"
+        >
+          <TrashIcon width={24} height={24} />
+        </button>
+      ) : null}
       <div className={chipGroupStyle}>
         <Chip label={academyName} />
         {templateName && <Chip variant="active" label={templateName} />}

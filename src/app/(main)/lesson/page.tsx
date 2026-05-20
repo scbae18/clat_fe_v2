@@ -1,14 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { startOfWeek, addWeeks, subWeeks, format, addDays, isSameDay } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import Text from '@/components/common/Text'
+import ConfirmModal from '@/components/common/ConfirmModal'
 import DateCard from './_components/DateCard/DateCard'
 import LessonCard from './_components/LessonCard/LessonCard'
 import AddCard from '@/components/common/AddCard'
 import AddLessonModal from './_components/AddLessonModal/AddLessonModal'
+import { useToastStore } from '@/stores/toastStore'
+import { useAttendanceSessionStore } from '@/stores/attendanceSessionStore'
 import PlusCircleIcon from '@/assets/icons/icon-plus-circle.svg'
 import ArrowLeftIcon from '@/assets/icons/icon-chevron-left.svg'
 import ArrowRightIcon from '@/assets/icons/icon-chevron-right.svg'
@@ -27,14 +30,35 @@ type DateStatus = 'done' | 'inProgress' | 'none'
 
 export default function LessonPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const addToast = useToastStore((s) => s.addToast)
+  const setActiveAttendance = useAttendanceSessionStore((s) => s.setActive)
   const [currentWeek, setCurrentWeek] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(new Date())
+
+  useEffect(() => {
+    const dateParam = searchParams.get('date')
+    if (!dateParam) return
+    const parsed = new Date(`${dateParam}T00:00:00`)
+    if (Number.isNaN(parsed.getTime())) return
+    setSelectedDate(parsed)
+    setCurrentWeek(parsed)
+  }, [searchParams])
   const [isAddLessonOpen, setIsAddLessonOpen] = useState(false)
   const [lessons, setLessons] = useState<LessonSummary[]>([])
   const [isLoadingLessons, setIsLoadingLessons] = useState(false)
   const [weekLessons, setWeekLessons] = useState<Record<string, LessonSummary[]>>({})
+  const [deleteTarget, setDeleteTarget] = useState<LessonSummary | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 })
+  const selectedDateKey = format(selectedDate, 'yyyy-MM-dd')
+
+  const refreshDayLessons = useCallback(async () => {
+    const res = await lessonService.getLessons(selectedDateKey)
+    setLessons(res.data)
+    setWeekLessons((prev) => ({ ...prev, [selectedDateKey]: res.data }))
+  }, [selectedDateKey])
 
   // 주간 전체 상태 조회
   useEffect(() => {
@@ -53,12 +77,28 @@ export default function LessonPage() {
   // 선택된 날짜 수업 목록 조회
   useEffect(() => {
     setIsLoadingLessons(true)
-    lessonService
-      .getLessons(format(selectedDate, 'yyyy-MM-dd'))
-      .then((res) => setLessons(res.data))
+    refreshDayLessons()
       .catch((err) => console.error('수업 목록 조회 실패', err))
       .finally(() => setIsLoadingLessons(false))
-  }, [selectedDate])
+  }, [refreshDayLessons])
+
+  const handleDeleteConfirm = async () => {
+    const recordId = deleteTarget?.lesson_record_id
+    if (!recordId) return
+    setIsDeleting(true)
+    try {
+      await lessonService.deleteLesson(recordId)
+      const cur = useAttendanceSessionStore.getState().active
+      if (cur?.lessonRecordId === recordId) setActiveAttendance(null)
+      setDeleteTarget(null)
+      await refreshDayLessons()
+      addToast({ variant: 'success', message: '수업 데이터를 삭제했어요.' })
+    } catch {
+      addToast({ variant: 'error', message: '수업 데이터 삭제에 실패했어요.' })
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   const getDateStatus = (date: Date): DateStatus => {
     const key = format(date, 'yyyy-MM-dd')
@@ -119,17 +159,24 @@ export default function LessonPage() {
             <LessonCard
               key={recordId ?? lesson.class_id}
               academyName={lesson.academy_name}
-              templateName={lesson.template_name}
+              templateName={lesson.template_name ?? ''}
               className={lesson.class_name}
               progress={lesson.progress_rate * 100}
               totalStudents={lesson.total_students}
               inputCount={Math.round(lesson.total_students * lesson.progress_rate)}
               isDone={recordId !== null}
+              onDelete={
+                recordId != null
+                  ? () => setDeleteTarget(lesson)
+                  : undefined
+              }
               onClick={() => {
                 if (recordId) {
                   router.push(`/lesson/${recordId}`)
                 } else {
-                  router.push(`/lesson/new?class_id=${lesson.class_id}&date=${format(selectedDate, 'yyyy-MM-dd')}&is_adhoc=false`)
+                  router.push(
+                    `/lesson/new?class_id=${lesson.class_id}&date=${selectedDateKey}&is_adhoc=false`,
+                  )
                 }
               }}
             />
@@ -145,11 +192,34 @@ export default function LessonPage() {
           isOpen={isAddLessonOpen}
           onClose={() => setIsAddLessonOpen(false)}
           onConfirm={(classId) => {
-            router.push(`/lesson/new?class_id=${classId}&date=${format(selectedDate, 'yyyy-MM-dd')}&is_adhoc=true`)
+            router.push(
+              `/lesson/new?class_id=${classId}&date=${selectedDateKey}&is_adhoc=true`,
+            )
           }}
           selectedDate={selectedDate}
         />
       </div>
+
+      <ConfirmModal
+        isOpen={deleteTarget != null}
+        onClose={() => {
+          if (!isDeleting) setDeleteTarget(null)
+        }}
+        onConfirm={() => void handleDeleteConfirm()}
+        title="수업 데이터를 삭제할까요?"
+        descriptions={
+          deleteTarget
+            ? [
+                '입력한 공통·개별 내용과 완료형 미완료 항목이 모두 삭제돼요.',
+                deleteTarget.is_adhoc
+                  ? '이 수업은 목록에서 사라져요.'
+                  : '다시 「입력하기」 상태로 돌아가요.',
+              ]
+            : undefined
+        }
+        confirmLabel="삭제"
+        confirmVariant="danger"
+      />
     </div>
   )
 }

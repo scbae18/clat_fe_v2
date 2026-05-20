@@ -197,13 +197,15 @@ export default function ParentDashboardPage({ params }: { params: Promise<{ toke
                 <div className={styles.todoList}>
                   {(data.incomplete_items ?? []).slice(0, 4).map((it, idx) => (
                     <div
-                      key={`${it.lesson_date}-${it.class_name}-${it.template_name}-${idx}`}
+                      key={`${it.lesson_date}-${it.class_name}-${it.item_name}-${idx}`}
                       className={styles.todoItem}
                     >
-                      <span className={styles.todoHomework}>{'\uACFC\uC81C'}</span>
+                      <span className={styles.todoHomework}>{it.item_name}</span>
                       <div className={styles.todoTags}>
                         <span className={styles.todoClassBlue}>{it.class_name}</span>
-                        <span className={styles.todoTemplateGreen}>{it.template_name}</span>
+                        <span className={styles.todoTemplateGreen}>
+                          {formatKoreanDate(it.lesson_date)}
+                        </span>
                         <span className={styles.tagLate}>{`${daysAgo(it.lesson_date)}\uC77C \uC9C0\uB0A8`}</span>
                       </div>
                     </div>

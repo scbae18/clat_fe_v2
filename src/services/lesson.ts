@@ -162,4 +162,8 @@ export const lessonService = {
     })
     return data
   },
+
+  async deleteLesson(id: number): Promise<void> {
+    await axiosInstance.delete(`/lessons/${id}`)
+  },
 }

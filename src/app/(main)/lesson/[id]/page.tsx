@@ -68,7 +68,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
   } = useLessonDetail(lessonId)
 
   const templateModal = useDisclosure()
-  const confirmModal = useDisclosure()
+  const templateConfirmModal = useDisclosure()
   const attendanceStartModal = useDisclosure()
   const [pendingTemplateId, setPendingTemplateId] = useState<number | null>(null)
 
@@ -123,13 +123,13 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
   const handleTemplateSelect = (templateId: number) => {
     setPendingTemplateId(templateId)
     templateModal.close()
-    confirmModal.open()
+    templateConfirmModal.open()
   }
 
   const handleTemplateChange = async (templateId?: number) => {
     const targetId = templateId ?? pendingTemplateId
     if (!lesson || !targetId) return
-    confirmModal.close()
+    templateConfirmModal.close()
     templateModal.close()
     try {
       await lessonService.updateLesson(lessonId, {
@@ -278,7 +278,6 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
-      {/* 공통 내용 */}
       {commonItems.length > 0 && (
         <div className={sectionStyle}>
           <Text variant="headingMd">공통 내용</Text>
@@ -290,7 +289,6 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
         </div>
       )}
 
-      {/* 개별 내용 */}
       <div className={sectionStyle}>
         <Text variant="headingMd">개별 내용</Text>
         <LessonTable students={students} templateItems={lesson.items} onChange={updateStudents} />
@@ -322,9 +320,9 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
       />
 
       <ConfirmModal
-        isOpen={confirmModal.isOpen}
+        isOpen={templateConfirmModal.isOpen}
         onClose={() => {
-          confirmModal.close()
+          templateConfirmModal.close()
           setPendingTemplateId(null)
         }}
         onConfirm={() => handleTemplateChange()}

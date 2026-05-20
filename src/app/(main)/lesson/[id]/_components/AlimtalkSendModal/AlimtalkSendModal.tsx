@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Text from '@/components/common/Text'
 import Button from '@/components/common/Button'
 import CloseIcon from '@/assets/icons/icon-close.svg'
+import ConfirmModal from '@/components/common/ConfirmModal'
 import { lessonService, type LessonPreviewRow } from '@/services/lesson'
 import { useToastStore } from '@/stores/toastStore'
 import * as styles from './AlimtalkSendModal.css'
@@ -29,6 +30,7 @@ export default function AlimtalkSendModal({ isOpen, onClose, lessonId }: Alimtal
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const loadPreview = useCallback(async () => {
     setLoading(true)
@@ -92,9 +94,8 @@ export default function AlimtalkSendModal({ isOpen, onClose, lessonId }: Alimtal
     }
   }
 
-  const handleSend = async () => {
-    const ids = Array.from(selected)
-    if (ids.length === 0) {
+  const requestSend = () => {
+    if (selected.size === 0) {
       addToast({
         variant: 'warning',
         message:
@@ -102,6 +103,13 @@ export default function AlimtalkSendModal({ isOpen, onClose, lessonId }: Alimtal
       })
       return
     }
+    setConfirmOpen(true)
+  }
+
+  const handleSend = async () => {
+    setConfirmOpen(false)
+    const ids = Array.from(selected)
+    if (ids.length === 0) return
     setSending(true)
     try {
       const result = await lessonService.sendLesson(lessonId, ids)
@@ -255,7 +263,7 @@ export default function AlimtalkSendModal({ isOpen, onClose, lessonId }: Alimtal
           <Button
             variant="primary"
             size="md"
-            onClick={() => void handleSend()}
+            onClick={requestSend}
             disabled={sending || loading || selected.size === 0}
           >
             {sending
@@ -264,6 +272,18 @@ export default function AlimtalkSendModal({ isOpen, onClose, lessonId }: Alimtal
           </Button>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={() => void handleSend()}
+        title={'\uC54C\uB9BC\uD1A1\uC744 \uBCF4\uB0B4\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?'}
+        descriptions={[
+          `${selected.size}\uBA85\uC758 \uD559\uC0DD\u00B7\uD559\uBD80\uBAA8 \uBC88\uD638\uB85C \uC54C\uB9BC\uD1A1\uC774 \uBC1C\uC1A1\uB429\uB2C8\uB2E4.`,
+        ]}
+        confirmLabel={'\uBC1C\uC1A1'}
+        cancelLabel={'\uCDE8\uC18C'}
+      />
     </div>
   )
 }

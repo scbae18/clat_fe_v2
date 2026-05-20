@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useState, useEffect } from 'react'
+import { Suspense, useState, useEffect, useMemo } from 'react'
 import Text from '@/components/common/Text'
 import useDisclosure from '@/hooks/useDisclosure'
 import { classService, type Class } from '@/services/class'
@@ -21,6 +21,11 @@ import {
 } from './management.css'
 import ClassFormModal from './_components/ClassFormModal/ClassFormModal'
 import StudentTable from './_components/StudentTable/StudentTable'
+import StudentNameSearchBar, {
+  emptyStateIconStyle,
+  emptyStateStyle,
+} from '@/components/common/StudentNameSearchBar'
+import UsersIcon from '@/assets/icons/icon-users.svg'
 import AddStudentFormModal from './_components/AddStudentFormModal/AddStudentFormModal'
 import BulkUploadModal from './_components/BulkUploadModal/BulkUploadModal'
 import ConfirmModal from '@/components/common/ConfirmModal'
@@ -45,6 +50,7 @@ function ManagementContent() {
 
   const [students, setStudents] = useState<Student[]>([])
   const [isLoadingStudents, setIsLoadingStudents] = useState(false)
+  const [studentSearchQuery, setStudentSearchQuery] = useState('')
   const addToast = useToastStore((s) => s.addToast)
   const formatSchedule = (schedules: { day_of_week: number }[]) =>
     schedules.map((s) => DAY_NAMES[s.day_of_week]).join('·')
@@ -76,6 +82,12 @@ function ManagementContent() {
   const addStudent = useDisclosure()
   const bulkUpload = useDisclosure()
   const [deleteStudentTarget, setDeleteStudentTarget] = useState<number | null>(null)
+
+  const filteredStudents = useMemo(() => {
+    const query = studentSearchQuery.trim().toLowerCase()
+    if (!query) return students
+    return students.filter((s) => s.name.toLowerCase().includes(query))
+  }, [students, studentSearchQuery])
 
   const handleDeleteStudent = async () => {
     if (!deleteStudentTarget) return
@@ -225,17 +237,32 @@ function ManagementContent() {
               }
             }}
           />
-          <StudentTable
-            students={students}
-            middleColumns={[
-              {
-                header: '소속 반',
-                render: (student) => student.classes.map((c) => c.name).join(', ') || '-',
-              },
-            ]}
-            onDelete={(id) => setDeleteStudentTarget(id)}
-            onRowClick={(id) => router.push(`/students/${id}`)}
+          <StudentNameSearchBar
+            value={studentSearchQuery}
+            onChange={setStudentSearchQuery}
+            totalCount={students.length}
+            filteredCount={filteredStudents.length}
           />
+          {filteredStudents.length === 0 ? (
+            <div className={emptyStateStyle} role="status">
+              <UsersIcon width={24} height={24} className={emptyStateIconStyle} aria-hidden />
+              <span>
+                {students.length === 0 ? '등록된 학생이 없어요.' : '검색 결과가 없어요.'}
+              </span>
+            </div>
+          ) : (
+            <StudentTable
+              students={filteredStudents}
+              middleColumns={[
+                {
+                  header: '소속 반',
+                  render: (student) => student.classes.map((c) => c.name).join(', ') || '-',
+                },
+              ]}
+              onDelete={(id) => setDeleteStudentTarget(id)}
+              onRowClick={(id) => router.push(`/students/${id}`)}
+            />
+          )}
 
           <ConfirmModal
             isOpen={!!deleteStudentTarget}

@@ -5,9 +5,34 @@ import { baseCardStyleRule } from '@/styles/tokens/card'
 
 export const cardStyle = style({
   ...baseCardStyleRule,
+  position: 'relative',
   display: 'flex',
   flexDirection: 'column',
   gap: '16px',
+})
+
+export const deleteButtonStyle = style({
+  position: 'absolute',
+  top: '16px',
+  right: '16px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '40px',
+  height: '40px',
+  padding: 0,
+  border: 'none',
+  borderRadius: '8px',
+  backgroundColor: 'transparent',
+  color: colors.gray500,
+  cursor: 'pointer',
+  zIndex: 1,
+  selectors: {
+    '&:hover': {
+      backgroundColor: colors.gray50,
+      color: colors.gray700,
+    },
+  },
 })
 
 export const chipGroupStyle = style({

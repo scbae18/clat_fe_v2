@@ -3,8 +3,10 @@
 import { useMemo, useRef, useState } from 'react'
 import CheckIcon from '@/assets/icons/icon-check.svg'
 import UsersIcon from '@/assets/icons/icon-users.svg'
-import CloseIcon from '@/assets/icons/icon-close.svg'
-import Chip from '@/components/common/Chip'
+import StudentNameSearchBar, {
+  emptyStateIconStyle,
+  emptyStateStyle,
+} from '@/components/common/StudentNameSearchBar'
 import type { LessonStudent, Attendance, CompletionStatus } from '@/types/lessonStudent'
 import type { LessonItemDetail } from '@/services/lesson'
 import { cohortScoreMetric, joinScoreStorage, splitScoreStorage } from '@/lib/lessonScore'
@@ -29,13 +31,6 @@ import {
   scoreInputStyle,
   scoreInputNarrowStyle,
   activeRowTdStyle,
-  toolbarStyle,
-  searchBarStyle,
-  searchLeadingIconStyle,
-  searchInputStyle,
-  searchClearButtonStyle,
-  emptyStateStyle,
-  emptyStateIconStyle,
 } from './LessonTable.css'
 
 interface LessonTableSectionProps {
@@ -291,40 +286,14 @@ export default function LessonTable({
     )
   }
 
-  const searchLabel =
-    searchQuery.trim().length > 0
-      ? `${filteredStudents.length}명 / 전체 ${students.length}명`
-      : `전체 ${students.length}명`
-
   return (
     <div>
-      <div className={toolbarStyle}>
-        <label className={searchBarStyle}>
-          <UsersIcon width={18} height={18} className={searchLeadingIconStyle} aria-hidden />
-          <input
-            type="search"
-            className={searchInputStyle}
-            placeholder="학생 이름 검색"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label="학생 이름 검색"
-          />
-          {searchQuery.length > 0 && (
-            <button
-              type="button"
-              className={searchClearButtonStyle}
-              onClick={() => setSearchQuery('')}
-              aria-label="검색어 지우기"
-            >
-              <CloseIcon width={16} height={16} />
-            </button>
-          )}
-        </label>
-        <Chip
-          variant={searchQuery.trim().length > 0 ? 'active' : 'default'}
-          label={searchLabel}
-        />
-      </div>
+      <StudentNameSearchBar
+        value={searchQuery}
+        onChange={setSearchQuery}
+        totalCount={students.length}
+        filteredCount={filteredStudents.length}
+      />
 
       {filteredStudents.length === 0 ? (
         <div className={emptyStateStyle} role="status">
