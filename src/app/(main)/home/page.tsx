@@ -10,6 +10,21 @@ import BookOpen from '@/assets/icons/icon-book-open.svg'
 import ChevronRight from '@/assets/icons/icon-chevron-right.svg'
 import * as styles from './home.css'
 
+const GUIDE_MANUALS = [
+  {
+    tag: '조교용',
+    title: ['클랫 조교', '사용 메뉴얼'],
+    href: 'https://discovered-impatiens-00f.notion.site/363dab71334f801791c0cd42a519361d?pvs=74',
+    variant: 'light' as const,
+  },
+  {
+    tag: '선생님용',
+    title: ['클랫 선생님', '사용 메뉴얼'],
+    href: 'https://discovered-impatiens-00f.notion.site/363dab71334f8033bad4c5f93e34750a?pvs=74',
+    variant: 'accent' as const,
+  },
+]
+
 const steps = [
   {
     number: '1',
@@ -117,6 +132,48 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* 사용 메뉴얼 */}
+      <div>
+        <div className={styles.sectionHeaderStyle}>
+          <BookOpen width={24} height={24} />
+          <span className={styles.sectionTitleStyle}>사용 메뉴얼</span>
+        </div>
+        <div className={styles.cardGridStyle}>
+          {GUIDE_MANUALS.map((guide) => {
+            const isLight = guide.variant === 'light'
+            return (
+              <a
+                key={guide.href}
+                href={guide.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${styles.guideCardLinkStyle} ${isLight ? styles.betaCardStyle : styles.inviteCardStyle}`}
+              >
+                <div
+                  className={`${styles.guideCardIconWrapStyle} ${isLight ? styles.guideCardIconLightStyle : styles.guideCardIconAccentStyle}`}
+                >
+                  <BookOpen width={56} height={56} aria-hidden />
+                </div>
+                <div className={styles.cardContentStyle}>
+                  <div className={isLight ? styles.cardTagStyle : styles.cardTagInvertStyle}>
+                    {guide.tag}
+                  </div>
+                  <div className={isLight ? styles.cardTitleStyle : styles.cardTitleInvertStyle}>
+                    {guide.title[0]}
+                    <br />
+                    {guide.title[1]}
+                  </div>
+                  <span className={styles.inviteButtonStyle}>
+                    메뉴얼 보기
+                    <ChevronRight width={24} height={24} />
+                  </span>
+                </div>
+              </a>
+            )
+          })}
         </div>
       </div>
 

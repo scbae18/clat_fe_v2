@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { Suspense, useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { startOfWeek, addWeeks, subWeeks, format, addDays, isSameDay } from 'date-fns'
 import { ko } from 'date-fns/locale'
@@ -28,7 +28,7 @@ import { lessonService, type LessonSummary } from '@/services/lesson'
 const DAYS_KO = ['월', '화', '수', '목', '금', '토', '일']
 type DateStatus = 'done' | 'inProgress' | 'none'
 
-export default function LessonPage() {
+function LessonPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const addToast = useToastStore((s) => s.addToast)
@@ -221,5 +221,13 @@ export default function LessonPage() {
         confirmVariant="danger"
       />
     </div>
+  )
+}
+
+export default function LessonPage() {
+  return (
+    <Suspense>
+      <LessonPageContent />
+    </Suspense>
   )
 }

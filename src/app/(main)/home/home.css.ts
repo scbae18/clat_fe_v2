@@ -258,3 +258,36 @@ export const cardImageWrapStyle = style({
   right: -100,
   bottom: -120,
 })
+
+export const guideCardLinkStyle = style({
+  display: 'block',
+  textDecoration: 'none',
+  color: 'inherit',
+  transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+  selectors: {
+    '&:hover': {
+      transform: 'translateY(-2px)',
+      boxShadow: '0 8px 24px rgba(87, 116, 218, 0.18)',
+    },
+    '&:focus-visible': {
+      outline: `2px solid ${colors.primary500}`,
+      outlineOffset: '2px',
+    },
+  },
+})
+
+export const guideCardIconWrapStyle = style({
+  position: 'absolute',
+  right: '24px',
+  top: '24px',
+  opacity: 0.35,
+  pointerEvents: 'none',
+})
+
+export const guideCardIconLightStyle = style({
+  color: colors.primary400,
+})
+
+export const guideCardIconAccentStyle = style({
+  color: colors.primary100,
+})
