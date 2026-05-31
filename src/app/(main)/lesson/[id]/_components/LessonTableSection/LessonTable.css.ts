@@ -122,11 +122,13 @@ export const cellEditableStyle = style({
 })
 
 export const nameCellStyle = style({
+  display: 'inline-block',
   fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: fontStyles.bodyMd.fontWeight,
   color: colors.gray700,
   letterSpacing: '-0.03em',
   whiteSpace: 'nowrap',
+  textDecoration: 'none',
 })
 
 export const thInnerStyle = style({
@@ -289,6 +291,13 @@ export const scoreHeaderMaxRowStyle = style({
 
 export const scoreHeaderMaxLabelStyle = style({
   fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.titleSm.fontWeight,
+  color: colors.gray900,
+  flexShrink: 0,
+})
+
+export const scoreHeaderMaxSuffixStyle = style({
+  fontSize: fontStyles.labelSm.fontSize,
   fontWeight: fontStyles.labelSm.fontWeight,
   color: colors.gray500,
   flexShrink: 0,
@@ -320,6 +329,33 @@ export const scoreInputStyle = style({
   },
 })
 
+export const cellTextInputStyle = style({
+  width: '100%',
+  minWidth: '48px',
+  height: '24px',
+  padding: 0,
+  margin: 0,
+  border: 'none',
+  borderRadius: 0,
+  backgroundColor: 'transparent',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  color: colors.gray700,
+  letterSpacing: '-0.03em',
+  outline: 'none',
+  boxSizing: 'border-box',
+  cursor: 'text',
+  selectors: {
+    '&::placeholder': {
+      color: colors.gray300,
+    },
+    '&:focus': {
+      backgroundColor: 'transparent',
+      boxShadow: 'none',
+    },
+  },
+})
+
 export const scoreInputNarrowStyle = style([
   scoreInputStyle,
   {
@@ -327,5 +363,26 @@ export const scoreInputNarrowStyle = style([
     width: 'auto',
     flex: '1 1 88px',
     maxWidth: '140px',
+  },
+])
+
+export const scoreInputMaxStyle = style([
+  scoreInputStyle,
+  {
+    minWidth: '52px',
+    width: '52px',
+    flexShrink: 0,
+    backgroundColor: colors.white,
+    border: `1px solid ${colors.gray200}`,
+    selectors: {
+      '&::placeholder': {
+        color: colors.gray300,
+      },
+      '&:focus': {
+        backgroundColor: colors.white,
+        borderColor: colors.primary300,
+        boxShadow: `0 0 0 1px ${colors.primary200}`,
+      },
+    },
   },
 ])

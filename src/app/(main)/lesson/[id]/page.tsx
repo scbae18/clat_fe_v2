@@ -56,6 +56,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     updateCommonValue,
     students,
     updateStudents,
+    flushPendingStudentCellSave,
     alimtalkSendModal,
     inputCount,
     isLoading,
@@ -291,7 +292,12 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
 
       <div className={sectionStyle}>
         <Text variant="headingMd">개별 내용</Text>
-        <LessonTable students={students} templateItems={lesson.items} onChange={updateStudents} />
+        <LessonTable
+          students={students}
+          templateItems={lesson.items}
+          onChange={updateStudents}
+          onCellBlur={flushPendingStudentCellSave}
+        />
       </div>
 
       {/* 하단 진행도 */}

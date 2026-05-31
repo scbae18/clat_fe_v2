@@ -82,6 +82,16 @@ function LessonPageContent() {
       .finally(() => setIsLoadingLessons(false))
   }, [refreshDayLessons])
 
+  // 수업 상세(알림톡 발송 등)에서 돌아왔을 때 목록 갱신
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return
+      void refreshDayLessons()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [refreshDayLessons])
+
   const handleDeleteConfirm = async () => {
     const recordId = deleteTarget?.lesson_record_id
     if (!recordId) return
@@ -163,8 +173,10 @@ function LessonPageContent() {
               className={lesson.class_name}
               progress={lesson.progress_rate * 100}
               totalStudents={lesson.total_students}
-              inputCount={Math.round(lesson.total_students * lesson.progress_rate)}
+              inputCount={lesson.input_count ?? Math.round(lesson.total_students * lesson.progress_rate)}
               isDone={recordId !== null}
+              alimtalkSent={lesson.alimtalk_sent ?? false}
+              alimtalkDeliveryMode={lesson.alimtalk_delivery_mode ?? null}
               onDelete={
                 recordId != null
                   ? () => setDeleteTarget(lesson)

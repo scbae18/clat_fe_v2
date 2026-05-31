@@ -9,9 +9,12 @@ export interface LessonSummary {
   template_id: number
   template_name: string
   progress_rate: number
+  input_count: number
   total_students: number
   status: 'DRAFT' | 'SAVED'
   is_adhoc: boolean
+  alimtalk_sent?: boolean
+  alimtalk_delivery_mode?: 'mock' | 'live' | null
 }
 
 export interface LessonItemDetail {
@@ -53,7 +56,7 @@ export interface CommonDataItem {
 export interface StudentDataItem {
   template_item_id: number
   value: string
-  is_completed?: boolean
+  is_completed?: boolean | null
 }
 
 export interface StudentData {

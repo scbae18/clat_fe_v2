@@ -34,6 +34,8 @@ import {
 
 } from '@/lib/lessonPartialSave'
 
+import { computeLessonInputProgress } from '@/lib/lessonProgress'
+
 
 
 function clearDirtyFromBody(
@@ -113,6 +115,9 @@ export default function useLessonDetail(lessonId: number) {
   lessonRef.current = lesson
 
   const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
+
+  const dirtyStudentCellsRef = useRef(dirtyStudentCells)
+  dirtyStudentCellsRef.current = dirtyStudentCells
 
 
 
@@ -429,6 +434,26 @@ export default function useLessonDetail(lessonId: number) {
     },
 
     [markStudentCellsDirty, scheduleAutoSaveStudentCells],
+
+  )
+
+
+
+  const flushPendingStudentCellSave = useCallback(
+
+    (studentId: number, templateItemId: number) => {
+
+      const key = studentCellKey(studentId, templateItemId)
+
+      clearDebounceTimer(`cell:${key}`)
+
+      if (!dirtyStudentCellsRef.current.has(key)) return
+
+      void persistTargets({ studentCells: [key], silent: true })
+
+    },
+
+    [clearDebounceTimer, persistTargets],
 
   )
 
@@ -810,19 +835,7 @@ export default function useLessonDetail(lessonId: number) {
 
 
 
-  const inputCount = students.filter((s) => {
-
-    if (s.attendance === null) return false
-
-    return s.items.every((item) => {
-
-      if (item.is_completed !== null) return item.is_completed !== null
-
-      return item.value.trim() !== ''
-
-    })
-
-  }).length
+  const { inputCount } = computeLessonInputProgress(students)
 
 
 
@@ -881,6 +894,8 @@ export default function useLessonDetail(lessonId: number) {
     students,
 
     updateStudents,
+
+    flushPendingStudentCellSave,
 
     alimtalkSendModal,
 

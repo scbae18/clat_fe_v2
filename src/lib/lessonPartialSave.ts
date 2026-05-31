@@ -88,7 +88,7 @@ function buildItemsForDirtyCells(
     items.push({
       template_item_id: templateItemId,
       value: String(item.value ?? ''),
-      is_completed: item.is_completed ?? undefined,
+      ...(item.is_completed !== undefined ? { is_completed: item.is_completed } : {}),
     })
   }
 

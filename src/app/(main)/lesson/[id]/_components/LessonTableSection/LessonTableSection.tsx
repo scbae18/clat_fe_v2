@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useMemo, useRef, useState } from 'react'
 import CheckIcon from '@/assets/icons/icon-check.svg'
 import UsersIcon from '@/assets/icons/icon-users.svg'
@@ -19,7 +20,7 @@ import {
   tdShrinkStyle,
   cellButtonGroupStyle,
   cellButtonRecipe,
-  cellEditableStyle,
+  cellTextInputStyle,
   nameCellStyle,
   thInnerStyle,
   checkboxLabelStyle,
@@ -28,8 +29,9 @@ import {
   scoreColStatsStyle,
   scoreHeaderMaxRowStyle,
   scoreHeaderMaxLabelStyle,
+  scoreHeaderMaxSuffixStyle,
   scoreInputStyle,
-  scoreInputNarrowStyle,
+  scoreInputMaxStyle,
   activeRowTdStyle,
 } from './LessonTable.css'
 
@@ -37,6 +39,7 @@ interface LessonTableSectionProps {
   students: LessonStudent[]
   templateItems: LessonItemDetail[]
   onChange: (students: LessonStudent[]) => void
+  onCellBlur?: (studentId: number, templateItemId: number) => void
 }
 
 function isScoreItem(item: LessonItemDetail) {
@@ -159,10 +162,12 @@ function ScoreEarnedCell({
   value,
   columnMax,
   onChange,
+  onBlur,
 }: {
   value: string
   columnMax: string
   onChange: (v: string) => void
+  onBlur?: () => void
 }) {
   const { earned } = splitScoreStorage(value)
   return (
@@ -173,8 +178,31 @@ function ScoreEarnedCell({
       autoComplete="off"
       value={earned}
       onChange={(ev) => onChange(joinScoreStorage(ev.target.value, columnMax))}
+      onBlur={() => onBlur?.()}
       placeholder={'\u2014'}
       aria-label={'\uC5BB\uC740 \uC810\uC218'}
+    />
+  )
+}
+
+function TextInputCell({
+  value,
+  onChange,
+  onBlur,
+}: {
+  value: string
+  onChange: (v: string) => void
+  onBlur?: () => void
+}) {
+  return (
+    <input
+      className={cellTextInputStyle}
+      type="text"
+      autoComplete="off"
+      value={value}
+      onChange={(ev) => onChange(ev.target.value)}
+      onBlur={() => onBlur?.()}
+      placeholder={'\u2014'}
     />
   )
 }
@@ -196,6 +224,7 @@ export default function LessonTable({
   students,
   templateItems,
   onChange,
+  onCellBlur,
 }: LessonTableSectionProps) {
   const tableRef = useRef<HTMLTableElement>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -331,9 +360,9 @@ export default function LessonTable({
                         : SCORE_STATS_EMPTY}
                     </span>
                     <div className={scoreHeaderMaxRowStyle}>
-                      <span className={scoreHeaderMaxLabelStyle}>{'\uB9CC\uC810'}</span>
+                      <span className={scoreHeaderMaxLabelStyle}>만점</span>
                       <input
-                        className={scoreInputNarrowStyle}
+                        className={scoreInputMaxStyle}
                         type="text"
                         inputMode="decimal"
                         autoComplete="off"
@@ -341,9 +370,12 @@ export default function LessonTable({
                         onChange={(ev) =>
                           onChange(applyScoreMaxToAllStudents(students, item.id, ev.target.value))
                         }
-                        placeholder={'\uC804\uCCB4 \uACF5\uC6A9'}
-                        aria-label={'\uC774 \uD56D\uBAA9 \uB9CC\uC810'}
+                        placeholder="100"
+                        aria-label="이 항목 만점"
                       />
+                      <span className={scoreHeaderMaxSuffixStyle} aria-hidden>
+                        점
+                      </span>
                     </div>
                   </div>
                 ) : (
@@ -358,7 +390,9 @@ export default function LessonTable({
         {filteredStudents.map((student) => (
           <tr key={student.id}>
             <td className={getTdClassName(tdCompactStyle, student.id, focusedStudentId)}>
-              <span className={nameCellStyle}>{student.name}</span>
+              <Link href={`/students/${student.id}`} className={nameCellStyle}>
+                {student.name}
+              </Link>
             </td>
             <td
               className={getTdClassName(tdCompactStyle, student.id, focusedStudentId)}
@@ -385,6 +419,7 @@ export default function LessonTable({
                 onMouseDown: () => handleRowFocus(student.id),
                 onFocusCapture: () => handleRowFocus(student.id),
               }
+              const handleCellBlur = () => onCellBlur?.(student.id, item.id)
               if (item.item_type === 'SELECT') {
                 return (
                   <td key={item.id} className={tdClass} {...focusHandlers}>
@@ -429,6 +464,7 @@ export default function LessonTable({
                       value={studentItem?.value ?? ''}
                       columnMax={colMax}
                       onChange={(v) => updateItem(student.id, item.id, v)}
+                      onBlur={handleCellBlur}
                     />
                   </td>
                 )
@@ -436,14 +472,10 @@ export default function LessonTable({
 
               return (
                 <td key={item.id} className={tdClass} {...focusHandlers}>
-                  <div
-                    contentEditable
-                    suppressContentEditableWarning
-                    className={cellEditableStyle}
-                    onBlur={(e) =>
-                      updateItem(student.id, item.id, e.currentTarget.textContent ?? '')
-                    }
-                    dangerouslySetInnerHTML={{ __html: studentItem?.value ?? '' }}
+                  <TextInputCell
+                    value={studentItem?.value ?? ''}
+                    onChange={(v) => updateItem(student.id, item.id, v)}
+                    onBlur={handleCellBlur}
                   />
                 </td>
               )

@@ -20,6 +20,8 @@ interface LessonCardProps {
   totalStudents: number
   inputCount: number
   isDone: boolean
+  alimtalkSent?: boolean
+  alimtalkDeliveryMode?: 'mock' | 'live' | null
   onClick: () => void
   onDelete?: () => void
 }
@@ -32,9 +34,14 @@ export default function LessonCard({
   totalStudents,
   inputCount,
   isDone,
+  alimtalkSent = false,
+  alimtalkDeliveryMode = null,
   onClick,
   onDelete,
 }: LessonCardProps) {
+  const alimtalkLabel =
+    alimtalkDeliveryMode === 'mock' ? '알림톡 발송 완료 (모의)' : '알림톡 발송 완료'
+
   return (
     <div className={cardStyle}>
       {onDelete ? (
@@ -53,6 +60,7 @@ export default function LessonCard({
       <div className={chipGroupStyle}>
         <Chip label={academyName} />
         {templateName && <Chip variant="active" label={templateName} />}
+        {alimtalkSent && <Chip variant="done" label={alimtalkLabel} />}
       </div>
       <Text variant="headingLg">{className}</Text>
       <div className={progressWrapperStyle}>
