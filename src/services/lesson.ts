@@ -122,10 +122,29 @@ function unwrapSendLessonResult(res: { data?: unknown }): SendLessonResult {
   return inner as SendLessonResult
 }
 
+/** GET /lessons — TransformInterceptor 이중 data 래핑 대응 */
+function unwrapLessonListResponse(res: { data?: unknown }): LessonListResponse {
+  const inner = res.data as LessonListResponse | { data: LessonSummary[]; meta?: { total: number } } | undefined
+  if (inner && typeof inner === 'object' && Array.isArray(inner.data)) {
+    return {
+      data: inner.data,
+      meta: inner.meta ?? { total: inner.data.length },
+    }
+  }
+  if (inner && typeof inner === 'object' && 'data' in inner) {
+    const nested = (inner as { data: LessonListResponse | LessonSummary[] }).data
+    if (nested && typeof nested === 'object' && Array.isArray((nested as LessonListResponse).data)) {
+      const list = nested as LessonListResponse
+      return { data: list.data, meta: list.meta ?? { total: list.data.length } }
+    }
+  }
+  return { data: [], meta: { total: 0 } }
+}
+
 export const lessonService = {
   async getLessons(date: string): Promise<LessonListResponse> {
     const { data } = await axiosInstance.get('/lessons', { params: { date } })
-    return data.data
+    return unwrapLessonListResponse(data)
   },
 
   async getLesson(id: number): Promise<LessonDetail> {

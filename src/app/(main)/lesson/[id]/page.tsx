@@ -39,6 +39,7 @@ import { resolveStudentCheckLinks } from '@/lib/attendanceUrls'
 import AttendanceStartModal from '@/components/attendance/AttendanceStartModal'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import { markLessonListNeedsRefresh } from '@/lib/lessonListRefresh'
 
 /** 헤더 「출결 시작하기」 버튼만 프론트에서 비활성 (테이블 출결 선택은 유지) */
 const LOCK_ATTENDANCE_START_BUTTON = true
@@ -155,7 +156,13 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
       <div className={pageStyle}>
         <div className={headerStyle}>
           <div className={headerLeftStyle}>
-            <button onClick={() => router.push('/lesson')} className={backButtonStyle}>
+            <button
+              onClick={() => {
+                markLessonListNeedsRefresh()
+                router.push('/lesson')
+              }}
+              className={backButtonStyle}
+            >
               <ArrowLeftIcon width={24} height={24} />
             </button>
             <Text variant="display" as="h1">
@@ -208,7 +215,13 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
       {/* 헤더 */}
       <div className={headerStyle}>
         <div className={headerLeftStyle}>
-          <button onClick={() => router.push('/lesson')} className={backButtonStyle}>
+          <button
+            onClick={() => {
+              markLessonListNeedsRefresh()
+              router.push('/lesson')
+            }}
+            className={backButtonStyle}
+          >
             <ArrowLeftIcon width={24} height={24} />
           </button>
           <Text variant="display" as="h1">

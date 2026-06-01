@@ -6,6 +6,7 @@ import Button from '@/components/common/Button'
 import CloseIcon from '@/assets/icons/icon-close.svg'
 import ConfirmModal from '@/components/common/ConfirmModal'
 import { lessonService, type LessonPreviewRow } from '@/services/lesson'
+import { markLessonListNeedsRefresh } from '@/lib/lessonListRefresh'
 import { useToastStore } from '@/stores/toastStore'
 import * as styles from './AlimtalkSendModal.css'
 
@@ -118,6 +119,9 @@ export default function AlimtalkSendModal({ isOpen, onClose, lessonId }: Alimtal
         variant: 'success',
         message: `\uBCF4\uB0C8\uC5B4\uC694. (${mode} \u00B7 \uC131\uACF5 ${result.success_count}\uAC74 / \uC2E4\uD328 ${result.fail_count}\uAC74)`,
       })
+      if (result.success_count > 0) {
+        markLessonListNeedsRefresh()
+      }
       setIsClosing(true)
     } catch {
       addToast({

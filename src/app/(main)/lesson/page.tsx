@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useState, useEffect, useCallback } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { startOfWeek, addWeeks, subWeeks, format, addDays, isSameDay } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import Text from '@/components/common/Text'
@@ -24,12 +24,14 @@ import {
   weekNavStyle,
 } from './lesson.css'
 import { lessonService, type LessonSummary } from '@/services/lesson'
+import { consumeLessonListNeedsRefresh } from '@/lib/lessonListRefresh'
 
 const DAYS_KO = ['월', '화', '수', '목', '금', '토', '일']
 type DateStatus = 'done' | 'inProgress' | 'none'
 
 function LessonPageContent() {
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const addToast = useToastStore((s) => s.addToast)
   const setActiveAttendance = useAttendanceSessionStore((s) => s.setActive)
@@ -74,15 +76,17 @@ function LessonPageContent() {
     })
   }, [currentWeek])
 
-  // 선택된 날짜 수업 목록 조회
+  // 날짜 변경·상세에서 목록 복귀(pathname) 시 재조회 — 라우터 캐시로 alimtalk_sent가 안 바뀌는 문제 방지
   useEffect(() => {
+    if (pathname !== '/lesson') return
+    consumeLessonListNeedsRefresh()
     setIsLoadingLessons(true)
     refreshDayLessons()
       .catch((err) => console.error('수업 목록 조회 실패', err))
       .finally(() => setIsLoadingLessons(false))
-  }, [refreshDayLessons])
+  }, [pathname, selectedDateKey, refreshDayLessons])
 
-  // 수업 상세(알림톡 발송 등)에서 돌아왔을 때 목록 갱신
+  // 다른 탭에서 돌아올 때 갱신
   useEffect(() => {
     const onVisible = () => {
       if (document.visibilityState !== 'visible') return

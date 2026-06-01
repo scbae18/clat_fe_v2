@@ -37,6 +37,7 @@ export const deleteButtonStyle = style({
 
 export const chipGroupStyle = style({
   display: 'flex',
+  flexWrap: 'wrap',
   gap: '4px',
 })
 
