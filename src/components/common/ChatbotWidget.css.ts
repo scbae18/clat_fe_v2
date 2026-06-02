@@ -121,7 +121,7 @@ export const headerTitle = style({
 export const headerSubtitle = style({
   fontSize: '11px',
   fontWeight: 400,
-  color: colors.gray400,
+  color: colors.gray300,
   letterSpacing: '-0.02em',
   lineHeight: '130%',
   marginTop: '1px',
@@ -136,7 +136,7 @@ export const headerActions = style({
 export const iconButton = style({
   border: 'none',
   background: 'transparent',
-  color: colors.gray400,
+  color: colors.gray300,
   cursor: 'pointer',
   width: '32px',
   height: '32px',
@@ -305,7 +305,7 @@ export const textarea = style({
       outline: 'none',
     },
     '&::placeholder': {
-      color: colors.gray400,
+      color: colors.gray300,
       fontSize: '12px',
     },
   },
@@ -327,7 +327,7 @@ export const sendButton = style({
   selectors: {
     '&:disabled': {
       background: colors.gray100,
-      color: colors.gray400,
+      color: colors.gray300,
       cursor: 'not-allowed',
       transform: 'none',
     },
