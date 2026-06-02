@@ -23,7 +23,7 @@ export const launcher = style({
   width: '64px',
   height: '64px',
   borderRadius: '999px',
-  border: `2px solid ${colors.white}`,
+  border: 'none',
   cursor: 'pointer',
   padding: 0,
   overflow: 'hidden',
