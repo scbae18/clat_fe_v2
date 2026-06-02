@@ -86,7 +86,10 @@ export default function AlimtalkSendModal({ isOpen, onClose, lessonId }: Alimtal
 
   const focused = rows.find((r) => r.student_id === focusId)
 
-  const handleClose = () => setIsClosing(true)
+  const handleClose = () => {
+    if (sending) return
+    setIsClosing(true)
+  }
 
   const handleAnimationEnd = () => {
     if (isClosing) {
@@ -149,6 +152,7 @@ export default function AlimtalkSendModal({ isOpen, onClose, lessonId }: Alimtal
             onClick={handleClose}
             className={styles.closeButton}
             aria-label={'\uB2EB\uAE30'}
+            disabled={sending}
           >
             <CloseIcon width={24} height={24} />
           </button>
@@ -275,6 +279,22 @@ export default function AlimtalkSendModal({ isOpen, onClose, lessonId }: Alimtal
               : `${selected.size}\uBA85\uC5D0\uAC8C \uC54C\uB9BC\uD1A1 \uBCF4\uB0B4\uAE30`}
           </Button>
         </div>
+
+        {sending && (
+          <div className={styles.sendingOverlay} role="status" aria-live="polite">
+            <div className={styles.sendingModal}>
+              <Text variant="titleMd">{'\uBCF4\uB0B4\uB294 \uC911\u2026'}</Text>
+              <div className={styles.loadingDots} aria-hidden>
+                <span className={styles.loadingDot} />
+                <span className={`${styles.loadingDot} ${styles.loadingDotDelay1}`} />
+                <span className={`${styles.loadingDot} ${styles.loadingDotDelay2}`} />
+              </div>
+              <Text variant="bodyMd" color="gray500">
+                {'\uC54C\uB9BC\uD1A1\uC744 \uBC1C\uC1A1\uD558\uACE0 \uC788\uC5B4\uC694. \uC7A0\uC2DC\uB9CC \uAE30\uB2E4\uB824 \uC8FC\uC138\uC694.'}
+              </Text>
+            </div>
+          </div>
+        )}
       </div>
 
       <ConfirmModal

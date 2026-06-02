@@ -12,6 +12,17 @@ const slideOut = keyframes({
   to: { transform: 'translateX(100%)' },
 })
 
+const bounceDot = keyframes({
+  '0%, 80%, 100%': {
+    transform: 'translateY(0) scale(0.85)',
+    opacity: 0.45,
+  },
+  '40%': {
+    transform: 'translateY(-6px) scale(1)',
+    opacity: 1,
+  },
+})
+
 export const backdrop = style({
   position: 'fixed',
   inset: 0,
@@ -24,6 +35,7 @@ export const backdrop = style({
 export const drawer = style({
   width: 'min(960px, 100vw)',
   height: '100%',
+  position: 'relative',
   backgroundColor: colors.gray50,
   boxShadow: '-4px 0 16px rgba(0, 0, 0, 0.1)',
   display: 'flex',
@@ -162,4 +174,53 @@ export const footer = style({
   gap: '12px',
   flexShrink: 0,
   backgroundColor: colors.white,
+})
+
+export const sendingOverlay = style({
+  position: 'absolute',
+  inset: 0,
+  backgroundColor: 'rgba(0, 0, 0, 0.28)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 5,
+  padding: '24px',
+})
+
+export const sendingModal = style({
+  minWidth: '280px',
+  maxWidth: '420px',
+  backgroundColor: colors.white,
+  borderRadius: '14px',
+  border: `1px solid ${colors.gray100}`,
+  boxShadow: '0 16px 40px rgba(15, 23, 42, 0.2)',
+  padding: '24px 20px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '10px',
+  textAlign: 'center',
+})
+
+export const loadingDots = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '6px',
+  marginTop: '2px',
+})
+
+export const loadingDot = style({
+  width: '8px',
+  height: '8px',
+  borderRadius: '50%',
+  backgroundColor: colors.primary500,
+  animation: `${bounceDot} 1.2s infinite ease-in-out`,
+})
+
+export const loadingDotDelay1 = style({
+  animationDelay: '0.15s',
+})
+
+export const loadingDotDelay2 = style({
+  animationDelay: '0.3s',
 })

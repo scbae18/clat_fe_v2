@@ -202,16 +202,7 @@ function IconGraduation() {
 }
 
 function IconPhone() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-      <path
-        d="M14.05 12.2c-1.4 1.4-2.95 2.45-4.6 3.1-.45.18-.95.1-1.3-.25l-1.5-1.5a1 1 0 00-1.15-.22 6.2 6.2 0 01-2.75-2.75 1 1 0 00-.22-1.15l1.5-1.5a1 1 0 00.25-1.3c.65-1.65 1.7-3.2 3.1-4.6a1 1 0 011.3-.1l1.2.6a1 1 0 01.5.85c0 1.1.2 2.15.6 3.1.15.4.05.85-.25 1.15l-.35.35a8.3 8.3 0 003.45 3.45l.35-.35a1 1 0 011.15-.25c.95.4 2 .6 3.1.6a1 1 0 01.85.5l.6 1.2a1 1 0 01-.1 1.3z"
-        stroke={colors.gray500}
-        strokeWidth="1.1"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
+  return <span aria-hidden>{'\u260E\uFE0E'}</span>
 }
 
 function SparkleIcon() {
