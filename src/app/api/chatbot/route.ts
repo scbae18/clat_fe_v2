@@ -12,6 +12,8 @@ async function getKnowledgeBase(): Promise<string> {
   return cachedKb
 }
 
+type ChatMessage = { role: 'user' | 'assistant'; content: string }
+
 function normalize(text: string): string {
   return text
     .toLowerCase()
@@ -20,8 +22,14 @@ function normalize(text: string): string {
     .trim()
 }
 
+/** KB는 [SECTION x] 구분자 기준으로 분할 */
+function splitKb(kb: string): string[] {
+  const sections = kb.split(/(?=\[SECTION\s+\d+\])/g).filter((s) => s.trim().length > 0)
+  return sections.length > 1 ? sections : kb.split(/\n(?=##\s)/g)
+}
+
 function extractAnswer(query: string, kb: string): string {
-  const sections = kb.split(/\n(?=##\s)/g)
+  const sections = splitKb(kb)
   const tokens = normalize(query)
     .split(' ')
     .filter((t) => t.length >= 2)
@@ -66,7 +74,7 @@ function extractAnswer(query: string, kb: string): string {
 }
 
 function topSections(query: string, kb: string): string {
-  const sections = kb.split(/\n(?=##\s)/g)
+  const sections = splitKb(kb)
   const tokens = normalize(query)
     .split(' ')
     .filter((t) => t.length >= 2)
@@ -88,7 +96,12 @@ function topSections(query: string, kb: string): string {
   return ranked.slice(0, 5000)
 }
 
-async function getLlmAnswer(question: string, context: string): Promise<string | null> {
+async function getLlmAnswer(
+  history: ChatMessage[],
+  question: string,
+  context: string,
+  currentPath?: string
+): Promise<string | null> {
   const apiKey = process.env.OPENAI_API_KEY?.trim()
   if (!apiKey) return null
 
@@ -98,6 +111,8 @@ async function getLlmAnswer(question: string, context: string): Promise<string |
     ''
   )
 
+  const pathNote = currentPath ? `\n현재 선생님이 보고 있는 화면 경로: ${currentPath}` : ''
+
   const system = [
     '너는 CLAT 서비스 선생님 지원 챗봇이다.',
     '반드시 제공된 지식베이스 컨텍스트를 우선 근거로 답한다.',
@@ -106,14 +121,18 @@ async function getLlmAnswer(question: string, context: string): Promise<string |
     '개발 용어/API 경로를 먼저 말하지 말고 화면 기준으로 안내한다.',
     '영문 상태값(PRESENT/LATE/ABSENT)은 한국어(출석/지각/결석) 설명 뒤에 괄호로만 보조 표기한다.',
     '답변 포맷: 결론 1문장 + 단계 2~4개 + 문제 시 확인 포인트 1~2개.',
-  ].join(' ')
+    pathNote,
+  ]
+    .filter(Boolean)
+    .join(' ')
 
-  const user = [
-    `질문:\n${question}`,
-    '',
-    '[지식베이스 컨텍스트]',
-    context || '(관련 컨텍스트 없음)',
-  ].join('\n')
+  const contextMessage = {
+    role: 'user' as const,
+    content: ['[지식베이스 컨텍스트]', context || '(관련 컨텍스트 없음)'].join('\n'),
+  }
+
+  const priorMessages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> =
+    history.slice(-8).map((m) => ({ role: m.role, content: m.content }))
 
   const res = await fetch(`${base}/chat/completions`, {
     method: 'POST',
@@ -126,7 +145,9 @@ async function getLlmAnswer(question: string, context: string): Promise<string |
       temperature: 0.2,
       messages: [
         { role: 'system', content: system },
-        { role: 'user', content: user },
+        contextMessage,
+        ...priorMessages,
+        { role: 'user', content: question },
       ],
     }),
   })
@@ -141,8 +162,14 @@ async function getLlmAnswer(question: string, context: string): Promise<string |
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as { question?: string }
+    const body = (await req.json()) as {
+      question?: string
+      history?: ChatMessage[]
+      currentPath?: string
+    }
     const question = body.question?.trim()
+    const history: ChatMessage[] = Array.isArray(body.history) ? body.history : []
+    const currentPath = body.currentPath?.trim()
 
     if (!question) {
       return NextResponse.json(
@@ -153,7 +180,7 @@ export async function POST(req: Request) {
 
     const kb = await getKnowledgeBase()
     const context = topSections(question, kb)
-    const llmAnswer = await getLlmAnswer(question, context)
+    const llmAnswer = await getLlmAnswer(history, question, context, currentPath)
     const answer = llmAnswer ?? extractAnswer(question, kb)
 
     return NextResponse.json({ success: true, data: { answer } })
