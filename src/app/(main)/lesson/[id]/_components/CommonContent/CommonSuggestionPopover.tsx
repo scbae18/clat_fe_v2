@@ -111,7 +111,7 @@ function buildOptions(
   if (lastClassValue) {
     options.push({
       id: 'last-class',
-      badge: '이 반 지난번',
+      badge: '지난번 입력',
       badgeVariant: 'lastClass',
       meta: suggestion.last_class_source_label,
       preview: lastClassValue,
