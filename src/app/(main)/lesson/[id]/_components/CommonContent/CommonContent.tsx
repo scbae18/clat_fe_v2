@@ -19,7 +19,6 @@ interface CommonItem {
 
 interface CommonContentSectionProps {
   lessonId: number
-  isAdhoc: boolean
   items: CommonItem[]
   values: Record<number, string>
   onChange: (id: number, value: string) => void
@@ -27,7 +26,6 @@ interface CommonContentSectionProps {
 
 export default function CommonContent({
   lessonId,
-  isAdhoc,
   items,
   values,
   onChange,
@@ -37,7 +35,7 @@ export default function CommonContent({
   const wrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (isAdhoc || !lessonId) {
+    if (!lessonId) {
       setSuggestions([])
       return
     }
@@ -53,7 +51,7 @@ export default function CommonContent({
     return () => {
       cancelled = true
     }
-  }, [isAdhoc, lessonId])
+  }, [lessonId])
 
   const suggestionByItemId = useMemo(() => {
     const m = new Map<number, CommonSuggestionItem>()

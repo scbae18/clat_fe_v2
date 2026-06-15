@@ -297,7 +297,6 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           <Text variant="headingMd">공통 내용</Text>
           <CommonContent
             lessonId={lessonId}
-            isAdhoc={lesson.is_adhoc}
             items={commonItems}
             values={commonValues}
             onChange={updateCommonValue}
