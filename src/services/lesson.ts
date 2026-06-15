@@ -1,4 +1,5 @@
 import axiosInstance from '@/lib/api/axiosInstance'
+import type { CommonSuggestionsResponse } from '@/types/commonSuggestion'
 
 export interface LessonSummary {
   id?: number | null
@@ -187,5 +188,14 @@ export const lessonService = {
 
   async deleteLesson(id: number): Promise<void> {
     await axiosInstance.delete(`/lessons/${id}`)
+  },
+
+  async getCommonSuggestions(lessonId: number): Promise<CommonSuggestionsResponse> {
+    const { data } = await axiosInstance.get(`/lessons/${lessonId}/common-suggestions`)
+    const payload = data.data as CommonSuggestionsResponse | { items: CommonSuggestionsResponse['items'] }
+    if (payload && Array.isArray(payload.items)) {
+      return { items: payload.items }
+    }
+    return { items: [] }
   },
 }

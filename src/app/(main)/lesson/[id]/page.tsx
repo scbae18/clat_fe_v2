@@ -202,7 +202,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
   }
 
   const commonItems = lesson.items
-    .filter((i) => i.is_common)
+    .filter((i) => i.is_common && i.item_type === 'TEXT')
     .map((i) => ({ id: i.id, label: i.name }))
 
   const hasAttendanceItem = lesson.items.some((i) => i.item_type === 'ATTENDANCE')
@@ -296,6 +296,8 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
         <div className={sectionStyle}>
           <Text variant="headingMd">공통 내용</Text>
           <CommonContent
+            lessonId={lessonId}
+            isAdhoc={lesson.is_adhoc}
             items={commonItems}
             values={commonValues}
             onChange={updateCommonValue}

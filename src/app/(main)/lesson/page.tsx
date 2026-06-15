@@ -169,9 +169,13 @@ function LessonPageContent() {
       <div className={lessonGridStyle}>
         {lessons.map((lesson) => {
           const recordId = lesson.lesson_record_id ?? lesson.id ?? null
+          const cardKey =
+            recordId != null
+              ? `${lesson.is_adhoc ? 'adhoc' : 'scheduled'}-${recordId}`
+              : `pending-${selectedDateKey}-${lesson.class_id}`
           return (
             <LessonCard
-              key={recordId ?? lesson.class_id}
+              key={cardKey}
               academyName={lesson.academy_name}
               templateName={lesson.template_name ?? ''}
               className={lesson.class_name}

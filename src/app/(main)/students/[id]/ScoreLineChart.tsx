@@ -17,8 +17,8 @@ const SERIES_COLORS = [
 
 function chartYFromRaw(value: string): number | null {
   const p = parseLessonScoreValue(value)
-  if (!p || p.earned == null) return null
-  return p.percent != null ? p.percent : p.earned
+  if (!p || p.earned == null || p.percent == null) return null
+  return p.percent
 }
 
 export interface ChartPointMeta extends ScoreHistoryPoint {
@@ -74,8 +74,8 @@ function buildSeries(rows: ScoreHistoryPoint[]): {
     byItem.set(r.item_name, arr)
   }
 
-  let yMin = Infinity
-  let yMax = -Infinity
+  let yMin = 0
+  let yMax = 100
   const series: ScoreSeries[] = []
   let colorIdx = 0
 
@@ -89,8 +89,6 @@ function buildSeries(rows: ScoreHistoryPoint[]): {
       const k = String(r.lesson_record_id ?? `${r.lesson_date}-${r.class_name}`)
       const xIdx = xKeys.indexOf(k)
       if (xIdx < 0) continue
-      yMin = Math.min(yMin, studentValue)
-      yMax = Math.max(yMax, studentValue)
       const rawLabel = (r.value ?? '').trim() || '—'
       pts.push({
         xIdx,
@@ -102,14 +100,6 @@ function buildSeries(rows: ScoreHistoryPoint[]): {
     const color = SERIES_COLORS[colorIdx % SERIES_COLORS.length]
     colorIdx += 1
     series.push({ itemName, color, points: pts })
-  }
-
-  if (!Number.isFinite(yMin) || !Number.isFinite(yMax)) {
-    yMin = 0
-    yMax = 1
-  } else if (yMin === yMax) {
-    yMin -= 1
-    yMax += 1
   }
 
   return { xKeys, xLabels, series, yMin, yMax }
@@ -148,7 +138,7 @@ const MSG = {
   classAvg: '\uBC18 \uD3C9\uADE0',
   classHigh: '\uBC18 \uCD5C\uACE0',
   dash: '\u2014',
-  axisHint: '\uB9CC\uC810 \uC788\uC74C: 100\uC810 \uD658\uC0B0',
+  axisHint: '\uB9CC\uC810 \uC788\uC74C \uC810\uC218\uB9CC \uD45C\uC2DC (0~100%)',
 } as const
 
 function fmtNum(n: number | null | undefined, digits = 1): string {
@@ -201,12 +191,12 @@ export default function ScoreLineChart({
   const gridTicks = [0, 0.25, 0.5, 0.75, 1]
   const gridY = gridTicks.map((t) => padY + (h - padY * 2) * (1 - t))
   const xCount = xKeys.length
-  const anyFrac = rows.some((r) => String(r.value ?? '').includes('/'))
-  const yAxisUnit = anyFrac ? '%' : ''
+  const anyPlotted = series.length > 0
+  const yAxisUnit = '%'
 
   return (
     <div ref={wrapRef} className={styles.chartWrap}>
-      {anyFrac ? (
+      {anyPlotted ? (
         <p className={styles.chartAxisHint}>{MSG.axisHint}</p>
       ) : null}
       {tip && (
@@ -232,7 +222,7 @@ export default function ScoreLineChart({
             <span className={styles.chartTooltipMuted}>{MSG.myScore}</span>
             <span>
               {fmtNum(tip.meta.studentValue, 1)}
-              {anyFrac ? '%' : '\uC810'}
+              %
             </span>
           </div>
           <div className={styles.chartTooltipRow}>

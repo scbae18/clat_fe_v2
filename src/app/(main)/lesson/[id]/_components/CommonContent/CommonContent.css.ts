@@ -6,7 +6,7 @@ export const tableStyle = style({
   width: '100%',
   borderCollapse: 'collapse',
   border: `1px solid ${colors.gray100}`,
-  overflow: 'hidden',
+  overflow: 'visible',
 })
 
 export const thStyle = style({
@@ -29,7 +29,9 @@ export const thStyle = style({
 })
 
 export const tdStyle = style({
+  position: 'relative',
   minHeight: '48px',
+  overflow: 'visible',
   borderBottom: `1px solid ${colors.gray100}`,
   selectors: {
     'tr:last-child &': {
@@ -38,8 +40,17 @@ export const tdStyle = style({
   },
 })
 
+export const inputCellWrapStyle = style({
+  position: 'relative',
+  display: 'flex',
+  alignItems: 'flex-start',
+  minHeight: '48px',
+  width: '100%',
+})
+
 export const inputStyle = style({
   width: '100%',
+  flex: 1,
   minHeight: '48px',
   padding: '12px 16px',
   border: 'none',
