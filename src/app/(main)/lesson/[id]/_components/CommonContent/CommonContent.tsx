@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CommonSuggestionItem } from '@/types/commonSuggestion'
+import { hasSuggestionContent } from '@/types/commonSuggestion'
 import { lessonService } from '@/services/lesson'
 import CommonSuggestionPopover from './CommonSuggestionPopover'
 import {
@@ -71,13 +72,9 @@ export default function CommonContent({
     return () => document.removeEventListener('mousedown', onDocMouseDown)
   }, [])
 
-  const applySuggestion = useCallback(
-    (itemId: number, suggestion: CommonSuggestionItem) => {
-      if (suggestion.mode === 'literal' && suggestion.suggested_value) {
-        onChange(itemId, suggestion.suggested_value)
-      } else if (suggestion.mode === 'pattern' && suggestion.pattern_template) {
-        onChange(itemId, suggestion.pattern_template)
-      }
+  const applyValue = useCallback(
+    (itemId: number, value: string) => {
+      onChange(itemId, value)
       setFocusedId(null)
     },
     [onChange],
@@ -95,7 +92,7 @@ export default function CommonContent({
               focusedId === item.id &&
               isEmpty &&
               suggestion &&
-              suggestion.mode !== 'none'
+              hasSuggestionContent(suggestion)
 
             return (
               <tr key={item.id}>
@@ -112,7 +109,8 @@ export default function CommonContent({
                     {showPopover && suggestion ? (
                       <CommonSuggestionPopover
                         suggestion={suggestion}
-                        onApply={() => applySuggestion(item.id, suggestion)}
+                        onApplyLastClass={(value) => applyValue(item.id, value)}
+                        onApplySuggestion={(value) => applyValue(item.id, value)}
                       />
                     ) : null}
                   </div>
