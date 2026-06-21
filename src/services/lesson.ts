@@ -20,6 +20,7 @@ export interface LessonSummary {
 
 export interface LessonItemDetail {
   id: number
+  source?: 'template' | 'adhoc'
   name: string
   item_type: 'TEXT' | 'NUMBER' | 'SELECT' | 'COMPLETE' | 'ATTENDANCE' | 'SCORE'
   is_common: boolean
@@ -50,12 +51,16 @@ export interface LessonListResponse {
 }
 
 export interface CommonDataItem {
-  template_item_id: number
+  template_item_id?: number
+  adhoc_item_id?: number
+  source?: 'template' | 'adhoc'
   value: string
 }
 
 export interface StudentDataItem {
-  template_item_id: number
+  template_item_id?: number
+  adhoc_item_id?: number
+  source?: 'template' | 'adhoc'
   value: string
   is_completed?: boolean | null
 }
@@ -105,6 +110,13 @@ export interface SendLessonResult {
   success_count: number
   fail_count: number
   delivery_mode: 'mock' | 'live'
+}
+
+export interface CreateLessonAdhocItemBody {
+  name: string
+  is_common: boolean
+  item_type?: 'TEXT' | 'SCORE' | 'SELECT' | 'COMPLETE'
+  options?: string[]
 }
 
 /** POST .../send returns `{ data: SendLessonResult }` from service → double `data` with TransformInterceptor. */
@@ -197,5 +209,28 @@ export const lessonService = {
       return { items: payload.items }
     }
     return { items: [] }
+  },
+
+  async addLessonItem(lessonId: number, body: CreateLessonAdhocItemBody): Promise<LessonItemDetail> {
+    const { data } = await axiosInstance.post(`/lessons/${lessonId}/lesson-items`, body)
+    return data.data ?? data
+  },
+
+  async removeLessonItem(lessonId: number, itemId: number): Promise<void> {
+    await axiosInstance.delete(`/lessons/${lessonId}/lesson-items/${itemId}`)
+  },
+
+  async excludeTemplateItem(lessonId: number, templateItemId: number): Promise<void> {
+    await axiosInstance.post(`/lessons/${lessonId}/lesson-items/${templateItemId}/exclude`)
+  },
+
+  async updateItemOrder(
+    lessonId: number,
+    body: { items: Array<{ source: 'template' | 'adhoc'; id: number }> },
+  ): Promise<LessonItemDetail[]> {
+    const { data } = await axiosInstance.put(`/lessons/${lessonId}/item-order`, body)
+    const payload = data.data as { items?: LessonItemDetail[] } | LessonItemDetail[]
+    if (Array.isArray(payload)) return payload
+    return payload.items ?? []
   },
 }

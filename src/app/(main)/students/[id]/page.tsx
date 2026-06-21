@@ -15,6 +15,10 @@ import {
   type ScorePeriod,
 } from '@/services/studentDashboard'
 import type { IncompleteItem, StudentDetail } from '@/types/student'
+import {
+  incompleteItemCompleteTarget,
+  incompleteItemKey,
+} from '@/lib/incompleteItem'
 import { useToastStore } from '@/stores/toastStore'
 import { colors } from '@/styles/tokens/colors'
 import { parseLessonScoreValue, cohortScoreMetric } from '@/lib/lessonScore'
@@ -348,7 +352,8 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
     if (!completePending) return
     setCompleteSubmitting(true)
     try {
-      await studentService.completeItem(completePending.lesson_student_data_id)
+      const { id, source } = incompleteItemCompleteTarget(completePending)
+      await studentService.completeItem(id, source)
       addToast({ variant: 'success', message: MSG.completeOk })
       setCompletePending(null)
       await loadDetail()
@@ -534,7 +539,7 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
               ) : (
                 detail.incomplete_items.map((item) => (
                   <button
-                    key={item.lesson_student_data_id}
+                    key={incompleteItemKey(item)}
                     type="button"
                     className={styles.incompleteRow}
                     onClick={() => setCompletePending(item)}

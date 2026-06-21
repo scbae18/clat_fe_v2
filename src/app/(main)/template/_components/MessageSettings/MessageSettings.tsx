@@ -44,11 +44,14 @@ interface MessageSettingsProps {
   allItemsMap: Map<string, TemplateItem>
   onToggle: (id: string) => void
   onReorder: (newOrder: string[]) => void
+  /** 수업 화면 등: 토글은 표시만 하고 순서만 변경 */
+  toggleDisabled?: boolean
 }
 
 interface SortableRowProps {
   item: TemplateItem
   onToggle: (id: string) => void
+  toggleDisabled?: boolean
 }
 
 function DragHandle() {
@@ -70,7 +73,7 @@ function DragHandle() {
   )
 }
 
-function SortableRow({ item, onToggle }: SortableRowProps) {
+function SortableRow({ item, onToggle, toggleDisabled }: SortableRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
   })
@@ -98,7 +101,7 @@ function SortableRow({ item, onToggle }: SortableRowProps) {
       <Toggle
         checked={item.isInMessage}
         onChange={() => onToggle(item.id)}
-        disabled={item.itemType === 'attendance'}
+        disabled={toggleDisabled || item.itemType === 'attendance' || item.locked}
       />
     </div>
   )
@@ -109,6 +112,7 @@ export default function MessageSettings({
   allItemsMap,
   onToggle,
   onReorder,
+  toggleDisabled,
 }: MessageSettingsProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -138,7 +142,14 @@ export default function MessageSettings({
             {activeOrder.map((id) => {
               const item = allItemsMap.get(id)
               if (!item) return null
-              return <SortableRow key={id} item={item} onToggle={onToggle} />
+              return (
+                <SortableRow
+                  key={id}
+                  item={item}
+                  onToggle={onToggle}
+                  toggleDisabled={toggleDisabled}
+                />
+              )
             })}
           </div>
         </SortableContext>

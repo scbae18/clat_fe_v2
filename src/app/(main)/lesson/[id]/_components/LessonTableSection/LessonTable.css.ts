@@ -1,4 +1,4 @@
-import { style } from '@vanilla-extract/css'
+﻿import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
@@ -39,15 +39,15 @@ const baseTdStyles = {
   },
 }
 
-// 기본 (메모)
+// 湲곕낯 (硫붾え)
 export const thStyle = style({ ...baseThStyles, paddingRight: '16px' })
 export const tdStyle = style({ ...baseTdStyles, paddingRight: '16px' })
 
-// 학생, 출결: 콘텐츠 너비 + paddingRight 36
+// ?숈깮, 異쒓껐: 肄섑뀗痢??덈퉬 + paddingRight 36
 export const thCompactStyle = style({ ...baseThStyles, paddingRight: '36px', width: '1%' })
 export const tdCompactStyle = style({ ...baseTdStyles, paddingRight: '36px', width: '1%' })
 
-// 과제, 오답노트, 시험 점수: 헤더 콘텐츠 기준 수축
+// 怨쇱젣, ?ㅻ떟?명듃, ?쒗뿕 ?먯닔: ?ㅻ뜑 肄섑뀗痢?湲곗? ?섏텞
 export const thShrinkStyle = style({ ...baseThStyles, paddingRight: '16px', width: '1%' })
 export const tdShrinkStyle = style({ ...baseTdStyles, paddingRight: '16px', width: '1%' })
 
@@ -114,7 +114,7 @@ export const cellEditableStyle = style({
   overflow: 'hidden',
   selectors: {
     '&:empty::before': {
-      content: '"—"',
+      content: '"\u2014"',
       color: colors.gray300,
       pointerEvents: 'none',
     },
@@ -386,3 +386,74 @@ export const scoreInputMaxStyle = style([
     },
   },
 ])
+
+export const colHeaderWrapStyle = style({
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'space-between',
+  gap: '4px',
+  width: '100%',
+})
+
+export const itemControlButtonStyle = style({
+  flexShrink: 0,
+  width: '20px',
+  height: '20px',
+  padding: 0,
+  border: 'none',
+  borderRadius: '4px',
+  background: 'transparent',
+  color: colors.gray300,
+  fontSize: '14px',
+  lineHeight: 1,
+  cursor: 'pointer',
+  opacity: 0,
+  transition: 'opacity 0.15s ease, color 0.15s ease',
+  selectors: {
+    [`${colHeaderWrapStyle}:hover &`]: {
+      opacity: 1,
+    },
+    '&:hover': {
+      color: colors.gray500,
+      backgroundColor: colors.gray100,
+    },
+  },
+})
+
+export const addColumnCellStyle = style({
+  width: '1%',
+  maxWidth: '40px',
+  minWidth: '40px',
+  padding: 0,
+  textAlign: 'center',
+  verticalAlign: 'middle',
+  borderBottom: `1px solid ${colors.gray100}`,
+  borderRight: 'none',
+  backgroundColor: colors.gray50,
+  whiteSpace: 'nowrap',
+  boxSizing: 'border-box',
+  selectors: {
+    '&:last-child': {
+      borderRight: 'none',
+    },
+  },
+})
+
+export const addColumnButtonStyle = style({
+  width: '24px',
+  height: '24px',
+  padding: 0,
+  border: 'none',
+  borderRadius: '6px',
+  background: 'transparent',
+  color: colors.gray300,
+  fontSize: '18px',
+  lineHeight: 1,
+  cursor: 'pointer',
+  selectors: {
+    '&:hover': {
+      color: colors.primary500,
+      backgroundColor: colors.primary50,
+    },
+  },
+})

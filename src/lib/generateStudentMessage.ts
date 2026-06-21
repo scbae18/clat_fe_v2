@@ -1,4 +1,5 @@
 import type { LessonStudent } from '@/types/lessonStudent'
+import { itemRef } from '@/lib/lessonItemRef'
 
 export interface MessageContext {
   academyName: string
@@ -9,23 +10,29 @@ export interface MessageContext {
 
 interface ItemMeta {
   id: number
+  source?: 'template' | 'adhoc'
   label: string
 }
 
 export function generateStudentMessage(
   student: LessonStudent,
   commonItems: ItemMeta[],
-  commonValues: Record<number, string>,
+  commonValues: Record<string, string>,
   individualItems: ItemMeta[],
   context: MessageContext,
 ): string {
   const commonLines = commonItems
-    .map((item) => `• ${item.label}: ${commonValues[item.id] || '-'}`)
+    .map(
+      (item) =>
+        `• ${item.label}: ${commonValues[itemRef(item.source ?? 'template', item.id)] || '-'}`,
+    )
     .join('\n')
 
   const individualLines = individualItems
     .map((meta) => {
-      const found = student.items.find((i) => i.template_item_id === meta.id)
+      const found = student.items.find(
+        (i) => i.item_id === meta.id && i.source === (meta.source ?? 'template'),
+      )
       if (!found) return `• ${meta.label}: -`
       if (found.is_completed === true) return `• ${meta.label}: 완료`
       if (found.is_completed === false) return `• ${meta.label}: 미완료`

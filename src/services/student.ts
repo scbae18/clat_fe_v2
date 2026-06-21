@@ -66,9 +66,13 @@ export const studentService = {
     await axiosInstance.delete(`/students/${id}`)
   },
 
-  async completeItem(itemId: number): Promise<void> {
+  async completeItem(
+    itemId: number,
+    source: 'template' | 'adhoc' = 'template',
+  ): Promise<void> {
     await axiosInstance.patch(`/lesson-student-data/${itemId}/complete`, {
       is_completed: true,
+      source,
     })
   },
 

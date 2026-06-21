@@ -26,7 +26,9 @@ export interface Student {
 }
 
 export interface IncompleteItem {
-  lesson_student_data_id: number
+  source?: 'template' | 'adhoc'
+  lesson_student_data_id?: number
+  lesson_adhoc_student_data_id?: number
   item_name: string
   lesson_date: string
   class_name: string

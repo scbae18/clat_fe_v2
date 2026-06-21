@@ -1,16 +1,18 @@
 import * as XLSX from 'xlsx'
 import type { LessonStudent } from '@/types/lessonStudent'
 import { generateStudentMessage } from './generateStudentMessage'
+import { itemRef } from '@/lib/lessonItemRef'
 
 interface CommonItem {
   id: number
+  source?: 'template' | 'adhoc'
   label: string
 }
 
 interface LessonExportOptions {
   title: string
   commonItems: CommonItem[]
-  commonValues: Record<number, string>
+  commonValues: Record<string, string>
   students: LessonStudent[]
   individualItems: CommonItem[]
   context: {
@@ -29,13 +31,18 @@ export function exportLessonExcel({
   individualItems,
   context,
 }: LessonExportOptions) {
-  const commonRows = commonItems.map((item) => [item.label, commonValues[item.id] ?? ''])
+  const commonRows = commonItems.map((item) => [
+    item.label,
+    commonValues[itemRef(item.source ?? 'template', item.id)] ?? '',
+  ])
 
   const individualHeaders = ['이름', '출결', ...individualItems.map((i) => i.label)]
 
   const studentRows = students.map((s) => {
     const itemValues = individualItems.map((meta) => {
-      const found = s.items.find((i) => i.template_item_id === meta.id)
+      const found = s.items.find(
+        (i) => i.item_id === meta.id && i.source === (meta.source ?? 'template'),
+      )
       if (!found) return ''
       if (found.is_completed === true) return '완료'
       if (found.is_completed === false) return '미완료'

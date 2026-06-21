@@ -9,6 +9,10 @@ import { useToastStore } from '@/stores/toastStore'
 import useDisclosure from '@/hooks/useDisclosure'
 import type { StudentDetail, IncompleteItem } from '@/types/student'
 import {
+  incompleteItemCompleteTarget,
+  incompleteItemKey,
+} from '@/lib/incompleteItem'
+import {
   completionRateFromCounts,
   formatCompletionRatePercent,
 } from '@/lib/completionRate'
@@ -63,15 +67,16 @@ export default function StudentDetailModal({
       .finally(() => setIsLoading(false))
   }, [studentId])
 
-  const handleComplete = async (itemId: number) => {
+  const handleComplete = async (item: IncompleteItem) => {
+    const { id, source } = incompleteItemCompleteTarget(item)
     try {
-      await studentService.completeItem(itemId)
+      await studentService.completeItem(id, source)
       setDetail((prev) =>
         prev
           ? {
               ...prev,
               incomplete_items: prev.incomplete_items.filter(
-                (i) => i.lesson_student_data_id !== itemId
+                (i) => incompleteItemKey(i) !== incompleteItemKey(item)
               ),
               stats: {
                 ...prev.stats,
@@ -193,7 +198,7 @@ export default function StudentDetailModal({
                   </Text>
                 ) : (
                   detail.incomplete_items.map((item: IncompleteItem) => (
-                    <div key={item.lesson_student_data_id} className={trackingItemStyle}>
+                    <div key={incompleteItemKey(item)} className={trackingItemStyle}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <span className={trackingLabelStyle}>
                           {formatLessonDateKo(item.lesson_date)}
@@ -204,7 +209,7 @@ export default function StudentDetailModal({
                       </div>
                       <button
                         className={completeButtonStyle}
-                        onClick={() => handleComplete(item.lesson_student_data_id)}
+                        onClick={() => handleComplete(item)}
                       >
                         <CheckIcon width={16} height={16} className={completeCheckIconStyle} />
                         완료 처리

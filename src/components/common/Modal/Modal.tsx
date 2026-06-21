@@ -6,7 +6,7 @@ import { overlayStyle, modalRecipe, modalBodyStyle } from './Modal.css'
 interface ModalProps {
   isOpen: boolean
   onClose: () => void
-  size?: 'sm' | 'md'
+  size?: 'sm' | 'md' | 'lg'
   children: ReactNode
 }
 

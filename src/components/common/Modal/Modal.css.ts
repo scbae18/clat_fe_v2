@@ -39,6 +39,12 @@ export const modalRecipe = recipe({
         borderRadius: '24px',
         padding: '48px',
       },
+      lg: {
+        width: '960px',
+        maxWidth: 'calc(100vw - 32px)',
+        borderRadius: '24px',
+        padding: '32px',
+      },
     },
   },
   defaultVariants: {

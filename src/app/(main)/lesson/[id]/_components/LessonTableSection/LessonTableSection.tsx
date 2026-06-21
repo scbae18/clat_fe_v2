@@ -9,8 +9,12 @@ import StudentNameSearchBar, {
   emptyStateStyle,
 } from '@/components/common/StudentNameSearchBar'
 import type { LessonStudent, Attendance, CompletionStatus } from '@/types/lessonStudent'
-import type { LessonItemDetail } from '@/services/lesson'
+import type { LessonItemDetail, CreateLessonAdhocItemBody } from '@/services/lesson'
+import AddItemForm from '@/app/(main)/template/_components/AddItemForm/AddItemForm'
+import Modal from '@/components/common/Modal'
 import { cohortScoreMetric, joinScoreStorage, splitScoreStorage } from '@/lib/lessonScore'
+import { lessonItemRef, matchesLessonItem } from '@/lib/lessonItemRef'
+import type { ItemSource } from '@/lib/lessonItemRef'
 import {
   tableStyle,
   tdStyle,
@@ -33,13 +37,44 @@ import {
   scoreInputStyle,
   scoreInputMaxStyle,
   activeRowTdStyle,
+  colHeaderWrapStyle,
+  itemControlButtonStyle,
+  addColumnCellStyle,
+  addColumnButtonStyle,
 } from './LessonTable.css'
 
 interface LessonTableSectionProps {
   students: LessonStudent[]
   templateItems: LessonItemDetail[]
   onChange: (students: LessonStudent[]) => void
-  onCellBlur?: (studentId: number, templateItemId: number) => void
+  onCellBlur?: (studentId: number, source: ItemSource, itemId: number) => void
+  onAddItem?: (body: CreateLessonAdhocItemBody) => void | Promise<void>
+  onRemoveColumn?: (item: LessonItemDetail) => void
+}
+
+function mapFormToAdhocBody(
+  label: string,
+  type: string,
+  choices?: string[],
+): CreateLessonAdhocItemBody {
+  const itemTypeMap = {
+    number: 'SCORE',
+    text: 'TEXT',
+    choice: 'SELECT',
+    completion: 'COMPLETE',
+  } as const
+
+  const body: CreateLessonAdhocItemBody = {
+    name: label,
+    is_common: false,
+    item_type: itemTypeMap[type as keyof typeof itemTypeMap] ?? 'TEXT',
+  }
+
+  if (type === 'choice' && choices?.length) {
+    body.options = choices
+  }
+
+  return body
 }
 
 function isScoreItem(item: LessonItemDetail) {
@@ -132,9 +167,9 @@ function SelectCell({
   )
 }
 
-function getScoreColumnMax(students: LessonStudent[], itemId: number): string {
+function getScoreColumnMax(students: LessonStudent[], item: LessonItemDetail): string {
   for (const s of students) {
-    const v = s.items.find((i) => i.template_item_id === itemId)?.value ?? ''
+    const v = s.items.find((i) => matchesLessonItem(i, item))?.value ?? ''
     const { max } = splitScoreStorage(v)
     if (max) return max
   }
@@ -143,16 +178,16 @@ function getScoreColumnMax(students: LessonStudent[], itemId: number): string {
 
 function applyScoreMaxToAllStudents(
   students: LessonStudent[],
-  itemId: number,
+  item: LessonItemDetail,
   maxStr: string
 ): LessonStudent[] {
   return students.map((s) => {
-    const it = s.items.find((i) => i.template_item_id === itemId)
+    const it = s.items.find((i) => matchesLessonItem(i, item))
     const { earned } = splitScoreStorage(it?.value ?? '')
     return {
       ...s,
       items: s.items.map((i) =>
-        i.template_item_id === itemId ? { ...i, value: joinScoreStorage(earned, maxStr) } : i
+        matchesLessonItem(i, item) ? { ...i, value: joinScoreStorage(earned, maxStr) } : i
       ),
     }
   })
@@ -220,15 +255,87 @@ function formatScoreStats(avg: number, max: number) {
   )
 }
 
+interface DynamicColumnHeaderProps {
+  item: LessonItemDetail
+  students: LessonStudent[]
+  onChange: (students: LessonStudent[]) => void
+  stats: { avg: number; max: number } | null | undefined
+  canRemove: boolean
+  onRemoveColumn?: (item: LessonItemDetail) => void
+}
+
+function DynamicColumnHeader({
+  item,
+  students,
+  onChange,
+  stats,
+  canRemove,
+  onRemoveColumn,
+}: DynamicColumnHeaderProps) {
+  const isScore = isScoreItem(item)
+
+  const titleRow = (
+    <div className={colHeaderWrapStyle}>
+      <span>{item.name}</span>
+      {canRemove ? (
+        <button
+          type="button"
+          className={itemControlButtonStyle}
+          aria-label={`${item.name} 항목 제거`}
+          onClick={() => onRemoveColumn?.(item)}
+        >
+          ×
+        </button>
+      ) : null}
+    </div>
+  )
+
+  return (
+    <th className={thShrinkStyle}>
+      {isScore ? (
+        <div className={scoreColHeaderStyle}>
+          {titleRow}
+          <span className={scoreColStatsStyle}>
+            {stats ? formatScoreStats(stats.avg, stats.max) : SCORE_STATS_EMPTY}
+          </span>
+          <div className={scoreHeaderMaxRowStyle}>
+            <span className={scoreHeaderMaxLabelStyle}>만점</span>
+            <input
+              className={scoreInputMaxStyle}
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
+              value={getScoreColumnMax(students, item)}
+              onChange={(ev) =>
+                onChange(applyScoreMaxToAllStudents(students, item, ev.target.value))
+              }
+              placeholder="100"
+              aria-label="이 항목 만점"
+            />
+            <span className={scoreHeaderMaxSuffixStyle} aria-hidden>
+              점
+            </span>
+          </div>
+        </div>
+      ) : (
+        titleRow
+      )}
+    </th>
+  )
+}
+
 export default function LessonTable({
   students,
   templateItems,
   onChange,
   onCellBlur,
+  onAddItem,
+  onRemoveColumn,
 }: LessonTableSectionProps) {
   const tableRef = useRef<HTMLTableElement>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [focusedStudentId, setFocusedStudentId] = useState<number | null>(null)
+  const [isAddFormOpen, setIsAddFormOpen] = useState(false)
 
   const dynamicItems = useMemo(
     () => templateItems.filter((i) => !i.is_common && i.item_type !== 'ATTENDANCE'),
@@ -251,14 +358,15 @@ export default function LessonTable({
   }
 
   const scoreStatsByItemId = useMemo(() => {
-    const m = new Map<number, { avg: number; max: number } | null>()
+    const m = new Map<string, { avg: number; max: number } | null>()
     for (const item of dynamicItems) {
       if (!isScoreItem(item)) continue
+      const key = lessonItemRef(item)
       const nums: number[] = []
       let withSlash = 0
       let withoutSlash = 0
       for (const s of filteredStudents) {
-        const v = s.items.find((i) => i.template_item_id === item.id)?.value ?? ''
+        const v = s.items.find((i) => matchesLessonItem(i, item))?.value ?? ''
         const raw = String(v).trim()
         if (!raw) continue
         if (raw.includes('/')) withSlash++
@@ -266,10 +374,10 @@ export default function LessonTable({
         const n = cohortScoreMetric(v)
         if (n !== null) nums.push(n)
       }
-      if (nums.length === 0) m.set(item.id, null)
-      else if (withSlash > 0 && withoutSlash > 0) m.set(item.id, null)
+      if (nums.length === 0) m.set(key, null)
+      else if (withSlash > 0 && withoutSlash > 0) m.set(key, null)
       else
-        m.set(item.id, {
+        m.set(key, {
           max: Math.max(...nums),
           avg: nums.reduce((a, b) => a + b, 0) / nums.length,
         })
@@ -283,21 +391,21 @@ export default function LessonTable({
 
   const updateItem = (
     studentId: number,
-    templateItemId: number,
+    item: LessonItemDetail,
     value: string,
     is_completed?: boolean | null
   ) => {
     onChange(
       students.map((s) => {
         if (s.id !== studentId) return s
-        const items = s.items.map((item) =>
-          item.template_item_id === templateItemId
+        const items = s.items.map((row) =>
+          matchesLessonItem(row, item)
             ? {
-                ...item,
+                ...row,
                 value,
-                is_completed: is_completed === undefined ? item.is_completed : is_completed,
+                is_completed: is_completed === undefined ? row.is_completed : is_completed,
               }
-            : item
+            : row
         )
         return { ...s, items }
       })
@@ -315,6 +423,22 @@ export default function LessonTable({
     )
   }
 
+  const renderDynamicHeaders = () =>
+    dynamicItems.map((item) => {
+      const stats = isScoreItem(item) ? scoreStatsByItemId.get(lessonItemRef(item)) ?? null : null
+      return (
+        <DynamicColumnHeader
+          key={lessonItemRef(item)}
+          item={item}
+          students={students}
+          onChange={onChange}
+          stats={stats}
+          canRemove={onRemoveColumn != null}
+          onRemoveColumn={onRemoveColumn}
+        />
+      )
+    })
+
   return (
     <div>
       <StudentNameSearchBar
@@ -331,160 +455,154 @@ export default function LessonTable({
         </div>
       ) : (
         <table ref={tableRef} className={tableStyle} onBlur={handleTableBlur}>
-      <thead>
-        <tr>
-          <th className={thCompactStyle}>학생</th>
-          <th className={thCompactStyle}>
-            <div className={thInnerStyle}>
-              출결
-              <div
-                className={`${checkboxLabelStyle}${allAttend ? ` ${checkboxLabelActiveStyle}` : ''}`}
-                onClick={() => handleAllAttend(!allAttend)}
-              >
-                <CheckIcon width={14} height={14} />
-                전체 출석
-              </div>
-            </div>
-          </th>
-          {dynamicItems.map((item) => {
-            const isScore = isScoreItem(item)
-            const stats = isScore ? scoreStatsByItemId.get(item.id) ?? null : null
-            return (
-              <th key={item.id} className={thShrinkStyle}>
-                {isScore ? (
-                  <div className={scoreColHeaderStyle}>
-                    <span>{item.name}</span>
-                    <span className={scoreColStatsStyle}>
-                      {stats
-                        ? formatScoreStats(stats.avg, stats.max)
-                        : SCORE_STATS_EMPTY}
-                    </span>
-                    <div className={scoreHeaderMaxRowStyle}>
-                      <span className={scoreHeaderMaxLabelStyle}>만점</span>
-                      <input
-                        className={scoreInputMaxStyle}
-                        type="text"
-                        inputMode="decimal"
-                        autoComplete="off"
-                        value={getScoreColumnMax(students, item.id)}
-                        onChange={(ev) =>
-                          onChange(applyScoreMaxToAllStudents(students, item.id, ev.target.value))
-                        }
-                        placeholder="100"
-                        aria-label="이 항목 만점"
-                      />
-                      <span className={scoreHeaderMaxSuffixStyle} aria-hidden>
-                        점
-                      </span>
-                    </div>
+          <thead>
+            <tr>
+              <th className={thCompactStyle}>학생</th>
+              <th className={thCompactStyle}>
+                <div className={thInnerStyle}>
+                  출결
+                  <div
+                    className={`${checkboxLabelStyle}${allAttend ? ` ${checkboxLabelActiveStyle}` : ''}`}
+                    onClick={() => handleAllAttend(!allAttend)}
+                  >
+                    <CheckIcon width={14} height={14} />
+                    전체 출석
                   </div>
-                ) : (
-                  item.name
-                )}
+                </div>
               </th>
-            )
-          })}
-        </tr>
-      </thead>
-      <tbody>
-        {filteredStudents.map((student) => (
-          <tr key={student.id}>
-            <td className={getTdClassName(tdCompactStyle, student.id, focusedStudentId)}>
-              <Link href={`/students/${student.id}`} className={nameCellStyle}>
-                {student.name}
-              </Link>
-            </td>
-            <td
-              className={getTdClassName(tdCompactStyle, student.id, focusedStudentId)}
-              onMouseDown={() => handleRowFocus(student.id)}
-              onFocusCapture={() => handleRowFocus(student.id)}
-            >
-              <AttendanceCell
-                value={student.attendance}
-                onChange={(v) => updateAttendance(student.id, v)}
-              />
-            </td>
-            {dynamicItems.map((item) => {
-              const studentItem = student.items.find((i) => i.template_item_id === item.id)
-              const tdClass = getTdClassName(
-                item.item_type === 'SELECT' ||
-                  item.item_type === 'COMPLETE' ||
-                  isScoreItem(item)
-                  ? tdShrinkStyle
-                  : tdStyle,
-                student.id,
-                focusedStudentId
-              )
-              const focusHandlers = {
-                onMouseDown: () => handleRowFocus(student.id),
-                onFocusCapture: () => handleRowFocus(student.id),
-              }
-              const handleCellBlur = () => onCellBlur?.(student.id, item.id)
-              if (item.item_type === 'SELECT') {
-                return (
-                  <td key={item.id} className={tdClass} {...focusHandlers}>
-                    <SelectCell
-                      options={item.options ?? []}
-                      value={studentItem?.value ?? ''}
-                      onChange={(v) => updateItem(student.id, item.id, v)}
-                    />
-                  </td>
-                )
-              }
-
-              if (item.item_type === 'COMPLETE') {
-                const status: CompletionStatus =
-                  studentItem?.is_completed === true
-                    ? '\uC644\uB8CC'
-                    : studentItem?.is_completed === false
-                      ? '\uBBF8\uC644\uB8CC'
-                      : null
-                return (
-                  <td key={item.id} className={tdClass} {...focusHandlers}>
-                    <CompletionCell
-                      value={status}
-                      onChange={(v) =>
-                        updateItem(
-                          student.id,
-                          item.id,
-                          v ?? '',
-                          v === '\uC644\uB8CC' ? true : v === '\uBBF8\uC644\uB8CC' ? false : null
-                        )
-                      }
-                    />
-                  </td>
-                )
-              }
-
-              if (isScoreItem(item)) {
-                const colMax = getScoreColumnMax(students, item.id)
-                return (
-                  <td key={item.id} className={tdClass} {...focusHandlers}>
-                    <ScoreEarnedCell
-                      value={studentItem?.value ?? ''}
-                      columnMax={colMax}
-                      onChange={(v) => updateItem(student.id, item.id, v)}
-                      onBlur={handleCellBlur}
-                    />
-                  </td>
-                )
-              }
-
-              return (
-                <td key={item.id} className={tdClass} {...focusHandlers}>
-                  <TextInputCell
-                    value={studentItem?.value ?? ''}
-                    onChange={(v) => updateItem(student.id, item.id, v)}
-                    onBlur={handleCellBlur}
+              {renderDynamicHeaders()}
+              {onAddItem ? (
+                <th className={addColumnCellStyle}>
+                  <button
+                    type="button"
+                    className={addColumnButtonStyle}
+                    aria-label="개별 항목 추가"
+                    onClick={() => setIsAddFormOpen(true)}
+                  >
+                    +
+                  </button>
+                </th>
+              ) : null}
+            </tr>
+          </thead>
+          <tbody>
+            {filteredStudents.map((student) => (
+              <tr key={student.id}>
+                <td className={getTdClassName(tdCompactStyle, student.id, focusedStudentId)}>
+                  <Link href={`/students/${student.id}`} className={nameCellStyle}>
+                    {student.name}
+                  </Link>
+                </td>
+                <td
+                  className={getTdClassName(tdCompactStyle, student.id, focusedStudentId)}
+                  onMouseDown={() => handleRowFocus(student.id)}
+                  onFocusCapture={() => handleRowFocus(student.id)}
+                >
+                  <AttendanceCell
+                    value={student.attendance}
+                    onChange={(v) => updateAttendance(student.id, v)}
                   />
                 </td>
-              )
-            })}
-          </tr>
-        ))}
-      </tbody>
+                {dynamicItems.map((item) => {
+                  const studentItem = student.items.find((i) => matchesLessonItem(i, item))
+                  const tdClass = getTdClassName(
+                    item.item_type === 'SELECT' ||
+                      item.item_type === 'COMPLETE' ||
+                      isScoreItem(item)
+                      ? tdShrinkStyle
+                      : tdStyle,
+                    student.id,
+                    focusedStudentId
+                  )
+                  const focusHandlers = {
+                    onMouseDown: () => handleRowFocus(student.id),
+                    onFocusCapture: () => handleRowFocus(student.id),
+                  }
+                  const handleCellBlur = () =>
+                    onCellBlur?.(student.id, item.source ?? 'template', item.id)
+                  if (item.item_type === 'SELECT') {
+                    return (
+                      <td key={lessonItemRef(item)} className={tdClass} {...focusHandlers}>
+                        <SelectCell
+                          options={item.options ?? []}
+                          value={studentItem?.value ?? ''}
+                          onChange={(v) => updateItem(student.id, item, v)}
+                        />
+                      </td>
+                    )
+                  }
+
+                  if (item.item_type === 'COMPLETE') {
+                    const status: CompletionStatus =
+                      studentItem?.is_completed === true
+                        ? '\uC644\uB8CC'
+                        : studentItem?.is_completed === false
+                          ? '\uBBF8\uC644\uB8CC'
+                          : null
+                    return (
+                      <td key={lessonItemRef(item)} className={tdClass} {...focusHandlers}>
+                        <CompletionCell
+                          value={status}
+                          onChange={(v) =>
+                            updateItem(
+                              student.id,
+                              item,
+                              v ?? '',
+                              v === '\uC644\uB8CC' ? true : v === '\uBBF8\uC644\uB8CC' ? false : null
+                            )
+                          }
+                        />
+                      </td>
+                    )
+                  }
+
+                  if (isScoreItem(item)) {
+                    const colMax = getScoreColumnMax(students, item)
+                    return (
+                      <td key={lessonItemRef(item)} className={tdClass} {...focusHandlers}>
+                        <ScoreEarnedCell
+                          value={studentItem?.value ?? ''}
+                          columnMax={colMax}
+                          onChange={(v) => updateItem(student.id, item, v)}
+                          onBlur={handleCellBlur}
+                        />
+                      </td>
+                    )
+                  }
+
+                  return (
+                    <td key={lessonItemRef(item)} className={tdClass} {...focusHandlers}>
+                      <TextInputCell
+                        value={studentItem?.value ?? ''}
+                        onChange={(v) => updateItem(student.id, item, v)}
+                        onBlur={handleCellBlur}
+                      />
+                    </td>
+                  )
+                })}
+                {onAddItem ? <td className={addColumnCellStyle} /> : null}
+              </tr>
+            ))}
+          </tbody>
         </table>
       )}
+
+      {onAddItem ? (
+        <Modal isOpen={isAddFormOpen} onClose={() => setIsAddFormOpen(false)} size="md">
+          <AddItemForm
+            onAdd={(label, type, choices) => {
+              void Promise.resolve(onAddItem(mapFormToAdhocBody(label, type, choices)))
+                .then(() => {
+                  setIsAddFormOpen(false)
+                })
+                .catch(() => {
+                  /* addAdhocItem shows error toast */
+                })
+            }}
+            onCancel={() => setIsAddFormOpen(false)}
+          />
+        </Modal>
+      ) : null}
     </div>
   )
 }

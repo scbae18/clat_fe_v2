@@ -1,4 +1,5 @@
 import type { LessonItemDetail } from '@/services/lesson'
+import { lessonItemRef } from '@/lib/lessonItemRef'
 
 /** 텍스트·숫자 입력 후 자동 저장 대기 시간 */
 export const TEXT_INPUT_DEBOUNCE_MS = 800
@@ -16,7 +17,16 @@ export function isImmediateSaveItemType(itemType: LessonItemDetail['item_type'] 
 
 export function getLessonItemType(
   items: LessonItemDetail[],
-  templateItemId: number,
+  source: 'template' | 'adhoc',
+  itemId: number,
 ): LessonItemDetail['item_type'] | undefined {
-  return items.find((i) => i.id === templateItemId)?.item_type
+  return items.find((i) => (i.source ?? 'template') === source && i.id === itemId)?.item_type
+}
+
+export function getLessonItemTypeByRef(
+  items: LessonItemDetail[],
+  ref: string,
+): LessonItemDetail['item_type'] | undefined {
+  const item = items.find((i) => lessonItemRef(i) === ref)
+  return item?.item_type
 }

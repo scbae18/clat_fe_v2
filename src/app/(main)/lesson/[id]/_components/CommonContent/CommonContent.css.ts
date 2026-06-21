@@ -71,3 +71,59 @@ export const inputStyle = style({
     },
   },
 })
+
+export const addRowButtonStyle = style({
+  marginTop: '8px',
+  padding: '6px 8px',
+  border: 'none',
+  background: 'transparent',
+  color: colors.gray300,
+  fontSize: fontStyles.bodyMd.fontSize,
+  cursor: 'pointer',
+  selectors: {
+    '&:hover': {
+      color: colors.primary500,
+    },
+  },
+})
+
+export const removeItemButtonStyle = style({
+  width: '18px',
+  height: '18px',
+  padding: 0,
+  border: 'none',
+  borderRadius: '4px',
+  background: 'transparent',
+  color: colors.gray300,
+  fontSize: '14px',
+  lineHeight: 1,
+  cursor: 'pointer',
+  opacity: 0,
+  transition: 'opacity 0.15s ease',
+  selectors: {
+    'tr:hover &': {
+      opacity: 1,
+    },
+    '&:hover': {
+      color: colors.gray500,
+      backgroundColor: colors.gray100,
+    },
+  },
+})
+
+export const nameInputInlineStyle = style({
+  width: '100%',
+  padding: 0,
+  border: 'none',
+  outline: 'none',
+  background: 'transparent',
+  fontSize: fontStyles.titleSm.fontSize,
+  fontWeight: fontStyles.titleSm.fontWeight,
+  color: colors.gray900,
+  letterSpacing: '-0.03em',
+  selectors: {
+    '&::placeholder': {
+      color: colors.gray300,
+    },
+  },
+})

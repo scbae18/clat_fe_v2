@@ -10,6 +10,7 @@ import SaveIcon from '@/assets/icons/icon-save.svg'
 import ChevronDownIcon from '@/assets/icons/icon-chevron-down.svg'
 import MessageIcon from '@/assets/icons/icon-message.svg'
 import LessonTable from './_components/LessonTableSection/LessonTableSection'
+import LessonMessageOrderModal from './_components/LessonMessageOrderModal/LessonMessageOrderModal'
 import CommonContent from './_components/CommonContent/CommonContent'
 import ProgressBar from './_components/ProgressBar/ProgressBar'
 import AlimtalkSendModal from './_components/AlimtalkSendModal/AlimtalkSendModal'
@@ -37,6 +38,7 @@ import {
 import { attendanceService } from '@/services/attendance'
 import { resolveStudentCheckLinks } from '@/lib/attendanceUrls'
 import AttendanceStartModal from '@/components/attendance/AttendanceStartModal'
+import type { LessonItemDetail } from '@/services/lesson'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { markLessonListNeedsRefresh } from '@/lib/lessonListRefresh'
@@ -67,12 +69,19 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     handleExcelDownload,
     refetch,
     refetchAfterAttendanceEnd,
+    addAdhocItem,
+    removeAdhocItem,
+    excludeTemplateItem,
+    updateLessonItemOrder,
   } = useLessonDetail(lessonId)
 
   const templateModal = useDisclosure()
   const templateConfirmModal = useDisclosure()
   const attendanceStartModal = useDisclosure()
+  const removeItemConfirmModal = useDisclosure()
+  const messageOrderModal = useDisclosure()
   const [pendingTemplateId, setPendingTemplateId] = useState<number | null>(null)
+  const [removeTarget, setRemoveTarget] = useState<LessonItemDetail | null>(null)
 
   const activeAttendance = useAttendanceSessionStore((s) => s.active)
   const setActiveAttendance = useAttendanceSessionStore((s) => s.setActive)
@@ -203,7 +212,32 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
 
   const commonItems = lesson.items
     .filter((i) => i.is_common && i.item_type === 'TEXT')
-    .map((i) => ({ id: i.id, label: i.name }))
+    .map((i) => ({
+      id: i.id,
+      source: i.source ?? 'template',
+      label: i.name,
+    }))
+
+  const handleRemoveItem = (item: LessonItemDetail) => {
+    setRemoveTarget(item)
+    removeItemConfirmModal.open()
+  }
+
+  const confirmRemoveItem = async () => {
+    if (!removeTarget) return
+    removeItemConfirmModal.close()
+    try {
+      if (removeTarget.source === 'adhoc') {
+        await removeAdhocItem(removeTarget.id)
+      } else {
+        await excludeTemplateItem(removeTarget.id)
+      }
+    } catch {
+      addToast({ variant: 'error', message: '항목 제거에 실패했어요.' })
+    } finally {
+      setRemoveTarget(null)
+    }
+  }
 
   const hasAttendanceItem = lesson.items.some((i) => i.item_type === 'ATTENDANCE')
   const attendanceInProgress =
@@ -271,6 +305,13 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           <Button
             variant="secondary"
             size="sm"
+            onClick={messageOrderModal.open}
+          >
+            문자 순서
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             leftIcon={<DownloadIcon width={20} height={20} />}
             onClick={handleExcelDownload}
           >
@@ -292,17 +333,27 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
-      {commonItems.length > 0 && (
-        <div className={sectionStyle}>
-          <Text variant="headingMd">공통 내용</Text>
-          <CommonContent
-            lessonId={lessonId}
-            items={commonItems}
-            values={commonValues}
-            onChange={updateCommonValue}
-          />
-        </div>
-      )}
+      <div className={sectionStyle}>
+        <Text variant="headingMd">공통 내용</Text>
+        <CommonContent
+          lessonId={lessonId}
+          items={commonItems}
+          values={commonValues}
+          onChange={updateCommonValue}
+          onAddCommon={(name) => addAdhocItem({ name, is_common: true })}
+          onRemoveItem={(item) =>
+            handleRemoveItem({
+              id: item.id,
+              source: item.source,
+              name: item.label,
+              item_type: 'TEXT',
+              is_common: true,
+              include_in_message: false,
+              sort_order: 0,
+            })
+          }
+        />
+      </div>
 
       <div className={sectionStyle}>
         <Text variant="headingMd">개별 내용</Text>
@@ -311,6 +362,8 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           templateItems={lesson.items}
           onChange={updateStudents}
           onCellBlur={flushPendingStudentCellSave}
+          onAddItem={addAdhocItem}
+          onRemoveColumn={handleRemoveItem}
         />
       </div>
 
@@ -365,6 +418,32 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
         className={lesson.class_name}
         studentCount={students.length}
         students={students.map((s) => ({ id: s.id, name: s.name }))}
+      />
+
+      <LessonMessageOrderModal
+        isOpen={messageOrderModal.isOpen}
+        onClose={messageOrderModal.close}
+        lesson={lesson}
+        commonValues={commonValues}
+        students={students}
+        onSave={updateLessonItemOrder}
+      />
+
+      <ConfirmModal
+        isOpen={removeItemConfirmModal.isOpen}
+        onClose={() => {
+          removeItemConfirmModal.close()
+          setRemoveTarget(null)
+        }}
+        onConfirm={() => void confirmRemoveItem()}
+        title="이 수업에서 항목을 제거할까요?"
+        descriptions={[
+          removeTarget?.source === 'adhoc'
+            ? '추가한 항목과 입력값이 삭제돼요.'
+            : '템플릿은 그대로이고, 이 수업 화면에서만 숨겨져요.',
+        ]}
+        confirmLabel="제거"
+        confirmVariant="danger"
       />
     </div>
   )

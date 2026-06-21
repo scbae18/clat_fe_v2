@@ -11,18 +11,25 @@ import {
   tdStyle,
   inputStyle,
   inputCellWrapStyle,
+  addRowButtonStyle,
+  removeItemButtonStyle,
+  nameInputInlineStyle,
 } from './CommonContent.css'
+import { itemRef, type ItemSource } from '@/lib/lessonItemRef'
 
 interface CommonItem {
   id: number
+  source: ItemSource
   label: string
 }
 
 interface CommonContentSectionProps {
   lessonId: number
   items: CommonItem[]
-  values: Record<number, string>
-  onChange: (id: number, value: string) => void
+  values: Record<string, string>
+  onChange: (ref: string, value: string) => void
+  onAddCommon?: (name: string) => void | Promise<void>
+  onRemoveItem?: (item: CommonItem) => void
 }
 
 export default function CommonContent({
@@ -30,9 +37,13 @@ export default function CommonContent({
   items,
   values,
   onChange,
+  onAddCommon,
+  onRemoveItem,
 }: CommonContentSectionProps) {
   const [suggestions, setSuggestions] = useState<CommonSuggestionItem[]>([])
-  const [focusedId, setFocusedId] = useState<number | null>(null)
+  const [focusedId, setFocusedId] = useState<string | null>(null)
+  const [isAdding, setIsAdding] = useState(false)
+  const [newName, setNewName] = useState('')
   const wrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -73,44 +84,65 @@ export default function CommonContent({
   }, [])
 
   const applyValue = useCallback(
-    (itemId: number, value: string) => {
-      onChange(itemId, value)
+    (itemRefKey: string, value: string) => {
+      onChange(itemRefKey, value)
       setFocusedId(null)
     },
     [onChange],
   )
+
+  const submitNewCommon = async () => {
+    const trimmed = newName.trim()
+    if (!trimmed || !onAddCommon) return
+    await onAddCommon(trimmed)
+    setNewName('')
+    setIsAdding(false)
+  }
 
   return (
     <div ref={wrapRef}>
       <table className={tableStyle}>
         <tbody>
           {items.map((item) => {
-            const current = values[item.id] ?? ''
+            const refKey = itemRef(item.source, item.id)
+            const current = values[refKey] ?? ''
             const isEmpty = !current.trim()
-            const suggestion = suggestionByItemId.get(item.id)
+            const suggestion =
+              item.source === 'template' ? suggestionByItemId.get(item.id) : undefined
             const showPopover =
-              focusedId === item.id &&
-              isEmpty &&
-              suggestion &&
-              hasSuggestionContent(suggestion)
+              focusedId === refKey && isEmpty && suggestion && hasSuggestionContent(suggestion)
 
             return (
-              <tr key={item.id}>
-                <th className={thStyle}>{item.label}</th>
+              <tr key={refKey}>
+                <th className={thStyle}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span>{item.label}</span>
+                    {onRemoveItem ? (
+                      <button
+                        type="button"
+                        className={removeItemButtonStyle}
+                        aria-label={`${item.label} 항목 제거`}
+                        onClick={() => onRemoveItem(item)}
+                      >
+                        ×
+                      </button>
+                    ) : null}
+                  </div>
+                </th>
                 <td className={tdStyle}>
                   <div className={inputCellWrapStyle}>
                     <textarea
                       className={inputStyle}
                       value={current}
-                      onChange={(e) => onChange(item.id, e.target.value)}
-                      onFocus={() => setFocusedId(item.id)}
+                      onChange={(e) => onChange(refKey, e.target.value)}
+                      onFocus={() => setFocusedId(refKey)}
                       placeholder="내용을 입력해주세요"
                     />
                     {showPopover && suggestion ? (
                       <CommonSuggestionPopover
                         suggestion={suggestion}
-                        onApplyLastClass={(value) => applyValue(item.id, value)}
-                        onApplySuggestion={(value) => applyValue(item.id, value)}
+                        onApplyLastClass={(value) => applyValue(refKey, value)}
+                        onApplySuggestion={(value) => applyValue(refKey, value)}
                       />
                     ) : null}
                   </div>
@@ -118,8 +150,39 @@ export default function CommonContent({
               </tr>
             )
           })}
+          {isAdding ? (
+            <tr>
+              <th className={thStyle}>
+                <input
+                  className={nameInputInlineStyle}
+                  value={newName}
+                  maxLength={10}
+                  placeholder="항목 이름"
+                  autoFocus
+                  onChange={(e) => setNewName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') void submitNewCommon()
+                    if (e.key === 'Escape') {
+                      setIsAdding(false)
+                      setNewName('')
+                    }
+                  }}
+                  onBlur={() => {
+                    if (newName.trim()) void submitNewCommon()
+                    else setIsAdding(false)
+                  }}
+                />
+              </th>
+              <td className={tdStyle} />
+            </tr>
+          ) : null}
         </tbody>
       </table>
+      {onAddCommon ? (
+        <button type="button" className={addRowButtonStyle} onClick={() => setIsAdding(true)}>
+          + 항목 추가
+        </button>
+      ) : null}
     </div>
   )
 }

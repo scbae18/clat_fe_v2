@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 
 import type { LessonStudent } from '@/types/lessonStudent'
 
-import { lessonService, type LessonDetail } from '@/services/lesson'
+import { lessonService, type CreateLessonAdhocItemBody, type LessonDetail } from '@/services/lesson'
 
 import { classService } from '@/services/class'
 
@@ -13,6 +13,8 @@ import { useToastStore } from '@/stores/toastStore'
 import {
 
   getLessonItemType,
+
+  getLessonItemTypeByRef,
 
   isImmediateSaveItemType,
 
@@ -34,6 +36,8 @@ import {
 
 } from '@/lib/lessonPartialSave'
 
+import { itemRef, lessonItemRef, matchesLessonItem } from '@/lib/lessonItemRef'
+
 import { computeLessonInputProgress } from '@/lib/lessonProgress'
 
 
@@ -42,7 +46,7 @@ function clearDirtyFromBody(
 
   body: NonNullable<ReturnType<typeof buildLessonUpdateBodyForTargets>>,
 
-  clearCommon: (ids: number[]) => void,
+  clearCommon: (ids: string[]) => void,
 
   clearCells: (keys: string[]) => void,
 
@@ -50,7 +54,13 @@ function clearDirtyFromBody(
 
   if (body.common_data?.length) {
 
-    clearCommon(body.common_data.map((c) => c.template_item_id))
+    clearCommon(body.common_data.map((c) => {
+
+      if (c.adhoc_item_id != null) return itemRef('adhoc', c.adhoc_item_id)
+
+      return itemRef('template', c.template_item_id!)
+
+    }))
 
   }
 
@@ -62,7 +72,11 @@ function clearDirtyFromBody(
 
       for (const item of s.items) {
 
-        keys.push(studentCellKey(s.student_id, item.template_item_id))
+        const source = item.source ?? (item.adhoc_item_id != null ? 'adhoc' : 'template')
+
+        const id = item.adhoc_item_id ?? item.template_item_id!
+
+        keys.push(studentCellKey(s.student_id, source, id))
 
       }
 
@@ -80,7 +94,7 @@ export default function useLessonDetail(lessonId: number) {
 
   const [lesson, setLesson] = useState<LessonDetail | null>(null)
 
-  const [commonValues, setCommonValues] = useState<Record<number, string>>({})
+  const [commonValues, setCommonValues] = useState<Record<string, string>>({})
 
   const [students, setStudents] = useState<LessonStudent[]>([])
 
@@ -90,7 +104,7 @@ export default function useLessonDetail(lessonId: number) {
 
   const [error, setError] = useState<'TEMPLATE_NOT_FOUND' | null>(null)
 
-  const [dirtyCommonIds, setDirtyCommonIds] = useState<Set<number>>(() => new Set())
+  const [dirtyCommonIds, setDirtyCommonIds] = useState<Set<string>>(() => new Set())
 
   const [dirtyStudentCells, setDirtyStudentCells] = useState<Set<string>>(() => new Set())
 
@@ -177,7 +191,7 @@ export default function useLessonDetail(lessonId: number) {
 
 
 
-  const removeDirtyCommon = useCallback((ids: number[]) => {
+  const removeDirtyCommon = useCallback((ids: string[]) => {
 
     setDirtyCommonIds((prev) => {
 
@@ -213,7 +227,7 @@ export default function useLessonDetail(lessonId: number) {
 
     async (options: {
 
-      commonIds?: number[]
+      commonIds?: string[]
 
       studentCells?: string[]
 
@@ -247,13 +261,11 @@ export default function useLessonDetail(lessonId: number) {
 
         lessonItems: currentLesson.items,
 
-        status: 'SAVED',
-
       })
 
 
 
-      if (!body) return true
+      if (!body) return false
 
 
 
@@ -327,9 +339,9 @@ export default function useLessonDetail(lessonId: number) {
 
       for (const key of cellKeys) {
 
-        const { templateItemId } = parseStudentCellKey(key)
+        const { source, itemId } = parseStudentCellKey(key)
 
-        const itemType = getLessonItemType(items, templateItemId)
+        const itemType = getLessonItemType(items, source, itemId)
 
 
 
@@ -375,23 +387,23 @@ export default function useLessonDetail(lessonId: number) {
 
   const updateCommonValue = useCallback(
 
-    (id: number, value: string) => {
+    (ref: string, value: string) => {
 
-      setCommonValues((prev) => ({ ...prev, [id]: value }))
+      setCommonValues((prev) => ({ ...prev, [ref]: value }))
 
       setDirtyCommonIds((prev) => {
 
         const next = new Set(prev)
 
-        next.add(id)
+        next.add(ref)
 
         return next
 
       })
 
-      scheduleDebouncedSave(`common:${id}`, () => {
+      scheduleDebouncedSave(`common:${ref}`, () => {
 
-        void persistTargets({ commonIds: [id], silent: true })
+        void persistTargets({ commonIds: [ref], silent: true })
 
       })
 
@@ -411,13 +423,13 @@ export default function useLessonDetail(lessonId: number) {
 
         const resolved = typeof next === 'function' ? next(prev) : next
 
-        const attendanceItemId = lessonRef.current?.items.find(
+        const attendanceItem = lessonRef.current?.items.find(
 
           (i) => i.item_type === 'ATTENDANCE',
 
-        )?.id
+        )
 
-        const changedCells = findChangedStudentCells(prev, resolved, attendanceItemId)
+        const changedCells = findChangedStudentCells(prev, resolved, attendanceItem)
 
         if (changedCells.length > 0) {
 
@@ -441,9 +453,9 @@ export default function useLessonDetail(lessonId: number) {
 
   const flushPendingStudentCellSave = useCallback(
 
-    (studentId: number, templateItemId: number) => {
+    (studentId: number, source: 'template' | 'adhoc', itemId: number) => {
 
-      const key = studentCellKey(studentId, templateItemId)
+      const key = studentCellKey(studentId, source, itemId)
 
       clearDebounceTimer(`cell:${key}`)
 
@@ -485,7 +497,9 @@ export default function useLessonDetail(lessonId: number) {
 
         const attendanceItems = data.items.filter((i) => i.item_type === 'ATTENDANCE')
 
-        const attendanceItemId = attendanceItems[0]?.id
+        const attendanceItem = attendanceItems[0]
+
+        const attendanceItemId = attendanceItem?.id
 
 
 
@@ -505,7 +519,13 @@ export default function useLessonDetail(lessonId: number) {
 
             attendanceValue = String(
 
-              sdItems.find((si) => si.template_item_id === attendanceItemId)?.value ?? '',
+              sdItems.find((si) => {
+
+                const src = si.source ?? 'template'
+
+                return src === 'template' && si.template_item_id === attendanceItemId
+
+              })?.value ?? '',
 
             )
 
@@ -529,7 +549,15 @@ export default function useLessonDetail(lessonId: number) {
 
           const mergedItems = student.items.map((item) => {
 
-            if (attendanceItemId && item.template_item_id === attendanceItemId) {
+            if (
+
+              attendanceItemId &&
+
+              item.source === 'template' &&
+
+              item.item_id === attendanceItemId
+
+            ) {
 
               return {
 
@@ -595,11 +623,15 @@ export default function useLessonDetail(lessonId: number) {
 
 
 
-        const values: Record<number, string> = {}
+        const values: Record<string, string> = {}
 
         data.common_data.forEach((item) => {
 
-          values[item.template_item_id] = item.value
+          const source = item.source ?? (item.adhoc_item_id != null ? 'adhoc' : 'template')
+
+          const id = item.adhoc_item_id ?? item.template_item_id!
+
+          values[itemRef(source, id)] = item.value ?? ''
 
         })
 
@@ -679,11 +711,21 @@ export default function useLessonDetail(lessonId: number) {
 
             items: individualItems.map((item) => {
 
-              const existing = sdItems.find((si) => si.template_item_id === item.id)
+              const existing = sdItems.find((si) => {
+
+                const siSource = si.source ?? (si.adhoc_item_id != null ? 'adhoc' : 'template')
+
+                const siId = si.adhoc_item_id ?? si.template_item_id!
+
+                return (item.source ?? 'template') === siSource && item.id === siId
+
+              })
 
               return {
 
-                template_item_id: item.id,
+                item_id: item.id,
+
+                source: item.source ?? 'template',
 
                 value: existing?.value ?? '',
 
@@ -879,6 +921,268 @@ export default function useLessonDetail(lessonId: number) {
 
 
 
+  const addAdhocItem = useCallback(
+
+    async (body: CreateLessonAdhocItemBody) => {
+
+      try {
+
+        const created = await lessonService.addLessonItem(lessonId, body)
+
+        const refreshed = await lessonService.getLesson(lessonId)
+
+        setLesson((prev) => (prev ? { ...prev, items: refreshed.items } : prev))
+
+        if (body.is_common) {
+
+          const ref = itemRef('adhoc', created.id)
+
+          setCommonValues((prev) => ({ ...prev, [ref]: prev[ref] ?? '' }))
+
+        } else {
+
+          setStudents((prev) =>
+
+            prev.map((s) => {
+
+              if (s.items.some((i) => i.source === 'adhoc' && i.item_id === created.id)) {
+
+                return s
+
+              }
+
+              return {
+
+                ...s,
+
+                items: [
+
+                  ...s.items,
+
+                  { item_id: created.id, source: 'adhoc' as const, value: '', is_completed: null },
+
+                ],
+
+              }
+
+            }),
+
+          )
+
+        }
+
+        addToast({ variant: 'success', message: '항목이 추가됐어요.' })
+
+      } catch (err: unknown) {
+
+        const msg =
+
+          (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error
+
+            ?.message ?? '항목 추가에 실패했어요.'
+
+        addToast({ variant: 'error', message: msg })
+
+        throw err
+
+      }
+
+    },
+
+    [lessonId, addToast],
+
+  )
+
+
+
+  const removeAdhocItem = useCallback(
+
+    async (itemId: number) => {
+
+      await lessonService.removeLessonItem(lessonId, itemId)
+
+      const ref = itemRef('adhoc', itemId)
+
+      setLesson((prev) =>
+
+        prev
+
+          ? {
+
+              ...prev,
+
+              items: prev.items.filter((i) => !(i.source === 'adhoc' && i.id === itemId)),
+
+            }
+
+          : prev,
+
+      )
+
+      setCommonValues((prev) => {
+
+        const next = { ...prev }
+
+        delete next[ref]
+
+        return next
+
+      })
+
+      setDirtyCommonIds((prev) => {
+
+        const next = new Set(prev)
+
+        next.delete(ref)
+
+        return next
+
+      })
+
+      setStudents((prev) =>
+
+        prev.map((s) => ({
+
+          ...s,
+
+          items: s.items.filter((i) => !(i.source === 'adhoc' && i.item_id === itemId)),
+
+        })),
+
+      )
+
+      setDirtyStudentCells((prev) => {
+
+        const next = new Set(prev)
+
+        for (const key of prev) {
+
+          const parsed = parseStudentCellKey(key)
+
+          if (parsed.source === 'adhoc' && parsed.itemId === itemId) next.delete(key)
+
+        }
+
+        return next
+
+      })
+
+      addToast({ variant: 'success', message: '항목을 삭제했어요.' })
+
+    },
+
+    [lessonId, addToast],
+
+  )
+
+
+
+  const excludeTemplateItem = useCallback(
+
+    async (templateItemId: number) => {
+
+      await lessonService.excludeTemplateItem(lessonId, templateItemId)
+
+      const ref = itemRef('template', templateItemId)
+
+      setLesson((prev) =>
+
+        prev
+
+          ? {
+
+              ...prev,
+
+              items: prev.items.filter(
+
+                (i) => !((i.source ?? 'template') === 'template' && i.id === templateItemId),
+
+              ),
+
+            }
+
+          : prev,
+
+      )
+
+      setCommonValues((prev) => {
+
+        const next = { ...prev }
+
+        delete next[ref]
+
+        return next
+
+      })
+
+      setDirtyCommonIds((prev) => {
+
+        const next = new Set(prev)
+
+        next.delete(ref)
+
+        return next
+
+      })
+
+      setStudents((prev) =>
+
+        prev.map((s) => ({
+
+          ...s,
+
+          items: s.items.filter(
+
+            (i) => !(i.source === 'template' && i.item_id === templateItemId),
+
+          ),
+
+        })),
+
+      )
+
+      setDirtyStudentCells((prev) => {
+
+        const next = new Set(prev)
+
+        for (const key of prev) {
+
+          const parsed = parseStudentCellKey(key)
+
+          if (parsed.source === 'template' && parsed.itemId === templateItemId) next.delete(key)
+
+        }
+
+        return next
+
+      })
+
+      addToast({ variant: 'success', message: '이 수업에서 항목을 숨겼어요.' })
+
+    },
+
+    [lessonId, addToast],
+
+  )
+
+
+
+  const updateLessonItemOrder = useCallback(
+
+    async (items: Array<{ source: 'template' | 'adhoc'; id: number }>) => {
+
+      const updated = await lessonService.updateItemOrder(lessonId, { items })
+
+      setLesson((prev) => (prev ? { ...prev, items: updated } : prev))
+
+    },
+
+    [lessonId],
+
+  )
+
+
+
   return {
 
     lesson,
@@ -914,6 +1218,14 @@ export default function useLessonDetail(lessonId: number) {
     refetch,
 
     refetchAfterAttendanceEnd,
+
+    addAdhocItem,
+
+    removeAdhocItem,
+
+    excludeTemplateItem,
+
+    updateLessonItemOrder,
 
   }
 
