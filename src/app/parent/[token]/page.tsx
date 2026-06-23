@@ -227,20 +227,30 @@ export default function ParentDashboardPage({ params }: { params: Promise<{ toke
                 </div>
                 <div className={styles.timeline}>
                   <div className={styles.timelineRail} />
-                  {(data.recent_lessons ?? []).slice(0, 2).map((r, idx) => (
-                    <div key={`${r.lesson_date}-${idx}`} style={{ position: 'relative' }}>
+                  {(data.recent_lessons ?? []).map((r, idx) => (
+                    <div key={`${r.lesson_date}-${r.class_name}-${idx}`} style={{ position: 'relative' }}>
                       <div className={styles.recentDate}>{formatKoreanDate(r.lesson_date)}</div>
                       <div className={styles.recentRow}>
                         <span className={styles.recentClass}>{r.class_name}</span>
-                        <span className={`${styles.recentBadge} ${styles.recentAttend}`}>{'\uCD9C\uC11D'}</span>
-                        <span className={`${styles.recentBadge} ${styles.recentScore}`}>
-                          {data.lesson_summary.scores[0]
-                            ? `${data.lesson_summary.scores[0].name} ${data.lesson_summary.scores[0].value}`
-                            : r.template_name}
-                        </span>
+                        {r.attendance ? (
+                          <span className={`${styles.recentBadge} ${styles.recentAttend}`}>
+                            {r.attendance}
+                          </span>
+                        ) : null}
+                        {r.scores.map((score) => (
+                          <span
+                            key={`${score.item_name}-${score.value}`}
+                            className={`${styles.recentBadge} ${styles.recentScore}`}
+                          >
+                            {`${score.item_name} ${score.value}`}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   ))}
+                  {(data.recent_lessons ?? []).length === 0 ? (
+                    <div className={styles.recentDate}>{'\uCD5C\uADFC \uC218\uC5C5 \uC774\uB825\uC774 \uC5C6\uC5B4\uC694.'}</div>
+                  ) : null}
                 </div>
               </section>
             </div>

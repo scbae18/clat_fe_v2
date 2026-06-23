@@ -24,6 +24,8 @@ export type ParentDashboardData = {
     lesson_date: string
     class_name: string
     template_name: string
+    attendance: string | null
+    scores: Array<{ item_name: string; value: string }>
   }>
 }
 
