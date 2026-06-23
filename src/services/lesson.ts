@@ -185,9 +185,11 @@ export const lessonService = {
   },
 
   async sendLesson(lessonId: number, studentIds: number[]): Promise<SendLessonResult> {
-    const { data } = await axiosInstance.post(`/lessons/${lessonId}/send`, {
-      student_ids: studentIds,
-    })
+    const { data } = await axiosInstance.post(
+      `/lessons/${lessonId}/send`,
+      { student_ids: studentIds },
+      { timeout: 60_000 },
+    )
     return unwrapSendLessonResult(data)
   },
 

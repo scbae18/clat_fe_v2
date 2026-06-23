@@ -839,6 +839,8 @@ export default function useLessonDetail(lessonId: number) {
 
       clearDirtyFromBody(body, removeDirtyCommon, removeDirtyCells)
 
+      setLesson((prev) => (prev ? { ...prev, status: 'SAVED' } : prev))
+
       addToast({ variant: 'success', message: '저장됐어요.' })
 
       return true
@@ -846,6 +848,95 @@ export default function useLessonDetail(lessonId: number) {
     } catch {
 
       addToast({ variant: 'error', message: '저장에 실패했어요.' })
+
+      return false
+
+    } finally {
+
+      setAutoSavingCount((c) => Math.max(0, c - 1))
+
+    }
+
+  }, [
+
+    lesson,
+
+    lessonId,
+
+    dirtyCommonIds,
+
+    dirtyStudentCells,
+
+    addToast,
+
+    clearAllDebounceTimers,
+
+    removeDirtyCommon,
+
+    removeDirtyCells,
+
+  ])
+
+
+
+  /** 알림톡 발송 전: 미저장 변경 반영 + DRAFT면 SAVED로 전환 */
+  const ensureSavedForAlimtalk = useCallback(async (): Promise<boolean> => {
+
+    if (!lesson) return false
+
+
+
+    clearAllDebounceTimers()
+
+
+
+    const body = buildPartialLessonUpdateBody({
+
+      dirtyCommonIds,
+
+      dirtyStudentCells,
+
+      commonValues: commonValuesRef.current,
+
+      students: studentsRef.current,
+
+      lessonItems: lesson.items,
+
+      status: 'SAVED',
+
+    })
+
+
+
+    setAutoSavingCount((c) => c + 1)
+
+    try {
+
+      if (body) {
+
+        await lessonService.updateLesson(lessonId, body)
+
+        clearDirtyFromBody(body, removeDirtyCommon, removeDirtyCells)
+
+      } else if (lesson.status === 'DRAFT') {
+
+        await lessonService.saveLesson(lessonId)
+
+      }
+
+      setLesson((prev) => (prev ? { ...prev, status: 'SAVED' } : prev))
+
+      return true
+
+    } catch {
+
+      addToast({
+
+        variant: 'error',
+
+        message: '수업 저장에 실패했어요. 저장 후 알림톡을 보내 주세요.',
+
+      })
 
       return false
 
@@ -1212,6 +1303,8 @@ export default function useLessonDetail(lessonId: number) {
     isAutoSaving: autoSavingCount > 0,
 
     saveDirtyChanges,
+
+    ensureSavedForAlimtalk,
 
     handleExcelDownload,
 

@@ -66,6 +66,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     isAutoSaving,
     hasUnsavedChanges,
     saveDirtyChanges,
+    ensureSavedForAlimtalk,
     handleExcelDownload,
     refetch,
     refetchAfterAttendanceEnd,
@@ -375,7 +376,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           size="sm"
           leftIcon={<MessageIcon width={20} height={20} />}
           onClick={async () => {
-            const ok = await saveDirtyChanges()
+            const ok = await ensureSavedForAlimtalk()
             if (ok) alimtalkSendModal.open()
           }}
         >

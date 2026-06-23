@@ -5,6 +5,7 @@ import Text from '@/components/common/Text'
 import Button from '@/components/common/Button'
 import CloseIcon from '@/assets/icons/icon-close.svg'
 import ConfirmModal from '@/components/common/ConfirmModal'
+import { isAxiosError } from 'axios'
 import { lessonService, type LessonPreviewRow } from '@/services/lesson'
 import { markLessonListNeedsRefresh } from '@/lib/lessonListRefresh'
 import { useToastStore } from '@/stores/toastStore'
@@ -126,10 +127,20 @@ export default function AlimtalkSendModal({ isOpen, onClose, lessonId }: Alimtal
         markLessonListNeedsRefresh()
       }
       setIsClosing(true)
-    } catch {
+    } catch (err) {
+      const apiMessage = isAxiosError(err)
+        ? (err.response?.data as { error?: { message?: string } } | undefined)?.error
+            ?.message
+        : undefined
+      const isTimeout =
+        isAxiosError(err) && (err.code === 'ECONNABORTED' || err.message.includes('timeout'))
       addToast({
         variant: 'error',
-        message: '\uC54C\uB9BC\uD1A1 \uBC1C\uC1A1\uC5D0 \uC2E4\uD328\uD588\uC5B4\uC694.',
+        message:
+          apiMessage ??
+          (isTimeout
+            ? '\uC54C\uB9BC\uD1A1 \uBC1C\uC1A1\uC774 \uC2DC\uAC04 \uCD08\uACFC\uB418\uC5C8\uC5B4\uC694. \uC7A0\uC2DC \uD6C4 \uBC1C\uC1A1 \uB0B4\uC5ED\uC5D0\uC11C \uACB0\uACFC\uB97C \uD655\uC778\uD574 \uC8FC\uC138\uC694.'
+            : '\uC54C\uB9BC\uD1A1 \uBC1C\uC1A1\uC5D0 \uC2E4\uD328\uD588\uC5B4\uC694.'),
       })
     } finally {
       setSending(false)
