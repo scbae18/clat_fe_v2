@@ -32,6 +32,15 @@ export const trStyle = style({
   },
 })
 
+export const trSelectedStyle = style({
+  backgroundColor: colors.primary50,
+  selectors: {
+    '&:hover': {
+      backgroundColor: colors.primary100,
+    },
+  },
+})
+
 export const thStyle = style({
   height: '40px',
   paddingLeft: '16px',
@@ -137,24 +146,4 @@ export const deleteButtonStyle = style({
       color: colors.gray500,
     },
   },
-})
-
-export const checkboxCellStyle = style({
-  width: '44px',
-  padding: '0 12px',
-  textAlign: 'center',
-  borderBottom: `1px solid ${colors.gray100}`,
-  borderRight: `1px solid ${colors.gray100}`,
-  selectors: {
-    'tr:last-child &': {
-      borderBottom: 'none',
-    },
-  },
-})
-
-export const checkboxStyle = style({
-  width: '16px',
-  height: '16px',
-  cursor: 'pointer',
-  accentColor: colors.primary500,
 })

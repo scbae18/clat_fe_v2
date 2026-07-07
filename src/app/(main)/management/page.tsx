@@ -38,7 +38,6 @@ import type { Student } from '@/types/student'
 import { useToastStore } from '@/stores/toastStore'
 import { sortStudentsByNameKo } from '@/lib/sortStudents'
 import useToggleArray from '@/hooks/useToggleArray'
-import TrashIcon from '@/assets/icons/icon-trash.svg'
 
 const FILTER_OPTIONS = [
   { label: '전체', value: 'all' },
@@ -89,11 +88,11 @@ function ManagementContent() {
   const bulkUpload = useDisclosure()
   const [deleteStudentTarget, setDeleteStudentTarget] = useState<number | null>(null)
   const [bulkDeletePending, setBulkDeletePending] = useState(false)
+  const [isStudentSelectionMode, setIsStudentSelectionMode] = useState(false)
   const {
     items: selectedStudentIds,
     toggle: toggleStudentSelect,
     set: setSelectedStudentIds,
-    reset: resetSelectedStudentIds,
   } = useToggleArray<number>()
 
   const filteredStudents = useMemo(() => {
@@ -101,6 +100,17 @@ function ManagementContent() {
     if (!query) return students
     return students.filter((s) => s.name.toLowerCase().includes(query))
   }, [students, studentSearchQuery])
+
+  useEffect(() => {
+    if (tab === 'students') return
+    setIsStudentSelectionMode(false)
+    setSelectedStudentIds((prev) => (prev.length === 0 ? prev : []))
+  }, [tab, setSelectedStudentIds])
+
+  const exitStudentSelectionMode = () => {
+    setIsStudentSelectionMode(false)
+    setSelectedStudentIds([])
+  }
 
   const handleDeleteStudent = async () => {
     if (!deleteStudentTarget) return
@@ -119,7 +129,7 @@ function ManagementContent() {
 
   const handleToggleSelectAllStudents = () => {
     if (selectedStudentIds.length === filteredStudents.length) {
-      resetSelectedStudentIds()
+      setSelectedStudentIds([])
       return
     }
     setSelectedStudentIds(filteredStudents.map((s) => s.id))
@@ -131,7 +141,7 @@ function ManagementContent() {
       const result = await studentService.bulkDeleteStudents(selectedStudentIds)
       const deletedIds = new Set(selectedStudentIds)
       setStudents((prev) => prev.filter((s) => !deletedIds.has(s.id)))
-      resetSelectedStudentIds()
+      exitStudentSelectionMode()
       addToast({
         variant: 'success',
         message: `${result.deleted_count}명의 학생이 삭제됐어요.`,
@@ -166,16 +176,6 @@ function ManagementContent() {
         </div>
         {tab === 'students' && (
           <div className={tabActionsStyle}>
-            {selectedStudentIds.length > 0 && (
-              <Button
-                variant="secondary"
-                size="sm"
-                leftIcon={<TrashIcon width={20} height={20} />}
-                onClick={() => setBulkDeletePending(true)}
-              >
-                선택 삭제 ({selectedStudentIds.length})
-              </Button>
-            )}
             <Button
               variant="secondary"
               size="sm"
@@ -295,6 +295,15 @@ function ManagementContent() {
             onChange={setStudentSearchQuery}
             totalCount={students.length}
             filteredCount={filteredStudents.length}
+            selectionMode={isStudentSelectionMode}
+            selectedCount={selectedStudentIds.length}
+            onStartSelection={() => {
+              setIsStudentSelectionMode(true)
+              setSelectedStudentIds([])
+            }}
+            onCancelSelection={exitStudentSelectionMode}
+            onSelectAll={handleToggleSelectAllStudents}
+            onConfirmDelete={() => setBulkDeletePending(true)}
           />
           {filteredStudents.length === 0 ? (
             <div className={emptyStateStyle} role="status">
@@ -306,10 +315,9 @@ function ManagementContent() {
           ) : (
             <StudentTable
               students={filteredStudents}
-              selectable
+              selectionMode={isStudentSelectionMode}
               selectedIds={selectedStudentIds}
               onToggleSelect={toggleStudentSelect}
-              onToggleSelectAll={handleToggleSelectAllStudents}
               middleColumns={[
                 {
                   header: '소속 반',
@@ -318,7 +326,11 @@ function ManagementContent() {
                 },
               ]}
               onDelete={(id) => setDeleteStudentTarget(id)}
-              onRowClick={(id) => router.push(`/students/${id}`)}
+              onRowClick={
+                isStudentSelectionMode
+                  ? undefined
+                  : (id) => router.push(`/students/${id}`)
+              }
             />
           )}
 

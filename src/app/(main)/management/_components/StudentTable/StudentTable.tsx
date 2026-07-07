@@ -21,8 +21,7 @@ import {
   percentTextStyle,
   remainingTextStyle,
   deleteButtonStyle,
-  checkboxCellStyle,
-  checkboxStyle,
+  trSelectedStyle,
 } from './StudentTable.css'
 
 interface MiddleColumn {
@@ -36,10 +35,9 @@ interface StudentTableProps {
   middleColumns: MiddleColumn[]
   onDelete: (id: number) => void
   onRowClick?: (id: number) => void
-  selectable?: boolean
+  selectionMode?: boolean
   selectedIds?: number[]
   onToggleSelect?: (id: number) => void
-  onToggleSelectAll?: () => void
 }
 
 const FIXED_COLUMN_COUNT = 5
@@ -84,17 +82,14 @@ export default function StudentTable({
   middleColumns,
   onDelete,
   onRowClick,
-  selectable = false,
+  selectionMode = false,
   selectedIds = [],
   onToggleSelect,
-  onToggleSelectAll,
 }: StudentTableProps) {
   const hasMiddle = middleColumns.length > 0
-  const totalColumns = FIXED_COLUMN_COUNT + middleColumns.length + (selectable ? 1 : 0)
+  const totalColumns = FIXED_COLUMN_COUNT + middleColumns.length
   const cellPaddingRight = getCellPaddingRight(totalColumns)
   const columnWidths = getColumnWidths(hasMiddle)
-  const allSelected = selectable && students.length > 0 && selectedIds.length === students.length
-  const someSelected = selectable && selectedIds.length > 0 && !allSelected
 
   return (
     <div className={tableWrapStyle}>
@@ -103,27 +98,12 @@ export default function StudentTable({
         style={{ '--cell-padding-right': `${cellPaddingRight}px` } as React.CSSProperties}
       >
         <colgroup>
-          {selectable && <col style={{ width: '44px' }} />}
           {columnWidths.map((col) => (
             <col key={col.key} style={{ width: col.width }} />
           ))}
         </colgroup>
         <thead>
           <tr>
-            {selectable && (
-              <th className={thStyle}>
-                <input
-                  type="checkbox"
-                  className={checkboxStyle}
-                  checked={allSelected}
-                  ref={(el) => {
-                    if (el) el.indeterminate = someSelected
-                  }}
-                  aria-label="전체 선택"
-                  onChange={() => onToggleSelectAll?.()}
-                />
-              </th>
-            )}
             <th className={thStyle}>학생</th>
             <th className={thStyle}>학생 전화</th>
             <th className={thStyle}>학부모 전화</th>
@@ -141,25 +121,22 @@ export default function StudentTable({
             const completionPct = formatCompletionRatePercent(student.completion_rate)
             const color = getProgressColor(student.completion_rate, student.total_incomplete_items)
             const school = student.school_name?.trim() || '-'
+            const isSelected = selectionMode && selectedIds.includes(student.id)
+            const handleRowClick = () => {
+              if (selectionMode) {
+                onToggleSelect?.(student.id)
+                return
+              }
+              onRowClick?.(student.id)
+            }
+
             return (
               <tr
                 key={student.id}
-                className={trStyle}
-                onClick={() => onRowClick?.(student.id)}
-                style={{ cursor: onRowClick ? 'pointer' : 'default' }}
+                className={`${trStyle}${isSelected ? ` ${trSelectedStyle}` : ''}`}
+                onClick={handleRowClick}
+                style={{ cursor: selectionMode || onRowClick ? 'pointer' : 'default' }}
               >
-                {selectable && (
-                  <td className={checkboxCellStyle}>
-                    <input
-                      type="checkbox"
-                      className={checkboxStyle}
-                      checked={selectedIds.includes(student.id)}
-                      aria-label={`${student.name} 선택`}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={() => onToggleSelect?.(student.id)}
-                    />
-                  </td>
-                )}
                 <td className={tdStyle} title={student.name}>
                   {student.name}
                 </td>
@@ -198,17 +175,19 @@ export default function StudentTable({
                             ? null
                             : `${student.total_incomplete_items}개 남음`}
                     </span>
-                    <button
-                      type="button"
-                      className={deleteButtonStyle}
-                      aria-label={`${student.name} 학생 삭제`}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onDelete(student.id)
-                      }}
-                    >
-                      <TrashIcon width={20} height={20} />
-                    </button>
+                    {!selectionMode && (
+                      <button
+                        type="button"
+                        className={deleteButtonStyle}
+                        aria-label={`${student.name} 학생 삭제`}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onDelete(student.id)
+                        }}
+                      >
+                        <TrashIcon width={20} height={20} />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

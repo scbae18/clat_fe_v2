@@ -81,6 +81,64 @@ export const searchClearButtonStyle = style({
   },
 })
 
+export const countClusterStyle = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  flexShrink: 0,
+  flexWrap: 'wrap',
+  justifyContent: 'flex-end',
+})
+
+export const countActionButtonStyle = style({
+  border: 'none',
+  background: 'none',
+  padding: 0,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.titleSm.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.gray500,
+  cursor: 'pointer',
+  whiteSpace: 'nowrap',
+  selectors: {
+    '&:hover': {
+      color: colors.gray700,
+    },
+  },
+})
+
+export const countActionDangerStyle = style({
+  border: 'none',
+  background: 'none',
+  padding: 0,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.titleSm.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.error500,
+  cursor: 'pointer',
+  whiteSpace: 'nowrap',
+  selectors: {
+    '&:hover:not(:disabled)': {
+      color: colors.error600,
+    },
+    '&:disabled': {
+      color: colors.gray300,
+      cursor: 'not-allowed',
+    },
+  },
+})
+
+export const selectionHintStyle = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.primary500,
+  whiteSpace: 'nowrap',
+})
+
 export const emptyStateStyle = style({
   display: 'flex',
   flexDirection: 'column',

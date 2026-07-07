@@ -9,6 +9,10 @@ import {
   searchLeadingIconStyle,
   searchInputStyle,
   searchClearButtonStyle,
+  countClusterStyle,
+  countActionButtonStyle,
+  countActionDangerStyle,
+  selectionHintStyle,
 } from './StudentNameSearchBar.css'
 
 interface StudentNameSearchBarProps {
@@ -16,6 +20,12 @@ interface StudentNameSearchBarProps {
   onChange: (value: string) => void
   totalCount: number
   filteredCount: number
+  selectionMode?: boolean
+  selectedCount?: number
+  onStartSelection?: () => void
+  onCancelSelection?: () => void
+  onSelectAll?: () => void
+  onConfirmDelete?: () => void
 }
 
 export default function StudentNameSearchBar({
@@ -23,6 +33,12 @@ export default function StudentNameSearchBar({
   onChange,
   totalCount,
   filteredCount,
+  selectionMode = false,
+  selectedCount = 0,
+  onStartSelection,
+  onCancelSelection,
+  onSelectAll,
+  onConfirmDelete,
 }: StudentNameSearchBarProps) {
   const trimmed = value.trim()
   const countLabel =
@@ -53,7 +69,46 @@ export default function StudentNameSearchBar({
           </button>
         )}
       </label>
-      <Chip variant={trimmed.length > 0 ? 'active' : 'default'} label={countLabel} />
+      <div className={countClusterStyle}>
+        <Chip variant={trimmed.length > 0 ? 'active' : 'default'} label={countLabel} />
+        {!selectionMode ? (
+          onStartSelection && totalCount > 0 ? (
+            <button
+              type="button"
+              className={countActionButtonStyle}
+              onClick={onStartSelection}
+            >
+              선택 삭제
+            </button>
+          ) : null
+        ) : (
+          <>
+            <span className={selectionHintStyle}>
+              {selectedCount > 0 ? `${selectedCount}명 선택` : '삭제할 학생을 선택하세요'}
+            </span>
+            {onSelectAll && filteredCount > 0 ? (
+              <button type="button" className={countActionButtonStyle} onClick={onSelectAll}>
+                전체 선택
+              </button>
+            ) : null}
+            {onCancelSelection ? (
+              <button type="button" className={countActionButtonStyle} onClick={onCancelSelection}>
+                취소
+              </button>
+            ) : null}
+            {onConfirmDelete ? (
+              <button
+                type="button"
+                className={countActionDangerStyle}
+                onClick={onConfirmDelete}
+                disabled={selectedCount === 0}
+              >
+                삭제
+              </button>
+            ) : null}
+          </>
+        )}
+      </div>
     </div>
   )
 }
