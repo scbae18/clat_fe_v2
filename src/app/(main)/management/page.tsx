@@ -16,11 +16,15 @@ import {
   tabStyle,
   tabActiveStyle,
   tabContainerStyle,
+  tabGroupStyle,
   tabActionsStyle,
   gridStyle,
 } from './management.css'
 import ClassFormModal from './_components/ClassFormModal/ClassFormModal'
-import StudentTable from './_components/StudentTable/StudentTable'
+import StudentTable, {
+  renderStudentClasses,
+  studentClassesTitle,
+} from './_components/StudentTable/StudentTable'
 import StudentNameSearchBar, {
   emptyStateIconStyle,
   emptyStateStyle,
@@ -33,6 +37,8 @@ import { studentService } from '@/services/student'
 import type { Student } from '@/types/student'
 import { useToastStore } from '@/stores/toastStore'
 import { sortStudentsByNameKo } from '@/lib/sortStudents'
+import useToggleArray from '@/hooks/useToggleArray'
+import TrashIcon from '@/assets/icons/icon-trash.svg'
 
 const FILTER_OPTIONS = [
   { label: '전체', value: 'all' },
@@ -46,7 +52,7 @@ function ManagementContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const tab = searchParams.get('tab') ?? 'class'
-  const [filter, setFilter] = useState('all')
+  const [filter, setFilter] = useState('active')
 
   const [students, setStudents] = useState<Student[]>([])
   const [isLoadingStudents, setIsLoadingStudents] = useState(false)
@@ -82,6 +88,13 @@ function ManagementContent() {
   const addStudent = useDisclosure()
   const bulkUpload = useDisclosure()
   const [deleteStudentTarget, setDeleteStudentTarget] = useState<number | null>(null)
+  const [bulkDeletePending, setBulkDeletePending] = useState(false)
+  const {
+    items: selectedStudentIds,
+    toggle: toggleStudentSelect,
+    set: setSelectedStudentIds,
+    reset: resetSelectedStudentIds,
+  } = useToggleArray<number>()
 
   const filteredStudents = useMemo(() => {
     const query = studentSearchQuery.trim().toLowerCase()
@@ -94,6 +107,7 @@ function ManagementContent() {
     try {
       await studentService.deleteStudent(deleteStudentTarget)
       setStudents((prev) => prev.filter((s) => s.id !== deleteStudentTarget))
+      setSelectedStudentIds((prev) => prev.filter((id) => id !== deleteStudentTarget))
       addToast({ variant: 'success', message: '학생이 삭제됐어요.' })
     } catch (err) {
       console.error('학생 삭제 실패', err)
@@ -103,26 +117,65 @@ function ManagementContent() {
     }
   }
 
+  const handleToggleSelectAllStudents = () => {
+    if (selectedStudentIds.length === filteredStudents.length) {
+      resetSelectedStudentIds()
+      return
+    }
+    setSelectedStudentIds(filteredStudents.map((s) => s.id))
+  }
+
+  const handleBulkDeleteStudents = async () => {
+    if (selectedStudentIds.length === 0) return
+    try {
+      const result = await studentService.bulkDeleteStudents(selectedStudentIds)
+      const deletedIds = new Set(selectedStudentIds)
+      setStudents((prev) => prev.filter((s) => !deletedIds.has(s.id)))
+      resetSelectedStudentIds()
+      addToast({
+        variant: 'success',
+        message: `${result.deleted_count}명의 학생이 삭제됐어요.`,
+      })
+    } catch (err) {
+      console.error('학생 선택 삭제 실패', err)
+      addToast({ variant: 'error', message: '학생 삭제에 실패했어요.' })
+    } finally {
+      setBulkDeletePending(false)
+    }
+  }
+
   return (
     <>
       <Text variant="display" as="h1">
         학생·반 관리
       </Text>
       <div className={tabContainerStyle}>
-        <button
-          className={tab === 'class' ? tabActiveStyle : tabStyle}
-          onClick={() => router.push('/management?tab=class')}
-        >
-          반별 보기
-        </button>
-        <button
-          className={tab === 'students' ? tabActiveStyle : tabStyle}
-          onClick={() => router.push('/management?tab=students')}
-        >
-          전체 학생
-        </button>
+        <div className={tabGroupStyle}>
+          <button
+            className={tab === 'class' ? tabActiveStyle : tabStyle}
+            onClick={() => router.push('/management?tab=class')}
+          >
+            반별 보기
+          </button>
+          <button
+            className={tab === 'students' ? tabActiveStyle : tabStyle}
+            onClick={() => router.push('/management?tab=students')}
+          >
+            전체 학생
+          </button>
+        </div>
         {tab === 'students' && (
           <div className={tabActionsStyle}>
+            {selectedStudentIds.length > 0 && (
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<TrashIcon width={20} height={20} />}
+                onClick={() => setBulkDeletePending(true)}
+              >
+                선택 삭제 ({selectedStudentIds.length})
+              </Button>
+            )}
             <Button
               variant="secondary"
               size="sm"
@@ -253,10 +306,15 @@ function ManagementContent() {
           ) : (
             <StudentTable
               students={filteredStudents}
+              selectable
+              selectedIds={selectedStudentIds}
+              onToggleSelect={toggleStudentSelect}
+              onToggleSelectAll={handleToggleSelectAllStudents}
               middleColumns={[
                 {
                   header: '소속 반',
-                  render: (student) => student.classes.map((c) => c.name).join(', ') || '-',
+                  render: renderStudentClasses,
+                  getTitle: studentClassesTitle,
                 },
               ]}
               onDelete={(id) => setDeleteStudentTarget(id)}
@@ -269,6 +327,16 @@ function ManagementContent() {
             onClose={() => setDeleteStudentTarget(null)}
             onConfirm={handleDeleteStudent}
             title={`'${students.find((s) => s.id === deleteStudentTarget)?.name}' 학생을 삭제할까요?`}
+            descriptions={['삭제 후에는 복구할 수 없어요.']}
+            confirmLabel="삭제"
+            confirmVariant="danger"
+          />
+
+          <ConfirmModal
+            isOpen={bulkDeletePending}
+            onClose={() => setBulkDeletePending(false)}
+            onConfirm={handleBulkDeleteStudents}
+            title={`선택한 ${selectedStudentIds.length}명의 학생을 삭제할까요?`}
             descriptions={['삭제 후에는 복구할 수 없어요.']}
             confirmLabel="삭제"
             confirmVariant="danger"

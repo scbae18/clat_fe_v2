@@ -26,12 +26,12 @@ import {
   studentRightStyle,
   linkBtnStyle,
   timeTextStyle,
-  badgeStyle,
-  badgePresentStyle,
-  badgeLateStyle,
-  badgeAbsentStyle,
   endBtnStyle,
 } from './AttendanceDetailModal.css'
+import {
+  cellButtonGroupStyle,
+  cellButtonRecipe,
+} from '@/app/(main)/lesson/[id]/_components/LessonTableSection/LessonTable.css'
 import {
   attendanceService,
   type AttendanceCheckStatus,
@@ -54,17 +54,43 @@ const LABEL: Record<AttendanceCheckStatus, string> = {
 
 type FilterTab = 'all' | 'present' | 'absent'
 
-function statusValueFromLabel(v: string): AttendanceCheckStatus | null {
-  if (v === LABEL.PRESENT) return 'PRESENT'
-  if (v === LABEL.LATE) return 'LATE'
-  if (v === LABEL.ABSENT) return 'ABSENT'
-  return null
-}
-
-function badgeClass(status: AttendanceCheckStatus) {
-  if (status === 'PRESENT') return badgePresentStyle
-  if (status === 'LATE') return badgeLateStyle
-  return badgeAbsentStyle
+function AttendanceStatusButtons({
+  status,
+  disabled,
+  onChange,
+}: {
+  status: AttendanceCheckStatus
+  disabled?: boolean
+  onChange: (next: AttendanceCheckStatus) => void
+}) {
+  return (
+    <div className={cellButtonGroupStyle}>
+      <button
+        type="button"
+        disabled={disabled}
+        className={cellButtonRecipe({ variant: status === 'PRESENT' ? 'attend' : 'default' })}
+        onClick={() => onChange('PRESENT')}
+      >
+        {LABEL.PRESENT}
+      </button>
+      <button
+        type="button"
+        disabled={disabled}
+        className={cellButtonRecipe({ variant: status === 'LATE' ? 'late' : 'default' })}
+        onClick={() => onChange('LATE')}
+      >
+        {LABEL.LATE}
+      </button>
+      <button
+        type="button"
+        disabled={disabled}
+        className={cellButtonRecipe({ variant: status === 'ABSENT' ? 'absent' : 'default' })}
+        onClick={() => onChange('ABSENT')}
+      >
+        {LABEL.ABSENT}
+      </button>
+    </div>
+  )
 }
 
 function formatRemaining(totalSeconds: number) {
@@ -185,9 +211,7 @@ export default function AttendanceDetailModal({
   const urlForStudent = (row: { student_id: number; check_url?: string | null }) =>
     row.check_url || linkByStudentId.get(row.student_id) || studentCheckFullUrl(sessionId, row.student_id)
 
-  const onStatusChange = async (studentId: number, value: string) => {
-    const st = statusValueFromLabel(value)
-    if (!st) return
+  const onStatusChange = async (studentId: number, st: AttendanceCheckStatus) => {
     setPatching(studentId)
     try {
       await attendanceService.patchStudentStatus(sessionId, studentId, st)
@@ -273,7 +297,9 @@ export default function AttendanceDetailModal({
             <div className={gridStyle}>
               {filteredStudents.map((row) => (
                 <div key={row.student_id} className={studentCellStyle}>
-                  <span className={studentNameStyle}>{row.student_name}</span>
+                  <span className={studentNameStyle} title={row.student_name}>
+                    {row.student_name}
+                  </span>
                   <div className={studentRightStyle}>
                     <span className={timeTextStyle}>
                       {row.checked_at
@@ -287,16 +313,11 @@ export default function AttendanceDetailModal({
                     >
                       {'\uB9C1\uD06C'}
                     </button>
-                    <select
-                      className={`${badgeStyle} ${badgeClass(row.status)}`}
-                      value={LABEL[row.status]}
+                    <AttendanceStatusButtons
+                      status={row.status}
                       disabled={patching === row.student_id}
-                      onChange={(e) => onStatusChange(row.student_id, e.target.value)}
-                    >
-                      <option value={LABEL.PRESENT}>{LABEL.PRESENT}</option>
-                      <option value={LABEL.LATE}>{LABEL.LATE}</option>
-                      <option value={LABEL.ABSENT}>{LABEL.ABSENT}</option>
-                    </select>
+                      onChange={(next) => onStatusChange(row.student_id, next)}
+                    />
                   </div>
                 </div>
               ))}

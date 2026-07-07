@@ -5,6 +5,10 @@ import Text from '@/components/common/Text'
 import Button from '@/components/common/Button'
 import CloseIcon from '@/assets/icons/icon-close.svg'
 import ConfirmModal from '@/components/common/ConfirmModal'
+import LessonMessageOrderModal from '../LessonMessageOrderModal/LessonMessageOrderModal'
+import useDisclosure from '@/hooks/useDisclosure'
+import type { LessonItemDetail } from '@/services/lesson'
+import type { LessonStudent } from '@/types/lessonStudent'
 import { isAxiosError } from 'axios'
 import { lessonService, type LessonPreviewRow } from '@/services/lesson'
 import { markLessonListNeedsRefresh } from '@/lib/lessonListRefresh'
@@ -22,10 +26,30 @@ interface AlimtalkSendModalProps {
   isOpen: boolean
   onClose: () => void
   lessonId: number
+  lesson: {
+    class_name: string
+    academy_name?: string
+    lesson_date: string
+    items: LessonItemDetail[]
+  }
+  commonValues: Record<string, string>
+  students: LessonStudent[]
+  onSaveMessageOrder: (
+    items: Array<{ source: 'template' | 'adhoc'; id: number }>,
+  ) => Promise<void>
 }
 
-export default function AlimtalkSendModal({ isOpen, onClose, lessonId }: AlimtalkSendModalProps) {
+export default function AlimtalkSendModal({
+  isOpen,
+  onClose,
+  lessonId,
+  lesson,
+  commonValues,
+  students,
+  onSaveMessageOrder,
+}: AlimtalkSendModalProps) {
   const addToast = useToastStore((s) => s.addToast)
+  const messageOrderModal = useDisclosure()
   const [rows, setRows] = useState<LessonPreviewRow[]>([])
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [focusId, setFocusId] = useState<number | null>(null)
@@ -158,15 +182,25 @@ export default function AlimtalkSendModal({ isOpen, onClose, lessonId }: Alimtal
           <Text variant="headingMd" as="h2">
             {'\uC54C\uB9BC\uD1A1 \uBCF4\uB0B4\uAE30'}
           </Text>
-          <button
-            type="button"
-            onClick={handleClose}
-            className={styles.closeButton}
-            aria-label={'\uB2EB\uAE30'}
-            disabled={sending}
-          >
-            <CloseIcon width={24} height={24} />
-          </button>
+          <div className={styles.headerActions}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={messageOrderModal.open}
+              disabled={sending}
+            >
+              {'\uBB38\uC790 \uC21C\uC11C'}
+            </Button>
+            <button
+              type="button"
+              onClick={handleClose}
+              className={styles.closeButton}
+              aria-label={'\uB2EB\uAE30'}
+              disabled={sending}
+            >
+              <CloseIcon width={24} height={24} />
+            </button>
+          </div>
         </div>
 
         <div className={styles.body}>
@@ -234,8 +268,17 @@ export default function AlimtalkSendModal({ isOpen, onClose, lessonId }: Alimtal
                         onClick={(e) => e.stopPropagation()}
                       />
                       <div className={styles.studentMeta}>
-                        <Text variant="titleSm">{r.student_name}</Text>
-                        <div className={styles.phoneMuted}>
+                        <div className={styles.studentName} title={r.student_name}>
+                          {r.student_name}
+                        </div>
+                        <div
+                          className={styles.phoneMuted}
+                          title={`학생 ${maskPhone(r.phone)}${
+                            r.parent_phone?.trim()
+                              ? ` · 학부모 ${maskPhone(r.parent_phone)}`
+                              : ' · 학부모 번호 없음'
+                          }`}
+                        >
                           {'\uD559\uC0DD'} {maskPhone(r.phone)}
                           {r.parent_phone?.trim()
                             ? ` \u00B7 \uD559\uBD80\uBAA8 ${maskPhone(r.parent_phone)}`
@@ -318,6 +361,18 @@ export default function AlimtalkSendModal({ isOpen, onClose, lessonId }: Alimtal
         ]}
         confirmLabel={'\uBC1C\uC1A1'}
         cancelLabel={'\uCDE8\uC18C'}
+      />
+
+      <LessonMessageOrderModal
+        isOpen={messageOrderModal.isOpen}
+        onClose={messageOrderModal.close}
+        lesson={lesson}
+        commonValues={commonValues}
+        students={students}
+        onSave={async (items) => {
+          await onSaveMessageOrder(items)
+          await loadPreview()
+        }}
       />
     </div>
   )

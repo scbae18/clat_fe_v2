@@ -1,6 +1,7 @@
 import { style, keyframes } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { phoneTextRules, truncateRules } from '@/styles/tokens/textOverflow'
 
 const slideIn = keyframes({
   from: { transform: 'translateX(100%)' },
@@ -53,6 +54,14 @@ export const header = style({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
+  flexShrink: 0,
+  gap: '16px',
+})
+
+export const headerActions = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
   flexShrink: 0,
 })
 
@@ -140,12 +149,26 @@ export const studentMeta = style({
   minWidth: 0,
 })
 
-export const phoneMuted = style({
-  fontSize: fontStyles.labelSm.fontSize,
-  fontWeight: 500,
-  color: colors.gray500,
-  marginTop: '4px',
-})
+export const studentName = style([
+  {
+    fontSize: fontStyles.titleSm.fontSize,
+    fontWeight: fontStyles.titleSm.fontWeight,
+    color: colors.gray900,
+    lineHeight: '140%',
+    letterSpacing: '-0.03em',
+  },
+  truncateRules,
+])
+
+export const phoneMuted = style([
+  {
+    fontSize: fontStyles.labelSm.fontSize,
+    fontWeight: 500,
+    color: colors.gray500,
+    marginTop: '4px',
+  },
+  phoneTextRules,
+])
 
 export const previewSectionLabel = style({
   fontSize: fontStyles.titleSm.fontSize,

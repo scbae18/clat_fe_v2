@@ -43,6 +43,8 @@ export const fieldTitle = style({
   lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray700,
+  whiteSpace: 'nowrap',
+  flexShrink: 0,
 })
 
 export const fieldRow = style({
@@ -53,7 +55,7 @@ export const chipRow = style({
   display: 'flex',
   alignItems: 'center',
   flexWrap: 'wrap',
-  gap: '4px',
+  gap: '8px',
 })
 
 export const chip = style({
@@ -65,6 +67,8 @@ export const chip = style({
   lineHeight: '140%',
   letterSpacing: '-0.03em',
   cursor: 'pointer',
+  whiteSpace: 'nowrap',
+  flexShrink: 0,
 })
 
 export const chipActive = style({
@@ -96,7 +100,8 @@ export const customWrap = style({
 export const customLabelRow = style({
   display: 'flex',
   alignItems: 'center',
-  gap: '12px',
+  flexWrap: 'wrap',
+  gap: '8px 12px',
 })
 
 export const customLabel = style({
@@ -104,6 +109,8 @@ export const customLabel = style({
   fontWeight: 600,
   color: colors.gray700,
   letterSpacing: '-0.03em',
+  whiteSpace: 'nowrap',
+  flexShrink: 0,
 })
 
 export const customHint = style({
@@ -111,6 +118,8 @@ export const customHint = style({
   fontWeight: 500,
   color: colors.gray500,
   letterSpacing: '-0.03em',
+  flex: '1 1 auto',
+  minWidth: 0,
 })
 
 export const textarea = style({
@@ -148,6 +157,8 @@ export const analyzeButton = style({
   fontSize: '16px',
   fontWeight: 600,
   cursor: 'pointer',
+  whiteSpace: 'nowrap',
+  flexShrink: 0,
   selectors: {
     '&:disabled': {
       backgroundColor: colors.gray300,
@@ -173,7 +184,8 @@ export const sampleBox = style({
 export const includeTitleRow = style({
   display: 'flex',
   alignItems: 'center',
-  gap: '12px',
+  flexWrap: 'wrap',
+  gap: '8px 12px',
   marginBottom: '8px',
 })
 
@@ -182,6 +194,8 @@ export const includeHint = style({
   fontWeight: 500,
   color: colors.gray500,
   letterSpacing: '-0.03em',
+  flex: '1 1 auto',
+  minWidth: 0,
 })
 
 export const checkChip = style({
@@ -214,6 +228,7 @@ export const checkIconInactive = style({
 export const toggleRow = style({
   display: 'flex',
   alignItems: 'center',
+  flexWrap: 'wrap',
   gap: '12px',
 })
 
@@ -278,6 +293,8 @@ export const saveButton = style({
   fontSize: '16px',
   fontWeight: 600,
   cursor: 'pointer',
+  whiteSpace: 'nowrap',
+  flexShrink: 0,
   selectors: {
     '&:disabled': {
       backgroundColor: colors.gray300,

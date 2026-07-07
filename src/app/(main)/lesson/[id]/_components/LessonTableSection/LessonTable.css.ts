@@ -3,11 +3,18 @@ import { recipe } from '@vanilla-extract/recipes'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
 
+export const tableWrapStyle = style({
+  overflowX: 'auto',
+  border: `1px solid ${colors.gray100}`,
+  borderRadius: '8px',
+  backgroundColor: colors.white,
+})
+
 export const tableStyle = style({
   width: '100%',
   borderCollapse: 'collapse',
-  border: `1px solid ${colors.gray100}`,
-  overflow: 'hidden',
+  border: 'none',
+  minWidth: '720px',
 })
 
 const baseThStyles = {
@@ -407,7 +414,7 @@ export const itemControlButtonStyle = style({
   fontSize: '14px',
   lineHeight: 1,
   cursor: 'pointer',
-  opacity: 0,
+  opacity: 0.45,
   transition: 'opacity 0.15s ease, color 0.15s ease',
   selectors: {
     [`${colHeaderWrapStyle}:hover &`]: {

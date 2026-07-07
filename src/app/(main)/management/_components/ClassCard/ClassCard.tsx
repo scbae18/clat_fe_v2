@@ -7,6 +7,7 @@ import {
   cardStyle,
   headerStyle,
   chipGroupStyle,
+  cardTitleStyle,
   dateStyle,
   infoGroupStyle,
   infoRowStyle,
@@ -46,7 +47,9 @@ export default function ClassCard({
           <span className={dateStyle}>{startDate} – {endDate}</span>
         )}
       </div>
-      <Text variant="headingLg" as="h3">{name}</Text>
+      <div className={cardTitleStyle} title={name}>
+        {name}
+      </div>
       <div className={infoGroupStyle}>
         <div className={infoRowStyle}>
           <CalendarIcon width={16} height={16} />

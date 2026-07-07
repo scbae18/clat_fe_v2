@@ -2,6 +2,7 @@ import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
 import { interactiveCardStyleRule } from '@/styles/tokens/card'
+import { truncateRules } from '@/styles/tokens/textOverflow'
 
 export const cardStyle = style({
   ...interactiveCardStyleRule,
@@ -18,9 +19,23 @@ export const headerStyle = style({
 
 export const chipGroupStyle = style({
   display: 'flex',
+  flexWrap: 'wrap',
   alignItems: 'center',
   gap: '4px',
+  minWidth: 0,
 })
+
+export const cardTitleStyle = style([
+  {
+    fontSize: fontStyles.headingLg.fontSize,
+    fontWeight: fontStyles.headingLg.fontWeight,
+    letterSpacing: '-0.03em',
+    lineHeight: '140%',
+    color: colors.gray900,
+    minWidth: 0,
+  },
+  truncateRules,
+])
 
 export const dateStyle = style({
   fontSize: fontStyles.bodyMd.fontSize,

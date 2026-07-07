@@ -12,20 +12,37 @@ const tabBase = {
   letterSpacing: '-0.03em',
   lineHeight: '140%',
   padding: 0,
+  whiteSpace: 'nowrap',
+  flexShrink: 0,
 } as const
 
 export const tabContainerStyle = style({
   display: 'flex',
   alignItems: 'center',
-  gap: '32px',
+  flexWrap: 'wrap',
+  gap: '12px 32px',
   marginTop: '60px',
   marginBottom: '24px',
+})
+
+export const tabGroupStyle = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '32px',
+  flexShrink: 0,
 })
 
 export const tabActionsStyle = style({
   marginLeft: 'auto',
   display: 'flex',
+  flexWrap: 'wrap',
   gap: '8px',
+  '@media': {
+    '(max-width: 900px)': {
+      marginLeft: 0,
+      width: '100%',
+    },
+  },
 })
 
 export const tabStyle = style([tabBase, {

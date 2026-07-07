@@ -190,18 +190,13 @@ export const copyTinyStyle = style({
 })
 
 export const gridStyle = style({
-  display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
-  gap: '16px 20px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
   overflowY: 'auto',
   flex: 1,
   minHeight: '120px',
   marginBottom: '24px',
-  '@media': {
-    '(max-width: 560px)': {
-      gridTemplateColumns: '1fr',
-    },
-  },
 })
 
 export const studentCellStyle = style({
@@ -216,8 +211,8 @@ export const studentNameStyle = style({
   fontSize: fontStyles.bodyLg.fontSize,
   fontWeight: 500,
   color: colors.gray900,
-  flexShrink: 0,
-  maxWidth: '46%',
+  flex: 1,
+  minWidth: 0,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',

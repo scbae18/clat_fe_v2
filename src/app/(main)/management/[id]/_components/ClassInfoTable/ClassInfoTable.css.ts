@@ -1,6 +1,7 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { truncateRules } from '@/styles/tokens/textOverflow'
 
 export const tableStyle = style({
   width: '100%',
@@ -24,20 +25,24 @@ export const thStyle = style({
   borderBottom: `1px solid ${colors.gray100}`,
 })
 
-export const tdStyle = style({
-  height: '40px',
-  padding: '0 16px',
-  backgroundColor: colors.white,
-  color: colors.gray700,
-  fontSize: fontStyles.bodyMd.fontSize,
-  fontWeight: fontStyles.bodyMd.fontWeight,
-  letterSpacing: '-0.03em',
-  lineHeight: '140%',
-  borderRight: `1px solid ${colors.gray100}`,
-  borderBottom: `1px solid ${colors.gray100}`,
-  selectors: {
-    '&:last-child': {
-      borderRight: 'none',
+export const tdStyle = style([
+  {
+    height: '40px',
+    padding: '0 16px',
+    backgroundColor: colors.white,
+    color: colors.gray700,
+    fontSize: fontStyles.bodyMd.fontSize,
+    fontWeight: fontStyles.bodyMd.fontWeight,
+    letterSpacing: '-0.03em',
+    lineHeight: '140%',
+    borderRight: `1px solid ${colors.gray100}`,
+    borderBottom: `1px solid ${colors.gray100}`,
+    maxWidth: 0,
+    selectors: {
+      '&:last-child': {
+        borderRight: 'none',
+      },
     },
   },
-})
+  truncateRules,
+])

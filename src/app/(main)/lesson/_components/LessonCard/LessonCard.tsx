@@ -5,6 +5,7 @@ import TrashIcon from '@/assets/icons/icon-trash.svg'
 import {
   cardStyle,
   chipGroupStyle,
+  cardTitleStyle,
   deleteButtonStyle,
   progressWrapperStyle,
   progressLabelStyle,
@@ -62,7 +63,9 @@ export default function LessonCard({
         {templateName && <Chip variant="active" label={templateName} />}
         {alimtalkSent && <Chip variant="done" label={alimtalkLabel} />}
       </div>
-      <Text variant="headingLg">{className}</Text>
+      <div className={cardTitleStyle} title={className}>
+        {className}
+      </div>
       <div className={progressWrapperStyle}>
         <div className={progressLabelStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

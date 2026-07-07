@@ -1,6 +1,7 @@
 import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 import { colors } from '@/styles/tokens/colors'
+import { zIndex } from '@/styles/tokens/zIndex'
 
 export const overlayStyle = style({
   position: 'fixed',
@@ -13,7 +14,7 @@ export const overlayStyle = style({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  zIndex: 1000,
+  zIndex: zIndex.modal,
 })
 
 export const modalRecipe = recipe({

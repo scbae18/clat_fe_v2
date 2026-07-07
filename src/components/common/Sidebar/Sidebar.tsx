@@ -5,12 +5,15 @@ import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { auth } from '@/services/auth'
 import { useUserStore } from '@/stores/userStore'
+import { useUiStore } from '@/stores/uiStore'
 import {
   sidebarStyle,
   sidebarTopStyle,
+  toggleButtonStyle,
   navStyle,
   navItemStyle,
   navItemActiveStyle,
+  navLabelStyle,
   logoutButtonStyle,
   userCardStyle,
   userCardActiveStyle,
@@ -28,6 +31,8 @@ import MessageIcon from '@/assets/icons/icon-message.svg'
 import StarIcon from '@/assets/icons/icon-star.svg'
 import LogoIcon from '@/assets/logo/logo-symbol.svg'
 import LogoutIcon from '@/assets/icons/icon-logout.svg'
+import ChevronLeftIcon from '@/assets/icons/icon-chevron-left.svg'
+import ChevronRightIcon from '@/assets/icons/icon-chevron-right.svg'
 
 const NAV_ITEMS = [
   { href: '/home', label: '\uD648', icon: HomeIcon },
@@ -47,17 +52,32 @@ function avatarInitial(name: string | undefined): string {
 export default function Sidebar() {
   const pathname = usePathname()
   const user = useUserStore((s) => s.user)
+  const collapsed = useUiStore((s) => s.sidebarCollapsed)
+  const toggleSidebar = useUiStore((s) => s.toggleSidebar)
 
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
 
   const meActive = pathname.startsWith('/me')
+  const mode = collapsed ? 'collapsed' : 'expanded'
 
   return (
-    <aside className={sidebarStyle}>
-      <div className={sidebarTopStyle}>
+    <aside className={sidebarStyle[mode]} aria-expanded={!collapsed}>
+      <div className={sidebarTopStyle[mode]}>
         <LogoIcon width={32} height={32} />
+        <button
+          type="button"
+          className={toggleButtonStyle}
+          onClick={toggleSidebar}
+          aria-label={collapsed ? '\uC0AC\uC774\uB4DC\uBC14 \uD3BC\uCE58\uAE30' : '\uC0AC\uC774\uB4DC\uBC14 \uC811\uAE30'}
+        >
+          {collapsed ? (
+            <ChevronRightIcon width={20} height={20} />
+          ) : (
+            <ChevronLeftIcon width={20} height={20} />
+          )}
+        </button>
       </div>
-      <nav className={navStyle}>
+      <nav className={navStyle[mode]}>
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const isActive =
             pathname.startsWith(href) ||
@@ -66,29 +86,37 @@ export default function Sidebar() {
             <Link
               key={href}
               href={href}
-              className={`${navItemStyle}${isActive ? ` ${navItemActiveStyle}` : ''}`}
+              title={collapsed ? label : undefined}
+              className={`${navItemStyle[mode]}${isActive ? ` ${navItemActiveStyle}` : ''}`}
             >
               <Icon width={20} height={20} />
-              {label}
+              <span className={navLabelStyle[mode]}>{label}</span>
             </Link>
           )
         })}
 
         <Link
           href="/me"
-          className={`${userCardStyle}${meActive ? ` ${userCardActiveStyle}` : ''}`}
+          title={collapsed ? '\uB0B4 \uC815\uBCF4' : undefined}
+          className={`${userCardStyle[mode]}${meActive ? ` ${userCardActiveStyle}` : ''}`}
           aria-label={'\uB0B4 \uC815\uBCF4'}
         >
           <span className={userAvatarStyle}>{avatarInitial(user?.name)}</span>
-          <span className={userTextWrapStyle}>
+          <span className={userTextWrapStyle[mode]}>
             <span className={userNameStyle}>{user?.name ?? '\uB0B4 \uC815\uBCF4'}</span>
             <span className={userEmailStyle}>{user?.email ?? '\u2014'}</span>
           </span>
         </Link>
 
-        <button className={logoutButtonStyle} onClick={() => setIsLogoutModalOpen(true)}>
+        <button
+          type="button"
+          className={logoutButtonStyle[mode]}
+          title={collapsed ? '\uB85C\uADF8\uC544\uC6C3' : undefined}
+          aria-label={'\uB85C\uADF8\uC544\uC6C3'}
+          onClick={() => setIsLogoutModalOpen(true)}
+        >
           <LogoutIcon width={20} height={20} />
-          {'\uB85C\uADF8\uC544\uC6C3'}
+          {!collapsed && '\uB85C\uADF8\uC544\uC6C3'}
         </button>
       </nav>
 

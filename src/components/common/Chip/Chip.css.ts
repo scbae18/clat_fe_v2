@@ -13,6 +13,10 @@ export const chipRecipe = recipe({
     fontWeight: fontStyles.labelSm.fontWeight,
     lineHeight: '140%',
     letterSpacing: '-0.03em',
+    maxWidth: '100%',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
   variants: {
     variant: {

@@ -17,6 +17,7 @@ import { lessonItemRef, matchesLessonItem } from '@/lib/lessonItemRef'
 import type { ItemSource } from '@/lib/lessonItemRef'
 import {
   tableStyle,
+  tableWrapStyle,
   tdStyle,
   thCompactStyle,
   tdCompactStyle,
@@ -454,7 +455,8 @@ export default function LessonTable({
           <span>검색 결과가 없어요.</span>
         </div>
       ) : (
-        <table ref={tableRef} className={tableStyle} onBlur={handleTableBlur}>
+        <div className={tableWrapStyle}>
+          <table ref={tableRef} className={tableStyle} onBlur={handleTableBlur}>
           <thead>
             <tr>
               <th className={thCompactStyle}>학생</th>
@@ -585,6 +587,7 @@ export default function LessonTable({
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       {onAddItem ? (

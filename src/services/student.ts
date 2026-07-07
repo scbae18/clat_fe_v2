@@ -66,6 +66,11 @@ export const studentService = {
     await axiosInstance.delete(`/students/${id}`)
   },
 
+  async bulkDeleteStudents(ids: number[]): Promise<{ deleted_count: number }> {
+    const { data } = await axiosInstance.post('/students/bulk-delete', { ids })
+    return data.data as { deleted_count: number }
+  },
+
   async completeItem(
     itemId: number,
     source: 'template' | 'adhoc' = 'template',

@@ -1,5 +1,6 @@
 import { keyframes, style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
+import { phoneTextRules, truncateRules } from '@/styles/tokens/textOverflow'
 
 const chartEnter = keyframes({
   '0%': { opacity: 0, transform: 'translateY(10px)' },
@@ -79,13 +80,18 @@ export const avatar = style({
   flexShrink: 0,
 })
 
-export const profileName = style({
-  fontSize: '24px',
-  fontWeight: 600,
-  lineHeight: 1.4,
-  letterSpacing: '-0.03em',
-  color: colors.gray900,
-})
+export const profileName = style([
+  {
+    fontSize: '24px',
+    fontWeight: 600,
+    lineHeight: 1.4,
+    letterSpacing: '-0.03em',
+    color: colors.gray900,
+    minWidth: 0,
+    flex: 1,
+  },
+  truncateRules,
+])
 
 export const profileEditButton = style({
   marginLeft: 'auto',
@@ -130,13 +136,19 @@ export const infoLabelCell = style({
   color: colors.gray500,
 })
 
-export const infoValueCell = style({
-  fontSize: '14px',
-  fontWeight: 500,
-  lineHeight: 1.4,
-  letterSpacing: '-0.03em',
-  color: colors.gray900,
-})
+export const infoValueCell = style([
+  {
+    fontSize: '14px',
+    fontWeight: 500,
+    lineHeight: 1.4,
+    letterSpacing: '-0.03em',
+    color: colors.gray900,
+    minWidth: 0,
+  },
+  truncateRules,
+])
+
+export const infoPhoneValueCell = style([infoValueCell, phoneTextRules])
 
 export const statsRow = style({
   display: 'flex',

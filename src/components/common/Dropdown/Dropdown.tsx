@@ -16,6 +16,7 @@ import {
   triggerFullWidthStyle,
   containerFullWidthStyle,
   menuNoBorderStyle,
+  triggerLabelStyle,
 } from './Dropdown.css'
 
 interface DropdownOption {
@@ -49,6 +50,7 @@ export default function Dropdown({
 
   const selectedOption = options.find((opt) => opt.value === value)
   const isSelected = !!selectedOption
+  const selectedLabel = selectedOption ? selectedOption.label : placeholder
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -76,8 +78,9 @@ export default function Dropdown({
           .join(' ')
           .trim()}
         onClick={() => setIsOpen((prev) => !prev)}
+        title={selectedLabel}
       >
-        {selectedOption ? selectedOption.label : placeholder}
+        <span className={triggerLabelStyle}>{selectedLabel}</span>
         <ChevronDownIcon
           width={16}
           height={16}

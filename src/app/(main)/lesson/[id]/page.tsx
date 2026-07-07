@@ -10,7 +10,6 @@ import SaveIcon from '@/assets/icons/icon-save.svg'
 import ChevronDownIcon from '@/assets/icons/icon-chevron-down.svg'
 import MessageIcon from '@/assets/icons/icon-message.svg'
 import LessonTable from './_components/LessonTableSection/LessonTableSection'
-import LessonMessageOrderModal from './_components/LessonMessageOrderModal/LessonMessageOrderModal'
 import CommonContent from './_components/CommonContent/CommonContent'
 import ProgressBar from './_components/ProgressBar/ProgressBar'
 import AlimtalkSendModal from './_components/AlimtalkSendModal/AlimtalkSendModal'
@@ -80,7 +79,6 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
   const templateConfirmModal = useDisclosure()
   const attendanceStartModal = useDisclosure()
   const removeItemConfirmModal = useDisclosure()
-  const messageOrderModal = useDisclosure()
   const [pendingTemplateId, setPendingTemplateId] = useState<number | null>(null)
   const [removeTarget, setRemoveTarget] = useState<LessonItemDetail | null>(null)
 
@@ -306,13 +304,6 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           <Button
             variant="secondary"
             size="sm"
-            onClick={messageOrderModal.open}
-          >
-            문자 순서
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
             leftIcon={<DownloadIcon width={20} height={20} />}
             onClick={handleExcelDownload}
           >
@@ -410,6 +401,10 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
         isOpen={alimtalkSendModal.isOpen}
         onClose={alimtalkSendModal.close}
         lessonId={lessonId}
+        lesson={lesson}
+        commonValues={commonValues}
+        students={students}
+        onSaveMessageOrder={updateLessonItemOrder}
       />
 
       <AttendanceStartModal
@@ -419,15 +414,6 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
         className={lesson.class_name}
         studentCount={students.length}
         students={students.map((s) => ({ id: s.id, name: s.name }))}
-      />
-
-      <LessonMessageOrderModal
-        isOpen={messageOrderModal.isOpen}
-        onClose={messageOrderModal.close}
-        lesson={lesson}
-        commonValues={commonValues}
-        students={students}
-        onSave={updateLessonItemOrder}
       />
 
       <ConfirmModal

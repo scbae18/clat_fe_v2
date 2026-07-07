@@ -1,6 +1,7 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { truncateRules } from '@/styles/tokens/textOverflow'
 
 const itemTypography = {
   fontSize: fontStyles.titleSm.fontSize,
@@ -30,6 +31,8 @@ export const triggerStyle = style({
   cursor: 'pointer',
   color: colors.gray700,
   transition: 'border-color 0.2s, color 0.2s',
+  minWidth: 0,
+  maxWidth: '100%',
   ...itemTypography,
   selectors: {
     '&:hover': {
@@ -37,6 +40,15 @@ export const triggerStyle = style({
     },
   },
 })
+
+export const triggerLabelStyle = style([
+  {
+    flex: 1,
+    minWidth: 0,
+    textAlign: 'left',
+  },
+  truncateRules,
+])
 
 export const triggerNoBorderStyle = style({
   border: 'none',

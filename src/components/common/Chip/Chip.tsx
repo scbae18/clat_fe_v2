@@ -8,7 +8,10 @@ interface ChipProps {
 
 export default function Chip({ variant = 'default', label, className }: ChipProps) {
   return (
-    <span className={`${chipRecipe({ variant })}${className ? ` ${className}` : ''}`}>
+    <span
+      className={`${chipRecipe({ variant })}${className ? ` ${className}` : ''}`}
+      title={label}
+    >
       {label}
     </span>
   )

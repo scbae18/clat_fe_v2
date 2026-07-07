@@ -16,6 +16,7 @@ import {
   completionRateFromCounts,
   formatCompletionRatePercent,
 } from '@/lib/completionRate'
+import { formatListLabel } from '@/lib/formatListLabel'
 import { formatLessonDateKo } from '@/lib/formatLessonDate'
 import CloseIcon from '@/assets/icons/icon-close.svg'
 import CheckIcon from '@/assets/icons/icon-check.svg'
@@ -27,6 +28,7 @@ import {
   sectionTitleStyle,
   infoLabelStyle,
   infoValueStyle,
+  infoPhoneValueStyle,
   editButtonStyle,
   statsGridStyle,
   statCardStyle,
@@ -143,21 +145,30 @@ export default function StudentDetailModal({
               >
                 <div style={{ display: 'flex', gap: '16px' }}>
                   <span className={infoLabelStyle}>학생 전화번호</span>
-                  <span className={infoValueStyle}>{detail.phone || '-'}</span>
+                  <span className={infoPhoneValueStyle} title={detail.phone || '-'}>
+                    {detail.phone || '-'}
+                  </span>
                 </div>
                 <div style={{ display: 'flex', gap: '16px' }}>
                   <span className={infoLabelStyle}>학부모 전화번호</span>
-                  <span className={infoValueStyle}>{detail.parent_phone || '-'}</span>
+                  <span className={infoPhoneValueStyle} title={detail.parent_phone || '-'}>
+                    {detail.parent_phone || '-'}
+                  </span>
                 </div>
                 <div style={{ display: 'flex', gap: '16px' }}>
                   <span className={infoLabelStyle}>소속 반</span>
-                  <span className={infoValueStyle}>
-                    {detail.classes.map((c) => c.name).join(', ') || '-'}
+                  <span
+                    className={infoValueStyle}
+                    title={formatListLabel(detail.classes.map((c) => c.name)).full}
+                  >
+                    {formatListLabel(detail.classes.map((c) => c.name)).display}
                   </span>
                 </div>
                 <div style={{ display: 'flex', gap: '16px' }}>
                   <span className={infoLabelStyle}>학교명</span>
-                  <span className={infoValueStyle}>{detail.school_name || '-'}</span>
+                  <span className={infoValueStyle} title={detail.school_name || '-'}>
+                    {detail.school_name || '-'}
+                  </span>
                 </div>
               </div>
             </div>

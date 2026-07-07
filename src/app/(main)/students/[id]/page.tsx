@@ -24,6 +24,7 @@ import { colors } from '@/styles/tokens/colors'
 import { parseLessonScoreValue, cohortScoreMetric } from '@/lib/lessonScore'
 import { formatLessonDateKo } from '@/lib/formatLessonDate'
 import { formatCompletionRatePercent } from '@/lib/completionRate'
+import { formatListLabel } from '@/lib/formatListLabel'
 import ChoiceConfirmModal from '@/components/common/ChoiceConfirmModal/ChoiceConfirmModal'
 import AddStudentFormModal from '@/app/(main)/management/_components/AddStudentFormModal/AddStudentFormModal'
 import ScoreLineChart from './ScoreLineChart'
@@ -59,7 +60,6 @@ const MSG = {
   academy: '\ud559\uc6d0\uba85',
   className: '\uc18c\uc18d \ubc18',
   school: '\ud559\uad50\uba85',
-  grade: '\ud559\ub144',
   phone: '\ud559\uc0dd \uc804\ud654\ubc88\ud638',
   parentPhone: '\ud559\ubd80\ubaa8 \uc804\ud654\ubc88\ud638',
   monthComplete: '\uc774\ubc88 \ub2ec \uc644\ub8cc\uc728',
@@ -191,20 +191,6 @@ function IconSchool() {
   )
 }
 
-function IconGraduation() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-      <path
-        d="M3 8l7-3 7 3-7 3-7-3z"
-        stroke={colors.gray500}
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      <path d="M6 9.2V13l4 2 4-2V9.2" stroke={colors.gray500} strokeWidth="1.4" />
-    </svg>
-  )
-}
-
 function IconPhone() {
   return <span aria-hidden>{'\u260E\uFE0E'}</span>
 }
@@ -316,7 +302,7 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
   }, [detail, loadAi, mainTab])
 
   const academyName = detail?.classes[0]?.academy_name?.trim() || '-'
-  const classNames = detail?.classes.map((c) => c.name).join(', ') || '-'
+  const classLabel = formatListLabel(detail?.classes.map((c) => c.name) ?? [])
 
   const monthlyCompletionPct = formatCompletionRatePercent(detail?.stats.monthly_completion_rate)
   const monthlyAttendancePct = formatCompletionRatePercent(detail?.stats.monthly_attendance_rate)
@@ -403,7 +389,9 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
           <section className={styles.profileCard}>
             <div className={styles.profileTop}>
               <div className={styles.avatar} />
-              <div className={styles.profileName}>{detail.name}</div>
+              <div className={styles.profileName} title={detail.name}>
+                {detail.name}
+              </div>
               <button
                 type="button"
                 className={styles.profileEditButton}
@@ -420,37 +408,50 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
                 <IconBuilding />
                 {MSG.academy}
               </div>
-              <div className={styles.infoValueCell}>{academyName}</div>
+              <div className={styles.infoValueCell} title={academyName}>
+                {academyName}
+              </div>
 
               <div className={styles.infoLabelCell}>
                 <IconBook />
                 {MSG.className}
               </div>
-              <div className={styles.infoValueCell}>{classNames}</div>
+              <div className={styles.infoValueCell} title={classLabel.full}>
+                {classLabel.display}
+              </div>
 
               <div className={styles.infoLabelCell}>
                 <IconSchool />
                 {MSG.school}
               </div>
-              <div className={styles.infoValueCell}>{detail.school_name?.trim() || '-'}</div>
-
-              <div className={styles.infoLabelCell}>
-                <IconGraduation />
-                {MSG.grade}
+              <div
+                className={styles.infoValueCell}
+                title={detail.school_name?.trim() || '-'}
+              >
+                {detail.school_name?.trim() || '-'}
               </div>
-              <div className={styles.infoValueCell}>-</div>
 
               <div className={styles.infoLabelCell}>
                 <IconPhone />
                 {MSG.phone}
               </div>
-              <div className={styles.infoValueCell}>{detail.phone?.trim() || '-'}</div>
+              <div
+                className={styles.infoPhoneValueCell}
+                title={detail.phone?.trim() || '-'}
+              >
+                {detail.phone?.trim() || '-'}
+              </div>
 
               <div className={styles.infoLabelCell}>
                 <IconPhone />
                 {MSG.parentPhone}
               </div>
-              <div className={styles.infoValueCell}>{detail.parent_phone?.trim() || '-'}</div>
+              <div
+                className={styles.infoPhoneValueCell}
+                title={detail.parent_phone?.trim() || '-'}
+              >
+                {detail.parent_phone?.trim() || '-'}
+              </div>
             </div>
           </section>
 

@@ -1,6 +1,7 @@
 import { style, keyframes } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { zIndex } from '@/styles/tokens/zIndex'
 
 const fadeSlideIn = keyframes({
   from: { opacity: 0, transform: 'translateY(8px)' },
@@ -16,7 +17,7 @@ export const containerStyle = style({
   position: 'fixed',
   top: '32px',
   right: '32px',
-  zIndex: 9999,
+  zIndex: zIndex.toast,
   display: 'flex',
   flexDirection: 'column',
   gap: '8px',

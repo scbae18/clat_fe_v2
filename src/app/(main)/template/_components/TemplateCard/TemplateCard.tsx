@@ -8,6 +8,7 @@ import TrashIcon from '@/assets/icons/icon-trash.svg'
 import {
   cardStyle,
   cardHeaderStyle,
+  cardTitleStyle,
   iconButtonStyle,
   classCountStyle,
   countHighlightStyle,
@@ -34,9 +35,9 @@ export default function TemplateCard({
   return (
     <div className={cardStyle} onClick={() => router.push(`/template/${id}/edit`)}>
       <div className={cardHeaderStyle}>
-        <Text variant="headingLg" as="h3">
+        <div className={cardTitleStyle} title={title}>
           {title}
-        </Text>
+        </div>
         <button
           className={iconButtonStyle}
           onClick={(e) => {

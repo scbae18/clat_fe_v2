@@ -12,6 +12,8 @@ import {
 } from '@/stores/attendanceSessionStore'
 import { attendanceService } from '@/services/attendance'
 import { useToastStore } from '@/stores/toastStore'
+import { useUiStore } from '@/stores/uiStore'
+import { getSidebarWidth } from '@/lib/sidebar'
 
 const POLL_MS = 10_000
 
@@ -47,6 +49,7 @@ export default function AttendanceFloatingBarHost() {
   const attendanceDetailNonce = useAttendanceSessionStore((s) => s.attendanceDetailNonce)
   const pathname = usePathname()
   const addToast = useToastStore((s) => s.addToast)
+  const sidebarCollapsed = useUiStore((s) => s.sidebarCollapsed)
 
   const [detailOpen, setDetailOpen] = useState(false)
   const [endConfirmOpen, setEndConfirmOpen] = useState(false)
@@ -70,7 +73,7 @@ export default function AttendanceFloatingBarHost() {
 
   const bottom = lessonDetailFooter ? 100 : 32
   const horizontal = 48
-  const sidebar = 240
+  const sidebar = getSidebarWidth(sidebarCollapsed)
 
   useEffect(() => {
     if (attendanceDetailNonce > 0 && active) setDetailOpen(true)

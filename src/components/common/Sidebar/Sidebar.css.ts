@@ -1,10 +1,8 @@
-import { style } from '@vanilla-extract/css'
-import { styleVariants } from '@vanilla-extract/css'
+import { style, styleVariants } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
 
-export const sidebarStyle = style({
-  width: '240px',
+const sidebarBase = style({
   height: '100vh',
   backgroundColor: colors.gray900,
   display: 'flex',
@@ -13,29 +11,77 @@ export const sidebarStyle = style({
   position: 'fixed',
   top: 0,
   left: 0,
+  overflow: 'hidden',
+  transition: 'width 0.2s ease',
+  zIndex: 100,
 })
 
-export const sidebarTopStyle = style({
+export const sidebarStyle = styleVariants({
+  expanded: [sidebarBase, { width: '240px' }],
+  collapsed: [sidebarBase, { width: '64px' }],
+})
+
+export const sidebarTopStyle = styleVariants({
+  expanded: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '56px 24px 56px 36px',
+    gap: '8px',
+  },
+  collapsed: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '40px 8px 24px',
+    gap: '12px',
+  },
+})
+
+export const toggleButtonStyle = style({
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'space-between',
-  padding: '56px 36px',
+  justifyContent: 'center',
+  width: '32px',
+  height: '32px',
+  borderRadius: '8px',
+  border: 'none',
+  background: 'rgba(255,255,255,0.06)',
+  color: colors.gray500,
+  cursor: 'pointer',
+  flexShrink: 0,
+  transition: 'background 0.2s, color 0.2s',
+  selectors: {
+    '&:hover': {
+      background: 'rgba(255,255,255,0.1)',
+      color: colors.white,
+    },
+  },
 })
 
-export const navStyle = style({
-  display: 'flex',
-  flexDirection: 'column',
-  flex: 1,
-  gap: '8px',
-  padding: '0 24px',
+export const navStyle = styleVariants({
+  expanded: {
+    display: 'flex',
+    flexDirection: 'column',
+    flex: 1,
+    gap: '8px',
+    padding: '0 24px',
+  },
+  collapsed: {
+    display: 'flex',
+    flexDirection: 'column',
+    flex: 1,
+    gap: '8px',
+    padding: '0 8px',
+  },
 })
 
-export const navItemStyle = style({
+const navItemBase = {
+  position: 'relative',
   display: 'flex',
   alignItems: 'center',
-  gap: '16px',
   height: '48px',
-  padding: '0 16px',
   borderRadius: '8px',
   cursor: 'pointer',
   fontSize: fontStyles.titleMd.fontSize,
@@ -44,51 +90,137 @@ export const navItemStyle = style({
   lineHeight: '140%',
   color: colors.gray600,
   textDecoration: 'none',
-  transition: 'color 0.2s',
-  ':hover': {
-    color: colors.gray300,
+  transition: 'color 0.2s, background 0.2s',
+  flexShrink: 0,
+  selectors: {
+    '&:hover': {
+      color: colors.gray300,
+    },
   },
+} as const
+
+export const navItemStyle = styleVariants({
+  expanded: [
+    navItemBase,
+    {
+      gap: '16px',
+      padding: '0 16px',
+    },
+  ],
+  collapsed: [
+    navItemBase,
+    {
+      justifyContent: 'center',
+      padding: 0,
+      width: '100%',
+    },
+  ],
 })
 
 export const navItemActiveStyle = style({
   color: colors.white,
   fontWeight: fontStyles.titleMd.fontWeight,
+  background: 'rgba(255,255,255,0.08)',
 })
 
-export const logoutButtonStyle = style({
-  marginBottom: '24px',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '16px',
-  padding: '0 16px',
-  color: colors.gray600,
-  cursor: 'pointer',
-  border: 'none',
-  background: 'none',
-  fontSize: fontStyles.titleMd.fontSize,
-  fontWeight: fontStyles.titleMd.fontWeight,
-  letterSpacing: '-0.03em',
-  lineHeight: '140%',
-  transition: 'all 0.2s',
-  ':hover': {
-    color: colors.gray300,
+export const navLabelStyle = styleVariants({
+  expanded: {
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    opacity: 1,
+    transition: 'opacity 0.15s ease',
+  },
+  collapsed: {
+    position: 'absolute',
+    width: 0,
+    height: 0,
+    overflow: 'hidden',
+    opacity: 0,
+    pointerEvents: 'none',
   },
 })
 
-export const userCardStyle = style({
-  marginTop: 'auto',
-  marginBottom: '8px',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '12px',
-  padding: '10px 12px',
-  borderRadius: '12px',
-  textDecoration: 'none',
-  color: colors.gray300,
-  transition: 'background 0.2s, color 0.2s',
-  ':hover': {
-    background: 'rgba(255,255,255,0.06)',
-    color: colors.white,
+export const logoutButtonStyle = styleVariants({
+  expanded: {
+    marginBottom: '24px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    padding: '0 16px',
+    height: '48px',
+    color: colors.gray600,
+    cursor: 'pointer',
+    border: 'none',
+    background: 'none',
+    fontSize: fontStyles.titleMd.fontSize,
+    fontWeight: fontStyles.titleMd.fontWeight,
+    letterSpacing: '-0.03em',
+    lineHeight: '140%',
+    transition: 'all 0.2s',
+    selectors: {
+      '&:hover': {
+        color: colors.gray300,
+      },
+    },
+  },
+  collapsed: {
+    marginBottom: '24px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '48px',
+    padding: 0,
+    color: colors.gray600,
+    cursor: 'pointer',
+    border: 'none',
+    background: 'none',
+    transition: 'all 0.2s',
+    selectors: {
+      '&:hover': {
+        color: colors.gray300,
+      },
+    },
+  },
+})
+
+export const userCardStyle = styleVariants({
+  expanded: {
+    marginTop: 'auto',
+    marginBottom: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '10px 12px',
+    borderRadius: '12px',
+    textDecoration: 'none',
+    color: colors.gray300,
+    transition: 'background 0.2s, color 0.2s',
+    selectors: {
+      '&:hover': {
+        background: 'rgba(255,255,255,0.06)',
+        color: colors.white,
+      },
+    },
+  },
+  collapsed: {
+    marginTop: 'auto',
+    marginBottom: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '10px 0',
+    borderRadius: '12px',
+    textDecoration: 'none',
+    color: colors.gray300,
+    transition: 'background 0.2s, color 0.2s',
+    selectors: {
+      '&:hover': {
+        background: 'rgba(255,255,255,0.06)',
+        color: colors.white,
+      },
+    },
   },
 })
 
@@ -112,11 +244,16 @@ export const userAvatarStyle = style({
   letterSpacing: '-0.03em',
 })
 
-export const userTextWrapStyle = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '2px',
-  minWidth: 0,
+export const userTextWrapStyle = styleVariants({
+  expanded: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+    minWidth: 0,
+  },
+  collapsed: {
+    display: 'none',
+  },
 })
 
 export const userNameStyle = style({

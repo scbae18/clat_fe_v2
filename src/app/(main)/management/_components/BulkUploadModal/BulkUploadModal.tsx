@@ -88,7 +88,8 @@ export default function BulkUploadModal({ isOpen, onClose, onConfirm }: BulkUplo
             <span className={stepTitleStyle}>학생 정보 작성</span>
           </div>
           <span className={stepDescStyle}>
-            양식에 학생명, 학생 전화, 학부모 전화를 입력해주세요
+            1열 학생명, 2열 학생 전화, 3열 학부모 전화 순으로 입력해주세요. 전화번호는
+            010-1234-5678 또는 01012345678 형식 모두 가능해요.
           </span>
         </div>
 

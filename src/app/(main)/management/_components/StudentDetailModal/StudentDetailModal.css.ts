@@ -1,6 +1,7 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { phoneTextRules, truncateRules } from '@/styles/tokens/textOverflow'
 
 export const headerStyle = style({
   display: 'flex',
@@ -41,14 +42,20 @@ export const infoLabelStyle = style({
   lineHeight: '140%',
 })
 
-export const infoValueStyle = style({
-  fontSize: fontStyles.bodyMd.fontSize,
-  fontWeight: fontStyles.bodyMd.fontWeight,
-  color: colors.gray900,
-  flex: 1,
-  letterSpacing: '-0.03em',
-  lineHeight: '140%',
-})
+export const infoValueStyle = style([
+  {
+    fontSize: fontStyles.bodyMd.fontSize,
+    fontWeight: fontStyles.bodyMd.fontWeight,
+    color: colors.gray900,
+    flex: 1,
+    letterSpacing: '-0.03em',
+    lineHeight: '140%',
+    minWidth: 0,
+  },
+  truncateRules,
+])
+
+export const infoPhoneValueStyle = style([infoValueStyle, phoneTextRules])
 
 export const editButtonStyle = style({
   fontSize: fontStyles.labelSm.fontSize,

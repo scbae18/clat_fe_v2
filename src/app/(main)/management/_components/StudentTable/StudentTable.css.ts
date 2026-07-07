@@ -1,12 +1,27 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { phoneTextRules, truncateRules } from '@/styles/tokens/textOverflow'
+
+export const tableWrapStyle = style({
+  overflowX: 'auto',
+  border: `1px solid ${colors.gray100}`,
+  borderRadius: '8px',
+  backgroundColor: colors.white,
+})
 
 export const tableStyle = style({
   width: '100%',
   borderCollapse: 'collapse',
-  border: `1px solid ${colors.gray100}`,
-  overflow: 'hidden',
+  border: 'none',
+})
+
+export const tableAllStudentsStyle = style({
+  minWidth: '1100px',
+})
+
+export const tableClassDetailStyle = style({
+  minWidth: '900px',
 })
 
 export const trStyle = style({
@@ -30,6 +45,7 @@ export const thStyle = style({
   textAlign: 'left',
   borderBottom: `1px solid ${colors.gray100}`,
   borderRight: `1px solid ${colors.gray100}`,
+  whiteSpace: 'nowrap',
   selectors: {
     '&:last-child': {
       borderRight: 'none',
@@ -37,7 +53,7 @@ export const thStyle = style({
   },
 })
 
-export const tdStyle = style({
+const tdBase = {
   height: '40px',
   paddingLeft: '16px',
   paddingRight: 'var(--cell-padding-right, 48px)',
@@ -48,6 +64,7 @@ export const tdStyle = style({
   lineHeight: '140%',
   borderBottom: `1px solid ${colors.gray100}`,
   borderRight: `1px solid ${colors.gray100}`,
+  maxWidth: 0,
   selectors: {
     'tr:last-child &': {
       borderBottom: 'none',
@@ -56,7 +73,11 @@ export const tdStyle = style({
       borderRight: 'none',
     },
   },
-})
+} as const
+
+export const tdStyle = style([tdBase, truncateRules])
+
+export const tdPhoneStyle = style([tdBase, phoneTextRules])
 
 export const completionCellStyle = style({
   height: '100%',
@@ -65,10 +86,11 @@ export const completionCellStyle = style({
   display: 'flex',
   alignItems: 'center',
   gap: '12px',
+  minWidth: '280px',
 })
 
 export const progressTrackStyle = style({
-  width: '160px',
+  width: '120px',
   height: '12px',
   backgroundColor: colors.gray50,
   borderRadius: '999px',
@@ -89,6 +111,7 @@ export const percentTextStyle = style({
   letterSpacing: '-0.03em',
   lineHeight: '140%',
   flexShrink: 0,
+  whiteSpace: 'nowrap',
 })
 
 export const remainingTextStyle = style({
@@ -96,6 +119,7 @@ export const remainingTextStyle = style({
   fontWeight: fontStyles.titleSm.fontWeight,
   letterSpacing: '-0.03em',
   flexShrink: 0,
+  whiteSpace: 'nowrap',
 })
 
 export const deleteButtonStyle = style({
@@ -105,11 +129,32 @@ export const deleteButtonStyle = style({
   padding: 0,
   display: 'flex',
   alignItems: 'center',
-  color: colors.gray100,
+  color: colors.gray300,
   marginLeft: 'auto',
+  flexShrink: 0,
   selectors: {
     '&:hover': {
-      color: colors.gray300,
+      color: colors.gray500,
     },
   },
+})
+
+export const checkboxCellStyle = style({
+  width: '44px',
+  padding: '0 12px',
+  textAlign: 'center',
+  borderBottom: `1px solid ${colors.gray100}`,
+  borderRight: `1px solid ${colors.gray100}`,
+  selectors: {
+    'tr:last-child &': {
+      borderBottom: 'none',
+    },
+  },
+})
+
+export const checkboxStyle = style({
+  width: '16px',
+  height: '16px',
+  cursor: 'pointer',
+  accentColor: colors.primary500,
 })

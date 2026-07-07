@@ -1,6 +1,8 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useModalStore } from '@/stores/modalStore'
 import { overlayStyle, modalRecipe, modalBodyStyle } from './Modal.css'
 
 interface ModalProps {
@@ -11,16 +13,33 @@ interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, size = 'md', children }: ModalProps) {
-  if (!isOpen) return null
+  const registerOpen = useModalStore((s) => s.registerOpen)
+  const registerClose = useModalStore((s) => s.registerClose)
+  const [mounted, setMounted] = useState(false)
 
-  return (
-    <div className={overlayStyle} onClick={onClose}>
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!isOpen) return
+    registerOpen()
+    return () => registerClose()
+  }, [isOpen, registerOpen, registerClose])
+
+  if (!isOpen || !mounted) return null
+
+  return createPortal(
+    <div className={overlayStyle} onClick={onClose} role="presentation">
       <div
         className={modalRecipe({ size })}
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
       >
         <div className={modalBodyStyle}>{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

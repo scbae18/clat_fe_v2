@@ -18,6 +18,14 @@ export const bannerStyle = style({
   overflow: 'hidden',
   position: 'relative',
   minHeight: '160px',
+  '@media': {
+    'screen and (max-width: 767px)': {
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      padding: '24px 20px',
+      minHeight: 'auto',
+    },
+  },
 })
 
 export const bannerContentStyle = style({
@@ -32,6 +40,14 @@ export const bannerSubtitleStyle = style({
   fontWeight: 700,
   letterSpacing: '-0.05em',
   color: colors.gray700,
+  '@media': {
+    'screen and (max-width: 1279px)': {
+      fontSize: '20px',
+    },
+    'screen and (max-width: 767px)': {
+      fontSize: '18px',
+    },
+  },
 })
 
 export const bannerTitleStyle = style({
@@ -39,6 +55,15 @@ export const bannerTitleStyle = style({
   fontWeight: 800,
   letterSpacing: '-0.05em',
   color: colors.primary500,
+  lineHeight: 1.15,
+  '@media': {
+    'screen and (max-width: 1279px)': {
+      fontSize: '40px',
+    },
+    'screen and (max-width: 767px)': {
+      fontSize: '32px',
+    },
+  },
 })
 
 export const bannerIllustWrapStyle = style({
@@ -46,6 +71,17 @@ export const bannerIllustWrapStyle = style({
   right: '-140px',
   bottom: '-110px',
   display: 'flex',
+  '@media': {
+    'screen and (max-width: 1279px)': {
+      right: '-80px',
+      bottom: '-80px',
+      transform: 'scale(0.75)',
+      transformOrigin: 'right bottom',
+    },
+    'screen and (max-width: 767px)': {
+      display: 'none',
+    },
+  },
 })
 
 export const sectionHeaderStyle = style({
@@ -153,6 +189,11 @@ export const cardGridStyle = style({
   display: 'grid',
   gridTemplateColumns: '1fr 1fr',
   gap: '16px',
+  '@media': {
+    'screen and (max-width: 767px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
 })
 
 export const betaCardStyle = style({
@@ -257,6 +298,11 @@ export const cardImageWrapStyle = style({
   position: 'absolute',
   right: -100,
   bottom: -120,
+  '@media': {
+    'screen and (max-width: 767px)': {
+      display: 'none',
+    },
+  },
 })
 
 export const guideCardLinkStyle = style({
