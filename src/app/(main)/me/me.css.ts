@@ -1,25 +1,28 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
+import { fontStyles } from '@/styles/tokens/typography'
 
 export const pageRoot = style({
   width: '100%',
   maxWidth: '760px',
 })
 
-export const headerRow = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '12px',
-  marginBottom: '32px',
-})
-
 export const pageTitle = style({
-  margin: 0,
-  fontSize: '28px',
+  margin: '0 0 8px',
+  fontSize: '39px',
   fontWeight: 700,
-  lineHeight: 1.4,
+  lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray900,
+})
+
+export const pageDesc = style({
+  margin: '0 0 40px',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.gray500,
 })
 
 export const cardStack = style({
@@ -29,7 +32,7 @@ export const cardStack = style({
 })
 
 export const card = style({
-  background: colors.white,
+  backgroundColor: colors.white,
   border: `1px solid ${colors.gray50}`,
   borderRadius: '20px',
   padding: '28px',
@@ -62,74 +65,87 @@ export const avatar = style({
 export const profileName = style({
   fontSize: '22px',
   fontWeight: 600,
-  lineHeight: 1.4,
+  lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray900,
 })
 
 export const profileEmail = style({
-  fontSize: '14px',
-  fontWeight: 500,
-  lineHeight: 1.4,
+  marginTop: '2px',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray500,
-  marginTop: '2px',
+  wordBreak: 'break-all',
 })
 
 export const profileMeta = style({
   marginTop: '4px',
-  fontSize: '12px',
-  fontWeight: 500,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.labelSm.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
   color: colors.gray500,
 })
 
 export const sectionHead = style({
   display: 'flex',
-  alignItems: 'center',
+  alignItems: 'flex-start',
   justifyContent: 'space-between',
   gap: '12px',
+  flexWrap: 'wrap',
 })
 
 export const sectionTitle = style({
   margin: 0,
-  fontSize: '18px',
+  fontSize: '20px',
   fontWeight: 600,
-  lineHeight: 1.4,
+  lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray900,
+  whiteSpace: 'nowrap',
 })
 
 export const sectionDesc = style({
-  margin: 0,
-  fontSize: '13px',
-  fontWeight: 500,
-  lineHeight: 1.5,
+  margin: '6px 0 0',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray500,
 })
 
 export const fieldGrid = style({
   display: 'grid',
-  gridTemplateColumns: '140px 1fr',
+  gridTemplateColumns: '120px 1fr',
   columnGap: '16px',
   rowGap: '14px',
   alignItems: 'center',
+  '@media': {
+    '(max-width: 560px)': {
+      gridTemplateColumns: '1fr',
+      rowGap: '8px',
+    },
+  },
 })
 
 export const fieldLabel = style({
-  fontSize: '14px',
+  fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: 600,
-  lineHeight: 1.4,
+  lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray700,
+  whiteSpace: 'nowrap',
 })
 
 export const fieldValue = style({
-  fontSize: '14px',
+  fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: 500,
-  lineHeight: 1.4,
+  lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray900,
+  wordBreak: 'break-all',
 })
 
 export const input = style({
@@ -139,96 +155,60 @@ export const input = style({
   borderRadius: '10px',
   border: `1px solid ${colors.gray100}`,
   background: colors.white,
-  fontSize: '14px',
+  fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: 500,
   color: colors.gray900,
   outline: 'none',
   letterSpacing: '-0.03em',
+  boxSizing: 'border-box',
   transition: 'border-color 0.15s',
-  ':focus': {
-    borderColor: colors.primary400,
-  },
-  '::placeholder': {
-    color: colors.gray300,
+  selectors: {
+    '&:focus': {
+      borderColor: colors.primary400,
+    },
+    '&::placeholder': {
+      color: colors.gray300,
+    },
   },
 })
 
-export const inputError = style({
-  borderColor: colors.error500,
+export const modalFieldStack = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+  marginTop: '8px',
 })
 
-export const helperText = style({
-  margin: '6px 0 0',
-  fontSize: '12px',
-  fontWeight: 500,
-  color: colors.gray500,
-  letterSpacing: '-0.03em',
+export const modalField = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
 })
 
 export const errorText = style({
-  margin: '6px 0 0',
-  fontSize: '12px',
+  margin: 0,
+  fontSize: fontStyles.labelSm.fontSize,
   fontWeight: 500,
-  color: colors.error500,
+  lineHeight: '140%',
   letterSpacing: '-0.03em',
+  color: colors.error500,
 })
 
 export const actionsRow = style({
   display: 'flex',
   justifyContent: 'flex-end',
   gap: '8px',
+  flexWrap: 'wrap',
 })
 
-export const button = style({
-  border: 'none',
-  cursor: 'pointer',
-  padding: '10px 18px',
-  borderRadius: '10px',
-  fontSize: '14px',
-  fontWeight: 600,
-  letterSpacing: '-0.03em',
-  transition: 'all 0.15s',
-  ':disabled': {
-    cursor: 'not-allowed',
-    opacity: 0.55,
-  },
-})
-
-export const buttonPrimary = style({
-  background: colors.primary500,
-  color: colors.white,
-  ':hover': {
-    background: colors.primary600,
-  },
-})
-
-export const buttonGhost = style({
-  background: colors.gray50,
-  color: colors.gray700,
-  ':hover': {
-    background: colors.gray75,
-  },
-})
-
-export const buttonDanger = style({
-  background: colors.error500,
-  color: colors.white,
-  ':hover': {
-    background: colors.error600,
-  },
-})
-
-export const buttonDangerGhost = style({
-  background: colors.white,
-  color: colors.error500,
-  border: `1px solid ${colors.error200}`,
-  ':hover': {
-    background: colors.error50,
-  },
+export const modalActions = style({
+  display: 'flex',
+  gap: '8px',
+  marginTop: '24px',
 })
 
 export const dangerCard = style({
-  background: colors.white,
+  backgroundColor: colors.white,
   border: `1px solid ${colors.error200}`,
   borderRadius: '20px',
   padding: '28px',
@@ -239,33 +219,18 @@ export const dangerCard = style({
 
 export const dangerTitle = style({
   margin: 0,
-  fontSize: '18px',
+  fontSize: '20px',
   fontWeight: 600,
-  lineHeight: 1.4,
+  lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.error500,
+  whiteSpace: 'nowrap',
 })
 
 export const emptyState = style({
   padding: '48px 16px',
   textAlign: 'center',
   color: colors.gray500,
-  fontSize: '14px',
+  fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: 500,
-})
-
-export const backButton = style({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: '40px',
-  height: '40px',
-  padding: 0,
-  border: 'none',
-  background: 'transparent',
-  cursor: 'pointer',
-  borderRadius: '8px',
-  ':hover': {
-    background: colors.gray50,
-  },
 })

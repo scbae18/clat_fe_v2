@@ -4,51 +4,64 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import ArrowLeftIcon from '@/assets/icons/icon-arrow-left.svg'
-import ChoiceConfirmModal from '@/components/common/ChoiceConfirmModal/ChoiceConfirmModal'
+import Text from '@/components/common/Text'
+import Button from '@/components/common/Button'
+import Modal from '@/components/common/Modal'
+import ConfirmModal from '@/components/common/ConfirmModal'
 import useToast from '@/hooks/useToast'
-import { auth } from '@/services/auth'
+import { auth, clearTokens } from '@/services/auth'
 import { useUserStore } from '@/stores/userStore'
 import * as styles from './me.css'
 
 const MSG = {
   pageTitle: '내 정보',
-  back: '뒤로',
-  profileTitle: '프로필',
-  profileDesc: '이름과 이메일을 수정할 수 있어요. 이메일 변경 시 본인 확인용 비밀번호가 필요해요.',
+  pageDesc: '클랫에 로그인할 때 쓰는 계정 정보예요.',
+  basicTitle: '기본 정보',
+  basicDesc: '수업에 표시되는 선생님 이름이에요.',
+  loginTitle: '로그인 정보',
+  loginDesc: '로그인에 쓰는 이메일이에요. 바꿀 때 비밀번호로 확인할게요.',
+  securityTitle: '보안',
+  securityDesc: '현재 비밀번호를 확인한 뒤 새 비밀번호로 바꿔요.',
+  dangerTitle: '회원 탈퇴',
+  dangerDesc: '탈퇴하면 30일 동안 복구할 수 있고, 이후에는 데이터가 삭제돼요.',
   nameLabel: '이름',
   emailLabel: '이메일',
-  currentPassLabel: '현재 비밀번호',
-  currentPassPlaceholder: '이메일 변경 시에만 입력',
   joinedLabel: '가입일',
-  save: '저장',
-  cancel: '취소',
   edit: '수정',
-  passwordTitle: '비밀번호 변경',
-  passwordDesc: '현재 비밀번호 확인 후 새 비밀번호로 바꿀 수 있어요. (8자 이상)',
-  passwordCurrent: '현재 비밀번호',
-  passwordNew: '새 비밀번호',
-  passwordConfirm: '새 비밀번호 확인',
-  passwordChange: '비밀번호 변경',
-  dangerTitle: '회원 탈퇴',
-  dangerDesc: '탈퇴하면 30일간 유예 후 계정이 완전히 삭제돼요. 본인 확인용 비밀번호가 필요해요.',
+  cancel: '취소',
+  save: '저장',
+  changeEmail: '이메일 변경',
+  changePassword: '비밀번호 변경',
   withdraw: '회원 탈퇴',
-  withdrawConfirmTitle: '정말 탈퇴하시겠어요?',
-  withdrawConfirmDesc: [
-    '탈퇴 후 30일 안에 다시 로그인하지 않으면 계정과 수업 기록이 영구 삭제됩니다.',
-    '이 작업은 되돌리기 어려울 수 있어요.',
-  ],
-  withdrawActionLabel: '탈퇴하기',
   loading: '불러오는 중…',
   nameTooShort: '이름을 입력해 주세요.',
   invalidEmail: '올바른 이메일 형식이 아니에요.',
   needCurrentPass: '이메일 변경 시 비밀번호가 필요해요.',
   passTooShort: '비밀번호는 8자 이상이어야 해요.',
   passMismatch: '새 비밀번호가 서로 달라요.',
-  saveOk: '프로필이 수정됐어요.',
+  passSameAsCurrent: '새 비밀번호는 현재 비밀번호와 달라야 해요.',
+  saveOk: '이름이 변경됐어요.',
+  emailOk: '이메일이 변경됐어요. 새 이메일로 다시 로그인해 주세요.',
   passOk: '비밀번호가 변경됐어요.',
-  withdrawOk: '탈퇴가 요청됐어요.',
+  withdrawOk: '탈퇴가 요청됐어요. 30일 안에 다시 로그인하면 복구할 수 있어요.',
   genericFail: '요청에 실패했어요.',
+  emailModalTitle: '이메일 변경',
+  emailModalDesc: '새 이메일과 현재 비밀번호를 입력해 주세요. 변경 후에는 다시 로그인해야 해요.',
+  newEmailLabel: '새 이메일',
+  currentPassLabel: '현재 비밀번호',
+  passModalTitle: '비밀번호 변경',
+  passModalDesc: '현재 비밀번호를 확인한 뒤 새 비밀번호(8자 이상)로 바꿔요.',
+  passwordNew: '새 비밀번호',
+  passwordConfirm: '새 비밀번호 확인',
+  withdrawStep1Title: '정말 탈퇴하시겠어요?',
+  withdrawStep1Desc: [
+    '탈퇴 후 30일 안에 다시 로그인하면 계정을 복구할 수 있어요.',
+    '30일이 지나면 계정과 수업 기록이 삭제돼요.',
+  ],
+  withdrawContinue: '계속',
+  withdrawStep2Title: '비밀번호를 확인해 주세요',
+  withdrawStep2Desc: '본인 확인을 위해 현재 비밀번호를 입력해 주세요.',
+  withdrawAction: '탈퇴하기',
 } as const
 
 function initialFrom(name: string): string {
@@ -61,16 +74,14 @@ function extractErrorMessage(e: unknown, fallback: string): string {
   const err = e as {
     response?: { data?: { error?: { message?: string }; message?: string } }
   }
-  return (
-    err?.response?.data?.error?.message ||
-    err?.response?.data?.message ||
-    fallback
-  )
+  return err?.response?.data?.error?.message || err?.response?.data?.message || fallback
 }
 
 function isValidEmail(v: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())
 }
+
+type WithdrawStep = null | 'confirm' | 'password'
 
 export default function MyProfilePage() {
   const router = useRouter()
@@ -80,28 +91,33 @@ export default function MyProfilePage() {
 
   const [loading, setLoading] = useState(!user)
 
-  const [editing, setEditing] = useState(false)
+  const [editingName, setEditingName] = useState(false)
   const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [currentPassForEmail, setCurrentPassForEmail] = useState('')
-  const [profileSaving, setProfileSaving] = useState(false)
-  const [profileError, setProfileError] = useState<string | null>(null)
+  const [nameSaving, setNameSaving] = useState(false)
+  const [nameError, setNameError] = useState<string | null>(null)
 
+  const [emailModalOpen, setEmailModalOpen] = useState(false)
+  const [nextEmail, setNextEmail] = useState('')
+  const [emailPass, setEmailPass] = useState('')
+  const [emailSaving, setEmailSaving] = useState(false)
+  const [emailError, setEmailError] = useState<string | null>(null)
+
+  const [passModalOpen, setPassModalOpen] = useState(false)
   const [currentPass, setCurrentPass] = useState('')
   const [newPass, setNewPass] = useState('')
   const [newPassConfirm, setNewPassConfirm] = useState('')
   const [passSaving, setPassSaving] = useState(false)
   const [passError, setPassError] = useState<string | null>(null)
 
-  const [withdrawOpen, setWithdrawOpen] = useState(false)
+  const [withdrawStep, setWithdrawStep] = useState<WithdrawStep>(null)
   const [withdrawPass, setWithdrawPass] = useState('')
   const [withdrawSubmitting, setWithdrawSubmitting] = useState(false)
+  const [withdrawError, setWithdrawError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
     if (user) {
       setName(user.name)
-      setEmail(user.email)
       setLoading(false)
       return
     }
@@ -111,7 +127,6 @@ export default function MyProfilePage() {
         if (cancelled) return
         setUser(u)
         setName(u.name)
-        setEmail(u.email)
       })
       .catch(() => {
         if (!cancelled) router.push('/login')
@@ -122,8 +137,7 @@ export default function MyProfilePage() {
     return () => {
       cancelled = true
     }
-    // user 최초 로드 한 번만
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once
   }, [])
 
   const joinedLabel = useMemo(() => {
@@ -135,72 +149,114 @@ export default function MyProfilePage() {
     }
   }, [user?.created_at])
 
-  const emailChanged = !!user && email.trim().toLowerCase() !== user.email
   const nameChanged = !!user && name.trim() !== user.name.trim()
-  const canSaveProfile = !!user && (nameChanged || emailChanged) && !profileSaving
+  const canSaveName = !!user && nameChanged && !nameSaving
 
-  const startEdit = () => {
+  const startEditName = () => {
     if (!user) return
     setName(user.name)
-    setEmail(user.email)
-    setCurrentPassForEmail('')
-    setProfileError(null)
-    setEditing(true)
+    setNameError(null)
+    setEditingName(true)
   }
 
-  const cancelEdit = () => {
+  const cancelEditName = () => {
     if (!user) return
     setName(user.name)
-    setEmail(user.email)
-    setCurrentPassForEmail('')
-    setProfileError(null)
-    setEditing(false)
+    setNameError(null)
+    setEditingName(false)
   }
 
-  const onSaveProfile = async () => {
+  const onSaveName = async () => {
     if (!user) return
     const trimmedName = name.trim()
-    const trimmedEmail = email.trim().toLowerCase()
-
     if (!trimmedName) {
-      setProfileError(MSG.nameTooShort)
+      setNameError(MSG.nameTooShort)
       return
     }
-    if (trimmedEmail && !isValidEmail(trimmedEmail)) {
-      setProfileError(MSG.invalidEmail)
-      return
-    }
-    if (emailChanged && !currentPassForEmail) {
-      setProfileError(MSG.needCurrentPass)
-      return
-    }
-
-    setProfileError(null)
-    setProfileSaving(true)
+    setNameError(null)
+    setNameSaving(true)
     try {
-      const payload: { name?: string; email?: string; current_password?: string } = {}
-      if (nameChanged) payload.name = trimmedName
-      if (emailChanged) {
-        payload.email = trimmedEmail
-        payload.current_password = currentPassForEmail
-      }
-      const updated = await auth.updateMe(payload)
+      const updated = await auth.updateMe({ name: trimmedName })
       setName(updated.name)
-      setEmail(updated.email)
-      setCurrentPassForEmail('')
-      setEditing(false)
+      setEditingName(false)
       toast.success(MSG.saveOk)
     } catch (e) {
-      setProfileError(extractErrorMessage(e, MSG.genericFail))
+      setNameError(extractErrorMessage(e, MSG.genericFail))
     } finally {
-      setProfileSaving(false)
+      setNameSaving(false)
     }
+  }
+
+  const openEmailModal = () => {
+    if (!user) return
+    setNextEmail(user.email)
+    setEmailPass('')
+    setEmailError(null)
+    setEmailModalOpen(true)
+  }
+
+  const closeEmailModal = () => {
+    if (emailSaving) return
+    setEmailModalOpen(false)
+    setEmailPass('')
+    setEmailError(null)
+  }
+
+  const onSaveEmail = async () => {
+    if (!user) return
+    const trimmedEmail = nextEmail.trim().toLowerCase()
+    if (!isValidEmail(trimmedEmail)) {
+      setEmailError(MSG.invalidEmail)
+      return
+    }
+    if (trimmedEmail === user.email) {
+      setEmailError('현재 이메일과 같아요.')
+      return
+    }
+    if (!emailPass) {
+      setEmailError(MSG.needCurrentPass)
+      return
+    }
+    setEmailError(null)
+    setEmailSaving(true)
+    try {
+      await auth.updateMe({
+        email: trimmedEmail,
+        current_password: emailPass,
+      })
+      toast.success(MSG.emailOk)
+      setEmailModalOpen(false)
+      clearTokens()
+      useUserStore.getState().setUser(null)
+      window.location.href = '/login'
+    } catch (e) {
+      setEmailError(extractErrorMessage(e, MSG.genericFail))
+      setEmailSaving(false)
+    }
+  }
+
+  const openPassModal = () => {
+    setCurrentPass('')
+    setNewPass('')
+    setNewPassConfirm('')
+    setPassError(null)
+    setPassModalOpen(true)
+  }
+
+  const closePassModal = () => {
+    if (passSaving) return
+    setPassModalOpen(false)
+    setCurrentPass('')
+    setNewPass('')
+    setNewPassConfirm('')
+    setPassError(null)
   }
 
   const passValid =
     currentPass.length > 0 &&
     newPass.length >= 8 &&
     newPass === newPassConfirm &&
+    newPass !== currentPass &&
     !passSaving
 
   const onChangePassword = async () => {
@@ -210,6 +266,10 @@ export default function MyProfilePage() {
     }
     if (newPass.length < 8) {
       setPassError(MSG.passTooShort)
+      return
+    }
+    if (newPass === currentPass) {
+      setPassError(MSG.passSameAsCurrent)
       return
     }
     if (newPass !== newPassConfirm) {
@@ -223,10 +283,12 @@ export default function MyProfilePage() {
         current_password: currentPass,
         new_password: newPass,
       })
+      toast.success(MSG.passOk)
+      setPassModalOpen(false)
       setCurrentPass('')
       setNewPass('')
       setNewPassConfirm('')
-      toast.success(MSG.passOk)
+      setPassError(null)
     } catch (e) {
       setPassError(extractErrorMessage(e, MSG.genericFail))
     } finally {
@@ -234,17 +296,29 @@ export default function MyProfilePage() {
     }
   }
 
+  const startWithdraw = () => setWithdrawStep('confirm')
+
+  const closeWithdraw = () => {
+    if (withdrawSubmitting) return
+    setWithdrawStep(null)
+    setWithdrawPass('')
+    setWithdrawError(null)
+  }
+
   const onWithdraw = async () => {
-    if (!withdrawPass) return
+    if (!withdrawPass) {
+      setWithdrawError(MSG.needCurrentPass)
+      return
+    }
+    setWithdrawError(null)
     setWithdrawSubmitting(true)
     try {
       await auth.withdraw({ password: withdrawPass })
       toast.success(MSG.withdrawOk)
-      setWithdrawOpen(false)
+      setWithdrawStep(null)
       router.push('/login')
     } catch (e) {
-      toast.error(extractErrorMessage(e, MSG.genericFail))
-      setWithdrawOpen(false)
+      setWithdrawError(extractErrorMessage(e, MSG.genericFail))
     } finally {
       setWithdrawSubmitting(false)
     }
@@ -260,17 +334,8 @@ export default function MyProfilePage() {
 
   return (
     <div className={styles.pageRoot}>
-      <header className={styles.headerRow}>
-        <button
-          type="button"
-          className={styles.backButton}
-          onClick={() => router.back()}
-          aria-label={MSG.back}
-        >
-          <ArrowLeftIcon width={24} height={24} />
-        </button>
-        <h1 className={styles.pageTitle}>{MSG.pageTitle}</h1>
-      </header>
+      <h1 className={styles.pageTitle}>{MSG.pageTitle}</h1>
+      <p className={styles.pageDesc}>{MSG.pageDesc}</p>
 
       <div className={styles.cardStack}>
         <section className={styles.card}>
@@ -284,26 +349,24 @@ export default function MyProfilePage() {
               </div>
             </div>
           </div>
+        </section>
 
+        <section className={styles.card}>
           <div className={styles.sectionHead}>
             <div>
-              <h2 className={styles.sectionTitle}>{MSG.profileTitle}</h2>
-              <p className={styles.sectionDesc}>{MSG.profileDesc}</p>
+              <h2 className={styles.sectionTitle}>{MSG.basicTitle}</h2>
+              <p className={styles.sectionDesc}>{MSG.basicDesc}</p>
             </div>
-            {!editing ? (
-              <button
-                type="button"
-                className={`${styles.button} ${styles.buttonGhost}`}
-                onClick={startEdit}
-              >
+            {!editingName ? (
+              <Button variant="ghost" size="sm" onClick={startEditName}>
                 {MSG.edit}
-              </button>
+              </Button>
             ) : null}
           </div>
 
           <div className={styles.fieldGrid}>
             <span className={styles.fieldLabel}>{MSG.nameLabel}</span>
-            {editing ? (
+            {editingName ? (
               <input
                 className={styles.input}
                 value={name}
@@ -314,116 +377,192 @@ export default function MyProfilePage() {
             ) : (
               <span className={styles.fieldValue}>{user.name}</span>
             )}
-
-            <span className={styles.fieldLabel}>{MSG.emailLabel}</span>
-            {editing ? (
-              <input
-                className={styles.input}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                type="email"
-                autoComplete="email"
-                maxLength={254}
-              />
-            ) : (
-              <span className={styles.fieldValue}>{user.email}</span>
-            )}
-
-            {editing && emailChanged ? (
-              <>
-                <span className={styles.fieldLabel}>{MSG.currentPassLabel}</span>
-                <input
-                  className={styles.input}
-                  value={currentPassForEmail}
-                  onChange={(e) => setCurrentPassForEmail(e.target.value)}
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder={MSG.currentPassPlaceholder}
-                />
-              </>
-            ) : null}
           </div>
 
-          {profileError ? <p className={styles.errorText}>{profileError}</p> : null}
+          {nameError ? <p className={styles.errorText}>{nameError}</p> : null}
 
-          {editing ? (
+          {editingName ? (
             <div className={styles.actionsRow}>
-              <button
-                type="button"
-                className={`${styles.button} ${styles.buttonGhost}`}
-                onClick={cancelEdit}
-                disabled={profileSaving}
-              >
+              <Button variant="ghost" size="sm" onClick={cancelEditName} disabled={nameSaving}>
                 {MSG.cancel}
-              </button>
-              <button
-                type="button"
-                className={`${styles.button} ${styles.buttonPrimary}`}
-                onClick={onSaveProfile}
-                disabled={!canSaveProfile}
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => void onSaveName()}
+                disabled={!canSaveName}
               >
-                {MSG.save}
-              </button>
+                {nameSaving ? '저장 중…' : MSG.save}
+              </Button>
             </div>
           ) : null}
         </section>
 
         <section className={styles.card}>
-          <div>
-            <h2 className={styles.sectionTitle}>{MSG.passwordTitle}</h2>
-            <p className={styles.sectionDesc}>{MSG.passwordDesc}</p>
+          <div className={styles.sectionHead}>
+            <div>
+              <h2 className={styles.sectionTitle}>{MSG.loginTitle}</h2>
+              <p className={styles.sectionDesc}>{MSG.loginDesc}</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={openEmailModal}>
+              {MSG.changeEmail}
+            </Button>
           </div>
-
           <div className={styles.fieldGrid}>
-            <span className={styles.fieldLabel}>{MSG.passwordCurrent}</span>
-            <input
-              className={styles.input}
-              value={currentPass}
-              onChange={(e) => setCurrentPass(e.target.value)}
-              type="password"
-              autoComplete="current-password"
-            />
-
-            <span className={styles.fieldLabel}>{MSG.passwordNew}</span>
-            <input
-              className={styles.input}
-              value={newPass}
-              onChange={(e) => setNewPass(e.target.value)}
-              type="password"
-              autoComplete="new-password"
-              minLength={8}
-            />
-
-            <span className={styles.fieldLabel}>{MSG.passwordConfirm}</span>
-            <input
-              className={styles.input}
-              value={newPassConfirm}
-              onChange={(e) => setNewPassConfirm(e.target.value)}
-              type="password"
-              autoComplete="new-password"
-            />
+            <span className={styles.fieldLabel}>{MSG.emailLabel}</span>
+            <span className={styles.fieldValue}>{user.email}</span>
           </div>
+        </section>
 
-          {passError ? <p className={styles.errorText}>{passError}</p> : null}
-
-          <div className={styles.actionsRow}>
-            <button
-              type="button"
-              className={`${styles.button} ${styles.buttonPrimary}`}
-              onClick={onChangePassword}
-              disabled={!passValid}
-            >
-              {MSG.passwordChange}
-            </button>
+        <section className={styles.card}>
+          <div className={styles.sectionHead}>
+            <div>
+              <h2 className={styles.sectionTitle}>{MSG.securityTitle}</h2>
+              <p className={styles.sectionDesc}>{MSG.securityDesc}</p>
+            </div>
+            <Button variant="secondary" size="sm" onClick={openPassModal}>
+              {MSG.changePassword}
+            </Button>
           </div>
         </section>
 
         <section className={styles.dangerCard}>
-          <div>
-            <h2 className={styles.dangerTitle}>{MSG.dangerTitle}</h2>
-            <p className={styles.sectionDesc}>{MSG.dangerDesc}</p>
+          <div className={styles.sectionHead}>
+            <div>
+              <h2 className={styles.dangerTitle}>{MSG.dangerTitle}</h2>
+              <p className={styles.sectionDesc}>{MSG.dangerDesc}</p>
+            </div>
+            <Button variant="deleteClass" size="sm" onClick={startWithdraw}>
+              {MSG.withdraw}
+            </Button>
           </div>
-          <div className={styles.fieldGrid}>
+        </section>
+      </div>
+
+      <Modal isOpen={emailModalOpen} onClose={closeEmailModal} size="sm">
+        <Text variant="headingMd" as="h2">
+          {MSG.emailModalTitle}
+        </Text>
+        <p className={styles.sectionDesc} style={{ marginTop: 8 }}>
+          {MSG.emailModalDesc}
+        </p>
+        <div className={styles.modalFieldStack}>
+          <div className={styles.modalField}>
+            <span className={styles.fieldLabel}>{MSG.newEmailLabel}</span>
+            <input
+              className={styles.input}
+              type="email"
+              value={nextEmail}
+              onChange={(e) => setNextEmail(e.target.value)}
+              autoComplete="email"
+              maxLength={254}
+            />
+          </div>
+          <div className={styles.modalField}>
+            <span className={styles.fieldLabel}>{MSG.currentPassLabel}</span>
+            <input
+              className={styles.input}
+              type="password"
+              value={emailPass}
+              onChange={(e) => setEmailPass(e.target.value)}
+              autoComplete="current-password"
+            />
+          </div>
+          {emailError ? <p className={styles.errorText}>{emailError}</p> : null}
+        </div>
+        <div className={styles.modalActions}>
+          <Button variant="ghost" size="md" fullWidth onClick={closeEmailModal} disabled={emailSaving}>
+            {MSG.cancel}
+          </Button>
+          <Button
+            variant="primary"
+            size="md"
+            fullWidth
+            onClick={() => void onSaveEmail()}
+            disabled={emailSaving || !nextEmail.trim() || !emailPass}
+          >
+            {emailSaving ? '변경 중…' : MSG.changeEmail}
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal isOpen={passModalOpen} onClose={closePassModal} size="sm">
+        <Text variant="headingMd" as="h2">
+          {MSG.passModalTitle}
+        </Text>
+        <p className={styles.sectionDesc} style={{ marginTop: 8 }}>
+          {MSG.passModalDesc}
+        </p>
+        <div className={styles.modalFieldStack}>
+          <div className={styles.modalField}>
+            <span className={styles.fieldLabel}>{MSG.currentPassLabel}</span>
+            <input
+              className={styles.input}
+              type="password"
+              value={currentPass}
+              onChange={(e) => setCurrentPass(e.target.value)}
+              autoComplete="current-password"
+            />
+          </div>
+          <div className={styles.modalField}>
+            <span className={styles.fieldLabel}>{MSG.passwordNew}</span>
+            <input
+              className={styles.input}
+              type="password"
+              value={newPass}
+              onChange={(e) => setNewPass(e.target.value)}
+              autoComplete="new-password"
+              minLength={8}
+            />
+          </div>
+          <div className={styles.modalField}>
+            <span className={styles.fieldLabel}>{MSG.passwordConfirm}</span>
+            <input
+              className={styles.input}
+              type="password"
+              value={newPassConfirm}
+              onChange={(e) => setNewPassConfirm(e.target.value)}
+              autoComplete="new-password"
+              minLength={8}
+            />
+          </div>
+          {passError ? <p className={styles.errorText}>{passError}</p> : null}
+        </div>
+        <div className={styles.modalActions}>
+          <Button variant="ghost" size="md" fullWidth onClick={closePassModal} disabled={passSaving}>
+            {MSG.cancel}
+          </Button>
+          <Button
+            variant="primary"
+            size="md"
+            fullWidth
+            onClick={() => void onChangePassword()}
+            disabled={!passValid}
+          >
+            {passSaving ? '변경 중…' : MSG.changePassword}
+          </Button>
+        </div>
+      </Modal>
+
+      <ConfirmModal
+        isOpen={withdrawStep === 'confirm'}
+        onClose={closeWithdraw}
+        onConfirm={() => setWithdrawStep('password')}
+        title={MSG.withdrawStep1Title}
+        descriptions={[...MSG.withdrawStep1Desc]}
+        confirmLabel={MSG.withdrawContinue}
+        confirmVariant="danger"
+      />
+
+      <Modal isOpen={withdrawStep === 'password'} onClose={closeWithdraw} size="sm">
+        <Text variant="headingMd" as="h2">
+          {MSG.withdrawStep2Title}
+        </Text>
+        <p className={styles.sectionDesc} style={{ marginTop: 8 }}>
+          {MSG.withdrawStep2Desc}
+        </p>
+        <div className={styles.modalFieldStack}>
+          <div className={styles.modalField}>
             <span className={styles.fieldLabel}>{MSG.currentPassLabel}</span>
             <input
               className={styles.input}
@@ -433,29 +572,23 @@ export default function MyProfilePage() {
               autoComplete="current-password"
             />
           </div>
-          <div className={styles.actionsRow}>
-            <button
-              type="button"
-              className={`${styles.button} ${styles.buttonDangerGhost}`}
-              onClick={() => setWithdrawOpen(true)}
-              disabled={!withdrawPass || withdrawSubmitting}
-            >
-              {MSG.withdraw}
-            </button>
-          </div>
-        </section>
-      </div>
-
-      <ChoiceConfirmModal
-        isOpen={withdrawOpen}
-        onClose={() => !withdrawSubmitting && setWithdrawOpen(false)}
-        onConfirm={onWithdraw}
-        title={MSG.withdrawConfirmTitle}
-        descriptions={[...MSG.withdrawConfirmDesc]}
-        confirmLabel={MSG.withdrawActionLabel}
-        confirmTone="danger"
-        confirmDisabled={withdrawSubmitting}
-      />
+          {withdrawError ? <p className={styles.errorText}>{withdrawError}</p> : null}
+        </div>
+        <div className={styles.modalActions}>
+          <Button variant="ghost" size="md" fullWidth onClick={closeWithdraw} disabled={withdrawSubmitting}>
+            {MSG.cancel}
+          </Button>
+          <Button
+            variant="danger"
+            size="md"
+            fullWidth
+            onClick={() => void onWithdraw()}
+            disabled={!withdrawPass || withdrawSubmitting}
+          >
+            {withdrawSubmitting ? '처리 중…' : MSG.withdrawAction}
+          </Button>
+        </div>
+      </Modal>
     </div>
   )
 }
