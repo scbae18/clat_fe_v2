@@ -82,41 +82,40 @@ CLAT-FE/
 │   │   ├── layout.tsx
 │   │   ├── page.tsx                 # / → /home redirect
 │   │   ├── globals.css
-│   │   ├── (auth)/login/
-│   │   └── (main)/                  # Sidebar + ToastContainer
-│   │       ├── layout.tsx
-│   │       ├── home/
-│   │       ├── lesson/
-│   │       │   ├── page.tsx
-│   │       │   ├── new/page.tsx
-│   │       │   ├── [id]/page.tsx
-│   │       │   └── _components/
-│   │       ├── management/
-│   │       │   ├── page.tsx
-│   │       │   ├── [id]/page.tsx
-│   │       │   └── _components/
-│   │       └── template/
-│   │           ├── page.tsx
-│   │           ├── new/page.tsx
-│   │           ├── [id]/page.tsx
-│   │           ├── [id]/edit/page.tsx
-│   │           ├── _types/
-│   │           └── _components/
+│   │   ├── (auth)/login|signup/
+│   │   ├── (main)/                  # Sidebar + ToastContainer
+│   │   │   ├── home/
+│   │   │   ├── lesson/              # list, new, [id]
+│   │   │   ├── management/          # list, [id]
+│   │   │   ├── template/            # list, new, [id], edit
+│   │   │   ├── alimtalk/            # settings, history
+│   │   │   ├── ai/                  # settings (+ hub backlog)
+│   │   │   ├── students/[id]/
+│   │   │   └── me/
+│   │   ├── check/[sessionId]/       # public attendance
+│   │   └── parent/[token]/          # public parent dashboard
 │   ├── components/common/
 │   ├── hooks/
-│   ├── services/
+│   ├── services/                    # domain HTTP (see services/README.md)
 │   ├── stores/
 │   ├── styles/ + styles/tokens/
-│   ├── lib/ # axiosInstance, exportExcel, generateStudentMessage
+│   ├── lib/                         # axiosInstance, message helpers, excel
 │   ├── types/
 │   ├── mocks/
 │   ├── assets/
 │   └── proxy.ts                     # Auth routing middleware
+├── docs/
+│   ├── onboarding-guide.md
+│   ├── claude-code-guide.md
+│   ├── architecture-layers.md
+│   └── migration-backlog-from-new.md
 ├── public/
 ├── .env.example
 ├── next.config.ts
 └── package.json
 ```
+
+Prototype UX source (monorepo, not this package): `prototypes/new/`.
 
 ---
 

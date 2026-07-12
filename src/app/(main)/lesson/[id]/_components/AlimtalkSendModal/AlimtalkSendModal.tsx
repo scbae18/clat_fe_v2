@@ -9,7 +9,7 @@ import LessonMessageOrderModal from '../LessonMessageOrderModal/LessonMessageOrd
 import useDisclosure from '@/hooks/useDisclosure'
 import type { LessonItemDetail } from '@/services/lesson'
 import type { LessonStudent } from '@/types/lessonStudent'
-import { isAxiosError } from 'axios'
+import { isAxiosError } from '@/lib/api/http'
 import { lessonService, type LessonPreviewRow } from '@/services/lesson'
 import { markLessonListNeedsRefresh } from '@/lib/lessonListRefresh'
 import { useToastStore } from '@/stores/toastStore'

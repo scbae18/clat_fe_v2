@@ -32,7 +32,7 @@ Core domains:
 
 ### Code
 
-- **No** direct `axios` import — use `@/lib/api/axiosInstance`
+- **No** direct `axios` import — use `@/lib/api/axiosInstance` (or `@/lib/api/publicAxios` for public routes). For `isAxiosError`, use `@/lib/api/http`.
 - **No** direct `localStorage` for tokens — interceptors own token handling
 - **No** `any` — use `unknown` + type guards when inference is insufficient
 - **No** committed `console.log`
