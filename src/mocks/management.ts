@@ -58,7 +58,7 @@ export const MOCK_CLASS_STUDENTS: Student[] = Array.from({ length: 10 }, (_, i) 
   classes: [],
 }))
 
-// AddStudentModal에서 반에 추가할 수 있는 학생 목록
+// EnrollStudentsModal에서 반에 추가할 수 있는 학생 목록
 export const MOCK_CANDIDATE_STUDENTS = [
   { id: 1, name: '홍길동', phone: '010-1234-5678' },
   { id: 2, name: '김철수', phone: '010-2345-6789' },

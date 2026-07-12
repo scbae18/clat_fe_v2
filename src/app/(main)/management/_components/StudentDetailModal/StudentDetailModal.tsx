@@ -20,7 +20,7 @@ import { formatListLabel } from '@/lib/formatListLabel'
 import { formatLessonDateKo } from '@/lib/formatLessonDate'
 import CloseIcon from '@/assets/icons/icon-close.svg'
 import CheckIcon from '@/assets/icons/icon-check.svg'
-import AddStudentFormModal from '../AddStudentFormModal/AddStudentFormModal'
+import AddStudentFormModal from '@/components/student/AddStudentFormModal/AddStudentFormModal'
 import {
   headerStyle,
   closeButtonStyle,

@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
 import Modal from '@/components/common/Modal'
 import {
   rootStyle,
@@ -33,26 +32,20 @@ import {
   cellButtonRecipe,
 } from '@/app/(main)/lesson/[id]/_components/LessonTableSection/LessonTable.css'
 import {
-  attendanceService,
+  useAttendanceDetailSession,
   type AttendanceCheckStatus,
-  type AttendanceSessionDetail,
-} from '@/services/attendance'
-import { useToastStore } from '@/stores/toastStore'
+} from '@/hooks/attendance/useAttendanceDetailSession'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import TimerIllustration from './icons/TimerIllustration'
 import { colors } from '@/styles/tokens/colors'
-import { studentCheckFullUrl, type ResolvedStudentCheckLink } from '@/lib/attendanceUrls'
-
-const POLL_MS = 2000
+import type { ResolvedStudentCheckLink } from '@/lib/attendanceUrls'
 
 const LABEL: Record<AttendanceCheckStatus, string> = {
-  PRESENT: '\uCD9C\uC11D',
-  LATE: '\uC9C0\uAC01',
-  ABSENT: '\uACB0\uC11D',
+  PRESENT: '출석',
+  LATE: '지각',
+  ABSENT: '결석',
 }
-
-type FilterTab = 'all' | 'present' | 'absent'
 
 function AttendanceStatusButtons({
   status,
@@ -91,27 +84,6 @@ function AttendanceStatusButtons({
       </button>
     </div>
   )
-}
-
-function formatRemaining(totalSeconds: number) {
-  const m = Math.floor(totalSeconds / 60)
-  const s = totalSeconds % 60
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-}
-
-function useRemainingSeconds(expiresAtIso: string | null) {
-  const [sec, setSec] = useState(0)
-  useEffect(() => {
-    if (!expiresAtIso) return
-    const tick = () => {
-      const end = new Date(expiresAtIso).getTime()
-      setSec(Math.max(0, Math.floor((end - Date.now()) / 1000)))
-    }
-    tick()
-    const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
-  }, [expiresAtIso])
-  return sec
 }
 
 function ClockMini() {
@@ -158,82 +130,13 @@ export default function AttendanceDetailModal({
   onRequestEnd,
   prefetchedLinks,
 }: AttendanceDetailModalProps) {
-  const [detail, setDetail] = useState<AttendanceSessionDetail | null>(null)
-  const [patching, setPatching] = useState<number | null>(null)
-  const [filter, setFilter] = useState<FilterTab>('all')
-  const addToast = useToastStore((s) => s.addToast)
+  const detailSession = useAttendanceDetailSession({
+    isOpen,
+    sessionId,
+    prefetchedLinks,
+  })
 
-  const remainingSec = useRemainingSeconds(detail?.expires_at ?? null)
-
-  useEffect(() => {
-    if (!isOpen) {
-      setDetail(null)
-      setFilter('all')
-      return
-    }
-
-    let cancelled = false
-
-    const load = async () => {
-      try {
-        const d = await attendanceService.getSession(sessionId)
-        if (!cancelled) setDetail(d)
-      } catch {
-        if (!cancelled) setDetail(null)
-      }
-    }
-
-    load()
-    const id = setInterval(load, POLL_MS)
-    return () => {
-      cancelled = true
-      clearInterval(id)
-    }
-  }, [isOpen, sessionId])
-
-  const filteredStudents = useMemo(() => {
-    const list = detail?.students ?? []
-    if (filter === 'all') return list
-    if (filter === 'present') return list.filter((s) => s.status === 'PRESENT' || s.status === 'LATE')
-    return list.filter((s) => s.status === 'ABSENT')
-  }, [detail?.students, filter])
-
-  const attendChipCount = detail
-    ? detail.present_count + detail.late_count
-    : 0
-
-  const linkByStudentId = useMemo(() => {
-    const m = new Map<number, string>()
-    for (const l of prefetchedLinks ?? []) m.set(l.student_id, l.url)
-    return m
-  }, [prefetchedLinks])
-
-  const urlForStudent = (row: { student_id: number; check_url?: string | null }) =>
-    row.check_url || linkByStudentId.get(row.student_id) || studentCheckFullUrl(sessionId, row.student_id)
-
-  const onStatusChange = async (studentId: number, st: AttendanceCheckStatus) => {
-    setPatching(studentId)
-    try {
-      await attendanceService.patchStudentStatus(sessionId, studentId, st)
-      const d = await attendanceService.getSession(sessionId)
-      setDetail(d)
-    } catch {
-      addToast({ variant: 'error', message: '\uC218\uC815\uC5D0 \uC2E4\uD328\uD588\uC5B4\uC694.' })
-    } finally {
-      setPatching(null)
-    }
-  }
-
-  const copyText = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text)
-      addToast({ variant: 'success', message: '\uBCF5\uC0AC\uD588\uC5B4\uC694.' })
-    } catch {
-      addToast({ variant: 'error', message: '\uBCF5\uC0AC\uC5D0 \uC2E4\uD328\uD588\uC5B4\uC694.' })
-    }
-  }
-
-  const titleText = `${className} \uCD9C\uACB0 \uD604\uD669`
+  const titleText = `${className} 출결 현황`
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md">
@@ -241,21 +144,20 @@ export default function AttendanceDetailModal({
         <TimerIllustration className={timerIconWrapStyle} />
         <h2 className={titleStyle}>{titleText}</h2>
 
-        {detail && (
+        {detailSession.detail && (
           <>
             <div className={metaRowStyle}>
               <div className={metaItemStyle}>
                 <span className={metaIconBoxStyle}>#</span>
-                {detail.code}
+                {detailSession.detail.code}
               </div>
               <div className={metaItemStyle}>
                 <ClockMini />
-                {formatRemaining(remainingSec)}
+                {detailSession.remainingLabel}
               </div>
               <div className={metaItemStyle}>
                 <UsersMini />
-                {detail.total_count}
-                {'\uBA85'}
+                {detailSession.detail.total_count}명
               </div>
             </div>
 
@@ -263,13 +165,13 @@ export default function AttendanceDetailModal({
               <div className={summaryCardStyle}>
                 <div className={summaryInnerStyle}>
                   <p className={summaryLabelPresentStyle}>{LABEL.PRESENT}</p>
-                  <p className={summaryValuePresentStyle}>{detail.present_count}</p>
+                  <p className={summaryValuePresentStyle}>{detailSession.detail.present_count}</p>
                 </div>
               </div>
               <div className={summaryCardStyle}>
                 <div className={summaryInnerStyle}>
                   <p className={summaryLabelAbsentStyle}>{LABEL.ABSENT}</p>
-                  <p className={summaryValueAbsentStyle}>{detail.absent_count}</p>
+                  <p className={summaryValueAbsentStyle}>{detailSession.detail.absent_count}</p>
                 </div>
               </div>
             </div>
@@ -277,16 +179,16 @@ export default function AttendanceDetailModal({
             <div className={pillsRowStyle}>
               {(
                 [
-                  ['all', '\uC804\uCCB4', detail.total_count],
-                  ['present', LABEL.PRESENT, attendChipCount],
-                  ['absent', LABEL.ABSENT, detail.absent_count],
+                  ['all', '전체', detailSession.detail.total_count],
+                  ['present', LABEL.PRESENT, detailSession.attendChipCount],
+                  ['absent', LABEL.ABSENT, detailSession.detail.absent_count],
                 ] as const
               ).map(([key, label, count]) => (
                 <button
                   key={key}
                   type="button"
-                  className={`${pillStyle} ${filter === key ? pillActiveStyle : pillInactiveStyle}`}
-                  onClick={() => setFilter(key)}
+                  className={`${pillStyle} ${detailSession.filter === key ? pillActiveStyle : pillInactiveStyle}`}
+                  onClick={() => detailSession.setFilter(key)}
                 >
                   <span>{label}</span>
                   <span>{count}</span>
@@ -295,7 +197,7 @@ export default function AttendanceDetailModal({
             </div>
 
             <div className={gridStyle}>
-              {filteredStudents.map((row) => (
+              {detailSession.filteredStudents.map((row) => (
                 <div key={row.student_id} className={studentCellStyle}>
                   <span className={studentNameStyle} title={row.student_name}>
                     {row.student_name}
@@ -304,19 +206,19 @@ export default function AttendanceDetailModal({
                     <span className={timeTextStyle}>
                       {row.checked_at
                         ? format(new Date(row.checked_at), 'HH:mm', { locale: ko })
-                        : '\u2014'}
+                        : '—'}
                     </span>
                     <button
                       type="button"
                       className={linkBtnStyle}
-                      onClick={() => copyText(urlForStudent(row))}
+                      onClick={() => void detailSession.copyText(detailSession.urlForStudent(row))}
                     >
-                      {'\uB9C1\uD06C'}
+                      링크
                     </button>
                     <AttendanceStatusButtons
                       status={row.status}
-                      disabled={patching === row.student_id}
-                      onChange={(next) => onStatusChange(row.student_id, next)}
+                      disabled={detailSession.patching === row.student_id}
+                      onChange={(next) => void detailSession.onStatusChange(row.student_id, next)}
                     />
                   </div>
                 </div>
@@ -324,7 +226,7 @@ export default function AttendanceDetailModal({
             </div>
 
             <button type="button" className={endBtnStyle} onClick={onRequestEnd}>
-              {'\uCD9C\uACB0 \uC885\uB8CC\uD558\uAE30'}
+              출결 종료하기
             </button>
           </>
         )}

@@ -1,6 +1,6 @@
 import axiosInstance from '@/lib/api/axiosInstance'
 import { setCookie, deleteCookie, getCookie } from 'cookies-next'
-import { useUserStore } from '@/stores/userStore'
+import type { User } from '@/types/user'
 
 interface LoginRequest {
   email: string
@@ -21,12 +21,7 @@ interface AuthTokens {
 interface LoginResponse {
   success: boolean
   data: AuthTokens & {
-    user: {
-      id: number
-      email: string
-      name: string
-      created_at: string
-    }
+    user: User
   }
 }
 
@@ -35,16 +30,9 @@ interface RefreshResponse {
   data: AuthTokens
 }
 
-interface UserDto {
-  id: number
-  email: string
-  name: string
-  created_at: string
-}
-
 interface MeResponse {
   success: boolean
-  data: UserDto
+  data: User
 }
 
 interface UpdateMeRequest {
@@ -55,7 +43,7 @@ interface UpdateMeRequest {
 
 interface UpdateMeResponse {
   success: boolean
-  data: UserDto
+  data: User
 }
 
 interface ChangePasswordRequest {
@@ -79,11 +67,11 @@ const clearTokens = () => {
   localStorage.removeItem('accessToken')
 }
 
+/** HTTP + token helpers only — callers own Zustand user state. */
 export const auth = {
   async login({ email, password }: LoginRequest) {
     const { data } = await axiosInstance.post<LoginResponse>('/auth/login', { email, password })
     setTokens(data.data.access_token, data.data.refresh_token)
-    useUserStore.getState().setUser(data.data.user) // 추가
     return data.data.user
   },
 
@@ -94,7 +82,6 @@ export const auth = {
       name,
     })
     setTokens(data.data.access_token, data.data.refresh_token)
-    useUserStore.getState().setUser(data.data.user)
     return data.data.user
   },
 
@@ -104,8 +91,6 @@ export const auth = {
       await axiosInstance.post('/auth/logout', { refresh_token: refreshToken })
     } finally {
       clearTokens()
-      useUserStore.getState().setUser(null)
-      window.location.href = '/login'
     }
   },
 
@@ -125,7 +110,6 @@ export const auth = {
 
   async updateMe(payload: UpdateMeRequest) {
     const { data } = await axiosInstance.patch<UpdateMeResponse>('/auth/me', payload)
-    useUserStore.getState().setUser(data.data)
     return data.data
   },
 
@@ -136,8 +120,9 @@ export const auth = {
   async withdraw(payload: WithdrawRequest) {
     await axiosInstance.delete('/auth/withdraw', { data: payload })
     clearTokens()
-    useUserStore.getState().setUser(null)
   },
 }
+
+export const authService = auth
 
 export { setTokens, clearTokens }

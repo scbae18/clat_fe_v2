@@ -1,11 +1,7 @@
 import axiosInstance from '@/lib/api/axiosInstance'
 import type { Student, StudentDetail } from '@/types/student'
 
-export interface StudentClass {
-  id: number
-  name: string
-  academy_name?: string
-}
+export type { StudentClass } from '@/types/student'
 
 export interface CreateStudentDto {
   name: string

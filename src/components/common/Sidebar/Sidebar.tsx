@@ -3,9 +3,9 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { auth } from '@/services/auth'
 import { useUserStore } from '@/stores/userStore'
 import { useUiStore } from '@/stores/uiStore'
+import { useLogout } from '@/hooks/useLogout'
 import {
   sidebarStyle,
   sidebarTopStyle,
@@ -22,7 +22,7 @@ import {
   userNameStyle,
   userEmailStyle,
 } from './Sidebar.css'
-import LogoutConfirmModal from './_components/LogoutConfirmModal'
+import ConfirmModal from '@/components/common/ConfirmModal'
 import HomeIcon from '@/assets/icons/icon-home.svg'
 import EditIcon from '@/assets/icons/icon-edit.svg'
 import UsersIcon from '@/assets/icons/icon-users.svg'
@@ -54,6 +54,7 @@ export default function Sidebar() {
   const user = useUserStore((s) => s.user)
   const collapsed = useUiStore((s) => s.sidebarCollapsed)
   const toggleSidebar = useUiStore((s) => s.toggleSidebar)
+  const logout = useLogout()
 
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
 
@@ -120,12 +121,16 @@ export default function Sidebar() {
         </button>
       </nav>
 
-      <LogoutConfirmModal
+      <ConfirmModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
         onConfirm={async () => {
-          await auth.logout()
+          await logout()
         }}
+        title="로그아웃"
+        descriptions={['로그아웃 하시겠습니까?']}
+        confirmLabel="로그아웃"
+        confirmVariant="danger"
       />
     </aside>
   )

@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
+import { use, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Text from '@/components/common/Text'
 import Button from '@/components/common/Button'
@@ -30,25 +30,19 @@ import useLessonDetail from '@/hooks/useLessonDetail'
 import useDisclosure from '@/hooks/useDisclosure'
 import { lessonService } from '@/services/lesson'
 import { useToastStore } from '@/stores/toastStore'
-import {
-  useAttendanceSessionStore,
-  ATTENDANCE_SESSION_ENDED_EVENT,
-} from '@/stores/attendanceSessionStore'
-import { attendanceService } from '@/services/attendance'
-import { resolveStudentCheckLinks } from '@/lib/attendanceUrls'
 import AttendanceStartModal from '@/components/attendance/AttendanceStartModal'
 import type { LessonItemDetail } from '@/services/lesson'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { markLessonListNeedsRefresh } from '@/lib/lessonListRefresh'
-
-/** 헤더 「출결 시작하기」 버튼만 프론트에서 비활성 (테이블 출결 선택은 유지) */
-const LOCK_ATTENDANCE_START_BUTTON = true
+import { useQueryClient } from '@tanstack/react-query'
+import { invalidateLessonLists } from '@/lib/queryKeys'
+import { useLessonAttendanceOnDetail } from '@/hooks/lesson/useLessonAttendanceOnDetail'
 
 export default function LessonDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const lessonId = Number(id)
   const router = useRouter()
+  const queryClient = useQueryClient()
   const addToast = useToastStore((s) => s.addToast)
 
   const {
@@ -60,12 +54,12 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     updateStudents,
     flushPendingStudentCellSave,
     alimtalkSendModal,
+    openAlimtalkSendModal,
     inputCount,
     isLoading,
     isAutoSaving,
     hasUnsavedChanges,
     saveDirtyChanges,
-    ensureSavedForAlimtalk,
     handleExcelDownload,
     refetch,
     refetchAfterAttendanceEnd,
@@ -77,58 +71,23 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
 
   const templateModal = useDisclosure()
   const templateConfirmModal = useDisclosure()
-  const attendanceStartModal = useDisclosure()
   const removeItemConfirmModal = useDisclosure()
   const [pendingTemplateId, setPendingTemplateId] = useState<number | null>(null)
   const [removeTarget, setRemoveTarget] = useState<LessonItemDetail | null>(null)
 
-  const activeAttendance = useAttendanceSessionStore((s) => s.active)
-  const setActiveAttendance = useAttendanceSessionStore((s) => s.setActive)
-  const bumpAttendanceDetail = useAttendanceSessionStore((s) => s.bumpAttendanceDetail)
-
-  useEffect(() => {
-    const onEnded = (e: Event) => {
-      const ce = e as CustomEvent<{ lessonRecordId: number }>
-      if (ce.detail?.lessonRecordId === lessonId) refetchAfterAttendanceEnd()
-    }
-    window.addEventListener(ATTENDANCE_SESSION_ENDED_EVENT, onEnded)
-    return () => window.removeEventListener(ATTENDANCE_SESSION_ENDED_EVENT, onEnded)
-  }, [lessonId, refetchAfterAttendanceEnd])
-
-  useEffect(() => {
-    if (!lessonId || !lesson || error === 'TEMPLATE_NOT_FOUND') return
-    attendanceService
-      .getSessionByLesson(lessonId)
-      .then((r) => {
-        if (r.session_id && r.is_active !== false && r.expires_at) {
-          setActiveAttendance({
-            sessionId: r.session_id,
-            lessonRecordId: lessonId,
-            className: lesson.class_name,
-            code: r.code ?? '',
-            expiresAt: r.expires_at,
-          })
-        } else {
-          const cur = useAttendanceSessionStore.getState().active
-          if (cur?.lessonRecordId === lessonId) setActiveAttendance(null)
-        }
-      })
-      .catch(() => {})
-  }, [lessonId, lesson, error, setActiveAttendance])
-
-  useEffect(() => {
-    const cur = useAttendanceSessionStore.getState().active
-    if (!cur || cur.lessonRecordId !== lessonId || !cur.sessionId) return
-    if (cur.studentLinks && cur.studentLinks.length > 0) return
-    if (students.length === 0) return
-    setActiveAttendance({
-      ...cur,
-      studentLinks: resolveStudentCheckLinks(
-        cur.sessionId,
-        students.map((s) => ({ id: s.id, name: s.name }))
-      ),
-    })
-  }, [lessonId, students, setActiveAttendance])
+  const {
+    hasAttendanceItem,
+    attendanceStartModal,
+    handleAttendanceButtonClick,
+    attendanceButtonLabel,
+    attendanceButtonVariant,
+  } = useLessonAttendanceOnDetail({
+    lessonId,
+    lesson,
+    error,
+    students,
+    refetchAfterAttendanceEnd,
+  })
 
   const handleTemplateSelect = (templateId: number) => {
     setPendingTemplateId(templateId)
@@ -158,7 +117,6 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
 
   if (isLoading || !lesson) return null
 
-  // 템플릿 삭제된 경우
   if (error === 'TEMPLATE_NOT_FOUND') {
     return (
       <div className={pageStyle}>
@@ -166,7 +124,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           <div className={headerLeftStyle}>
             <button
               onClick={() => {
-                markLessonListNeedsRefresh()
+                invalidateLessonLists(queryClient)
                 router.push('/lesson')
               }}
               className={backButtonStyle}
@@ -238,19 +196,13 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     }
   }
 
-  const hasAttendanceItem = lesson.items.some((i) => i.item_type === 'ATTENDANCE')
-  const attendanceInProgress =
-    activeAttendance?.lessonRecordId === lessonId && activeAttendance != null
-  const attendanceLocked = lesson.attendance_locked === true
-
   return (
     <div className={pageStyle}>
-      {/* 헤더 */}
       <div className={headerStyle}>
         <div className={headerLeftStyle}>
           <button
             onClick={() => {
-              markLessonListNeedsRefresh()
+              invalidateLessonLists(queryClient)
               router.push('/lesson')
             }}
             className={backButtonStyle}
@@ -273,32 +225,11 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
         <div className={headerButtonGroupStyle}>
           {hasAttendanceItem && (
             <Button
-              variant={attendanceInProgress || attendanceLocked ? 'secondary' : 'primary'}
+              variant={attendanceButtonVariant}
               size="sm"
-              disabled={
-                LOCK_ATTENDANCE_START_BUTTON && !attendanceInProgress && !attendanceLocked
-              }
-              onClick={() => {
-                if (attendanceInProgress) {
-                  bumpAttendanceDetail()
-                  return
-                }
-                if (attendanceLocked) {
-                  addToast({
-                    variant: 'warning',
-                    message: '이 수업은 이미 출결을 시작해서 다시 시작할 수 없어요.',
-                  })
-                  return
-                }
-                if (LOCK_ATTENDANCE_START_BUTTON) return
-                attendanceStartModal.open()
-              }}
+              onClick={handleAttendanceButtonClick}
             >
-              {attendanceInProgress
-                ? '출결 진행 중'
-                : attendanceLocked
-                  ? '출결 시작 불가 (이미 진행됨)'
-                  : '출결 시작하기'}
+              {attendanceButtonLabel}
             </Button>
           )}
           <Button
@@ -359,19 +290,15 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
         />
       </div>
 
-      {/* 하단 진행도 */}
       <div className={footerStyle}>
         <ProgressBar current={inputCount} total={students.length} />
         <Button
           variant="primary"
           size="sm"
           leftIcon={<MessageIcon width={20} height={20} />}
-          onClick={async () => {
-            const ok = await ensureSavedForAlimtalk()
-            if (ok) alimtalkSendModal.open()
-          }}
+          onClick={() => void openAlimtalkSendModal()}
         >
-          {'\uC54C\uB9BC\uD1A1 \uC804\uC1A1\uD558\uAE30'}
+          알림톡 전송하기
         </Button>
       </div>
 

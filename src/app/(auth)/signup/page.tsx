@@ -4,6 +4,7 @@ import { useRef, useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { auth } from '@/services/auth'
+import { useUserStore } from '@/stores/userStore'
 import {
   containerStyle,
   loginBoxStyle,
@@ -32,6 +33,7 @@ function SignupContent() {
   const passwordConfirmRef = useRef<HTMLInputElement>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const setUser = useUserStore((s) => s.setUser)
 
   const passwordsMismatch =
     passwordConfirm.length > 0 && password !== passwordConfirm
@@ -60,7 +62,8 @@ function SignupContent() {
 
     setIsLoading(true)
     try {
-      await auth.signup({ email: email.trim(), password, name: name.trim() })
+      const user = await auth.signup({ email: email.trim(), password, name: name.trim() })
+      setUser(user)
 
       const redirect = searchParams.get('redirect')
       const safeRedirect =

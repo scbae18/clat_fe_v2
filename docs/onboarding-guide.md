@@ -107,15 +107,12 @@ CLAT-FE/
 ├── docs/
 │   ├── onboarding-guide.md
 │   ├── claude-code-guide.md
-│   ├── architecture-layers.md
-│   └── migration-backlog-from-new.md
+│   └── architecture-layers.md
 ├── public/
 ├── .env.example
 ├── next.config.ts
 └── package.json
 ```
-
-Prototype UX source (monorepo, not this package): `prototypes/new/`.
 
 ---
 

@@ -36,8 +36,10 @@ lib/api/ (interceptors, cookies/tokens)
 | `studentDashboard.ts` | student dashboard (+ separate AI analysis) |
 | `parentDashboard.ts` | public parent token views |
 
-When adding a domain from the migration backlog, add a **service file first**, then the route.
+When adding a domain, add a **service file first**, then the route. Product FE keeps **server as source of truth** via `services/*`.
 
-## Prototype note
+## Server state (React Query)
 
-`prototypes/new` uses client seed stores. Product FE must keep **server as source of truth** via `services/*`.
+- `QueryClientProvider` wraps the app via `components/providers/AppProviders`.
+- Prefer `useQuery` / `useMutation` + `queryKeys` for **new or split** domains; do not mass-migrate existing pages.
+- Invalidate with `queryKeys` helpers (e.g. `invalidateLessonLists`) instead of ad-hoc session flags.

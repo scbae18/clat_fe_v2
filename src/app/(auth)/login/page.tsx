@@ -4,6 +4,7 @@ import { useRef, useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { auth } from '@/services/auth'
+import { useUserStore } from '@/stores/userStore'
 import {
   containerStyle,
   loginBoxStyle,
@@ -28,6 +29,7 @@ function LoginContent() {
   const passwordRef = useRef<HTMLInputElement>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const setUser = useUserStore((s) => s.setUser)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,7 +37,8 @@ function LoginContent() {
     setIsLoading(true)
 
     try {
-      await auth.login({ email, password })
+      const user = await auth.login({ email, password })
+      setUser(user)
 
       // redirect 파라미터가 상대경로인 경우에만 사용, 아니면 홈으로
       const redirect = searchParams.get('redirect')

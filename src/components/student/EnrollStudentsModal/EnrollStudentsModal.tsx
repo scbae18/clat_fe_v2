@@ -1,15 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import Text from '@/components/common/Text'
 import Input from '@/components/common/Input'
 import Button from '@/components/common/Button'
 import Modal from '@/components/common/Modal'
 import CheckIcon from '@/assets/icons/icon-check.svg'
 import { colors } from '@/styles/tokens/colors'
-import useToggleArray from '@/hooks/useToggleArray'
-import { studentService } from '@/services/student'
-import type { Student } from '@/types/student'
+import { useEnrollStudentsModal } from '@/hooks/student/useEnrollStudentsModal'
 import {
   titleStyle,
   searchWrapperStyle,
@@ -20,65 +17,52 @@ import {
   studentPhoneStyle,
   actionsStyle,
   emptyStyle,
-} from './AddStudentModal.css'
+} from './EnrollStudentsModal.css'
 
-interface AddStudentModalProps {
+export interface EnrollStudentsModalProps {
   isOpen: boolean
   onClose: () => void
   onConfirm: (studentIds: number[]) => void
   currentStudentIds?: number[]
 }
 
-export default function AddStudentModal({
+/** 기존 학생을 반에 추가 (등록 폼과 별개) */
+export default function EnrollStudentsModal({
   isOpen,
   onClose,
   onConfirm,
-  currentStudentIds = []
-}: AddStudentModalProps) {
-  const [search, setSearch] = useState('')
-  const [candidates, setCandidates] = useState<Student[]>([])
-  const { items: selectedIds, toggle: toggleSelect, reset: resetIds } = useToggleArray<number>()
-
-  useEffect(() => {
-    if (!isOpen) return
-    studentService.getStudents().then((res) => setCandidates(res.data))
-  }, [isOpen])
-
-  // filtered 수정 — 이미 소속된 학생 제외
-  const filtered = candidates
-    .filter((s) => !currentStudentIds.includes(s.id))
-    .filter((s) => s.name.includes(search) || s.phone.includes(search))
-    .sort((a, b) => a.name.localeCompare(b.name, 'ko'))
-
-  const handleClose = () => {
-    setSearch('')
-    resetIds()
-    onClose()
-  }
+  currentStudentIds = [],
+}: EnrollStudentsModalProps) {
+  const enroll = useEnrollStudentsModal({
+    isOpen,
+    currentStudentIds,
+    onClose,
+    onConfirm,
+  })
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="md">
+    <Modal isOpen={isOpen} onClose={enroll.handleClose} size="md">
       <div className={titleStyle}>
         <Text variant="headingLg">학생 추가</Text>
       </div>
       <div className={searchWrapperStyle}>
         <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={enroll.search}
+          onChange={(e) => enroll.setSearch(e.target.value)}
           placeholder="학생 이름 또는 전화번호 검색"
         />
       </div>
       <div className={studentListStyle}>
-        {filtered.length === 0 ? (
+        {enroll.filtered.length === 0 ? (
           <div className={emptyStyle}>검색 결과가 없어요</div>
         ) : (
-          filtered.map((student) => {
-            const isSelected = selectedIds.includes(student.id)
+          enroll.filtered.map((student) => {
+            const isSelected = enroll.selectedIds.includes(student.id)
             return (
               <div
                 key={student.id}
                 className={`${studentRowStyle}${isSelected ? ` ${studentRowSelectedStyle}` : ''}`}
-                onClick={() => toggleSelect(student.id)}
+                onClick={() => enroll.toggleSelect(student.id)}
               >
                 <CheckIcon
                   width={16}
@@ -93,20 +77,17 @@ export default function AddStudentModal({
         )}
       </div>
       <div className={actionsStyle}>
-        <Button variant="ghost" size="lg" fullWidth onClick={handleClose}>
+        <Button variant="ghost" size="lg" fullWidth onClick={enroll.handleClose}>
           취소
         </Button>
         <Button
           variant="primary"
           size="lg"
           fullWidth
-          disabled={selectedIds.length === 0}
-          onClick={() => {
-            onConfirm(selectedIds)
-            handleClose()
-          }}
+          disabled={!enroll.canSubmit}
+          onClick={enroll.handleConfirm}
         >
-          추가 {selectedIds.length > 0 && `(${selectedIds.length})`}
+          추가 {enroll.selectedIds.length > 0 && `(${enroll.selectedIds.length})`}
         </Button>
       </div>
     </Modal>

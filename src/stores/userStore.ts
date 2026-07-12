@@ -1,11 +1,7 @@
 import { create } from 'zustand'
+import type { User } from '@/types/user'
 
-interface User {
-  id: number
-  email: string
-  name: string
-  created_at: string
-}
+export type { User }
 
 interface UserStore {
   user: User | null

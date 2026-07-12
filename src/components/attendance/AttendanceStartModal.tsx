@@ -19,39 +19,28 @@ import {
   cancelBtnStyle,
   primaryBtnStyle,
 } from './AttendanceStartModal.css'
-import { attendanceService } from '@/services/attendance'
-import { useAttendanceSessionStore } from '@/stores/attendanceSessionStore'
-import { useToastStore } from '@/stores/toastStore'
 import TimerIllustration from './icons/TimerIllustration'
 import {
-  resolveStudentCheckLinks,
-  type ResolvedStudentCheckLink,
-} from '@/lib/attendanceUrls'
+  useStartAttendanceSession,
+  type AttendanceStudentRef,
+} from '@/hooks/attendance/useStartAttendanceSession'
 
 const PRESETS = [5, 10, 15, 20] as const
 
 const MSG = {
-  startOk: '\uCD9C\uACB0\uC774 \uC2DC\uC791\uB410\uC5B4\uC694.',
-  startFail: '\uCD9C\uACB0 \uC2DC\uC791\uC5D0 \uC2E4\uD328\uD588\uC5B4\uC694.',
-  title: '\uCD9C\uACB0\uC744 \uC2DC\uC791\uD560\uAC8C\uC694',
-  subtitleTail:
-    '\uBA85\uC5D0\uAC8C \uC54C\uB9BC\uD1A1\uC774 \uBC1C\uC1A1\uB418\uACE0 \uCD9C\uACB0\uC774 \uC2DC\uC791\uB3FC\uC694.',
-  limit: '\uC81C\uD55C \uC2DC\uAC04',
-  min: '\uBD84',
-  direct: '\uC9C1\uC811 \uC785\uB825',
-  directPh: '\uBD84 \uB2E8\uC704 \uC22B\uC790',
-  li1:
-    '\uC2DC\uAC04 \uCD08\uACFC \uC2DC \uBBF8\uD655\uC778 \uD559\uC0DD\uC740 \uC790\uB3D9\uC73C\uB85C \uACB0\uC11D \uCC98\uB9AC\uB3FC\uC694.',
-  li2:
-    '\uCD9C\uACB0 \uD6C4 \uC218\uC5C5 \uC785\uB825 \uD654\uBA74\uC5D0\uC11C \uC9C1\uC811 \uC218\uC815\uD560 \uC218 \uC788\uC5B4\uC694.',
-  cancel: '\uCDE8\uC18C',
-  startBtn: '\uCD9C\uACB0 \uC2DC\uC791',
+  title: '출결을 시작할까요',
+  subtitleTail: '명에게 알림톡이 발송되고 출결이 시작돼요.',
+  limit: '제한 시간',
+  min: '분',
+  direct: '직접 입력',
+  directPh: '분 단위 숫자',
+  li1: '시간 초과 시 미확인 학생은 자동으로 결석 처리돼요.',
+  li2: '출결 후 수업 입력 화면에서 직접 수정할 수 있어요.',
+  cancel: '취소',
+  startBtn: '출결 시작',
 } as const
 
-export interface AttendanceStudentRef {
-  id: number
-  name: string
-}
+export type { AttendanceStudentRef }
 
 export interface AttendanceStartModalProps {
   isOpen: boolean
@@ -72,13 +61,6 @@ export default function AttendanceStartModal({
 }: AttendanceStartModalProps) {
   const [preset, setPreset] = useState<number | 'direct'>(15)
   const [directVal, setDirectVal] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-
-  const setActive = useAttendanceSessionStore((s) => s.setActive)
-  const addToast = useToastStore((s) => s.addToast)
-
-  const effectiveMinutes =
-    preset === 'direct' ? Math.max(1, Math.floor(Number(directVal)) || 1) : preset
 
   const resetAndClose = () => {
     setPreset(15)
@@ -86,35 +68,15 @@ export default function AttendanceStartModal({
     onClose()
   }
 
-  const handleStart = async () => {
-    setSubmitting(true)
-    try {
-      const res = await attendanceService.createSession({
-        lesson_record_id: lessonRecordId,
-        duration_minutes: effectiveMinutes,
-      })
-      if (!res.session_id || !res.expires_at) throw new Error('INVALID_SESSION')
-      const studentLinks = resolveStudentCheckLinks(
-        res.session_id,
-        students,
-        res.student_links
-      )
-      setActive({
-        sessionId: res.session_id,
-        lessonRecordId,
-        className,
-        code: res.code,
-        expiresAt: res.expires_at,
-        studentLinks,
-      })
-      addToast({ variant: 'success', message: MSG.startOk })
-      resetAndClose()
-    } catch {
-      addToast({ variant: 'error', message: MSG.startFail })
-    } finally {
-      setSubmitting(false)
-    }
-  }
+  const { start, submitting } = useStartAttendanceSession({
+    lessonRecordId,
+    className,
+    students,
+    onStarted: resetAndClose,
+  })
+
+  const effectiveMinutes =
+    preset === 'direct' ? Math.max(1, Math.floor(Number(directVal)) || 1) : preset
 
   return (
     <Modal isOpen={isOpen} onClose={resetAndClose} size="md">
@@ -178,10 +140,10 @@ export default function AttendanceStartModal({
           <button
             type="button"
             className={`${actionHalfStyle} ${primaryBtnStyle}`}
-            onClick={handleStart}
+            onClick={() => void start(effectiveMinutes)}
             disabled={submitting}
           >
-            {MSG.startBtn} {'\u00B7'} {effectiveMinutes}
+            {MSG.startBtn} · {effectiveMinutes}
             {MSG.min}
           </button>
         </div>

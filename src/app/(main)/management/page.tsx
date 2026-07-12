@@ -30,7 +30,7 @@ import StudentNameSearchBar, {
   emptyStateStyle,
 } from '@/components/common/StudentNameSearchBar'
 import UsersIcon from '@/assets/icons/icon-users.svg'
-import AddStudentFormModal from './_components/AddStudentFormModal/AddStudentFormModal'
+import AddStudentFormModal from '@/components/student/AddStudentFormModal/AddStudentFormModal'
 import BulkUploadModal from './_components/BulkUploadModal/BulkUploadModal'
 import ConfirmModal from '@/components/common/ConfirmModal'
 import { studentService } from '@/services/student'

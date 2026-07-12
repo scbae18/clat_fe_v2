@@ -11,7 +11,8 @@ import type { LessonItemDetail } from '@/services/lesson'
 import type { LessonStudent } from '@/types/lessonStudent'
 import { isAxiosError } from '@/lib/api/http'
 import { lessonService, type LessonPreviewRow } from '@/services/lesson'
-import { markLessonListNeedsRefresh } from '@/lib/lessonListRefresh'
+import { useQueryClient } from '@tanstack/react-query'
+import { invalidateLessonLists } from '@/lib/queryKeys'
 import { useToastStore } from '@/stores/toastStore'
 import * as styles from './AlimtalkSendModal.css'
 
@@ -48,6 +49,7 @@ export default function AlimtalkSendModal({
   students,
   onSaveMessageOrder,
 }: AlimtalkSendModalProps) {
+  const queryClient = useQueryClient()
   const addToast = useToastStore((s) => s.addToast)
   const messageOrderModal = useDisclosure()
   const [rows, setRows] = useState<LessonPreviewRow[]>([])
@@ -148,7 +150,7 @@ export default function AlimtalkSendModal({
         message: `\uBCF4\uB0C8\uC5B4\uC694. (${mode} \u00B7 \uC131\uACF5 ${result.success_count}\uAC74 / \uC2E4\uD328 ${result.fail_count}\uAC74)`,
       })
       if (result.success_count > 0) {
-        markLessonListNeedsRefresh()
+        invalidateLessonLists(queryClient)
       }
       setIsClosing(true)
     } catch (err) {

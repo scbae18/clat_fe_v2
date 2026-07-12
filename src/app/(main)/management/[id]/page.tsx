@@ -13,7 +13,7 @@ import { sectionWrapperStyle } from './_components/DangerSection/DangerSection.c
 import ArrowLeftIcon from '@/assets/icons/icon-arrow-left.svg'
 import EditIcon from '@/assets/icons/icon-edit.svg'
 import PlusIcon from '@/assets/icons/icon-plus.svg'
-import AddStudentModal from './_components/AddStudentModal/AddStudentModal'
+import EnrollStudentsModal from '@/components/student/EnrollStudentsModal/EnrollStudentsModal'
 import ConfirmModal from '@/components/common/ConfirmModal'
 import ClassFormModal from '../_components/ClassFormModal/ClassFormModal'
 import { classService, type ClassDetail } from '@/services/class'
@@ -168,7 +168,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
           >
             학생 등록
           </Button>
-          <AddStudentModal
+          <EnrollStudentsModal
             isOpen={addStudent.isOpen}
             onClose={addStudent.close}
             currentStudentIds={students.map((s) => s.id)}

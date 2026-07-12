@@ -6,7 +6,7 @@ import { useToastStore } from '@/stores/toastStore'
 import Text from '@/components/common/Text'
 import AddCard from '@/components/common/AddCard'
 import TemplateCard from './_components/TemplateCard/TemplateCard'
-import DeleteConfirmModal from './_components/DeleteConfirmModal/DeleteConfirmModal'
+import ConfirmModal from '@/components/common/ConfirmModal'
 import PlusCircleIcon from '@/assets/icons/icon-plus-circle.svg'
 import { gridStyle } from './template.css'
 import { templateService, type Template } from '@/services/template'
@@ -81,12 +81,17 @@ export default function TemplatePage() {
           onClick={() => router.push('/template/new')}
         />
       </div>
-      <DeleteConfirmModal
+      <ConfirmModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
-        templateName={deleteTarget?.title ?? ''}
-        classCount={deleteTarget?.classCount ?? 0}
+        title={`'${deleteTarget?.title ?? ''}'을 삭제할까요?`}
+        descriptions={[
+          `현재 ${deleteTarget?.classCount ?? 0}개의 반에서 사용하고 있어요.`,
+          `삭제 후에는 복구할 수 없어요.`,
+        ]}
+        confirmLabel="삭제"
+        confirmVariant="danger"
       />
     </>
   )
