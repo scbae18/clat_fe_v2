@@ -42,38 +42,6 @@ export const INITIAL_COMMON_ITEMS: TemplateItem[] = [
     category: 'common',
     itemType: 'inline',
   },
-  {
-    id: 'c-2',
-    label: '다음 시간 범위',
-    isActive: true,
-    isInMessage: true,
-    category: 'common',
-    itemType: 'inline',
-  },
-  {
-    id: 'c-3',
-    label: '클리닉 안내',
-    isActive: true,
-    isInMessage: true,
-    category: 'common',
-    itemType: 'inline',
-  },
-  {
-    id: 'c-4',
-    label: '이번 주 과제',
-    isActive: true,
-    isInMessage: true,
-    category: 'common',
-    itemType: 'inline',
-  },
-  {
-    id: 'c-5',
-    label: '다음 시험 일정',
-    isActive: true,
-    isInMessage: true,
-    category: 'common',
-    itemType: 'inline',
-  },
 ]
 
 export const INITIAL_INDIVIDUAL_ITEMS: TemplateItem[] = [
@@ -84,21 +52,5 @@ export const INITIAL_INDIVIDUAL_ITEMS: TemplateItem[] = [
     isInMessage: true,
     category: 'individual',
     itemType: 'number',
-  },
-  {
-    id: 'i-2',
-    label: '과제',
-    isActive: true,
-    isInMessage: true,
-    category: 'individual',
-    itemType: 'completion',
-  },
-  {
-    id: 'i-3',
-    label: '오답노트',
-    isActive: true,
-    isInMessage: true,
-    category: 'individual',
-    itemType: 'completion',
   },
 ]
