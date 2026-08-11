@@ -1,12 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import Button from '@/components/common/Button'
 import useToast from '@/hooks/useToast'
 import { alimtalkService, type AlimtalkDeliveryMode } from '@/services/alimtalk'
 import InfoIcon from '@/assets/icons/icon-info.svg'
+import { AlimtalkTabs } from './_components/AlimtalkTabs'
 import * as styles from './alimtalkSettings.css'
 
 const DEFAULT_INTRO =
@@ -40,7 +39,6 @@ function insertAtCursor(el: HTMLTextAreaElement, text: string) {
 }
 
 export default function AlimtalkSettingsPage() {
-  const pathname = usePathname()
   const { success, error } = useToast()
   const introRef = useRef<HTMLTextAreaElement>(null)
   const outroRef = useRef<HTMLTextAreaElement>(null)
@@ -124,20 +122,7 @@ export default function AlimtalkSettingsPage() {
         </div>
       )}
 
-      <div className={styles.tabRow}>
-        <Link
-          href="/alimtalk"
-          className={`${styles.tabLink} ${pathname === '/alimtalk' || pathname === '/alimtalk/' ? styles.tabActive : styles.tabInactive}`}
-        >
-          {'\uBB38\uC790 \uC124\uC815'}
-        </Link>
-        <Link
-          href="/alimtalk/history"
-          className={`${styles.tabLink} ${pathname.startsWith('/alimtalk/history') ? styles.tabActive : styles.tabInactive}`}
-        >
-          {'\uBC1C\uC1A1 \uB0B4\uC5ED'}
-        </Link>
-      </div>
+      <AlimtalkTabs />
 
       <div className={styles.columns}>
         <div className={styles.formColumn}>

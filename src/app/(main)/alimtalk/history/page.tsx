@@ -1,35 +1,20 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import * as baseStyles from '../alimtalkSettings.css'
 import * as styles from './history.css'
+import { AlimtalkTabs } from '../_components/AlimtalkTabs'
 import { useAlimtalkBatches } from './_hooks/useAlimtalkBatches'
 import { HistoryFilterChips } from './_components/HistoryFilterChips'
 import { HistoryBatchTable } from './_components/HistoryBatchTable'
 
 export default function AlimtalkHistoryPage() {
-  const pathname = usePathname()
   const batches = useAlimtalkBatches()
 
   return (
     <div className={baseStyles.pageRoot}>
       <h1 className={baseStyles.pageTitle}>알림톡</h1>
 
-      <div className={baseStyles.tabRow}>
-        <Link
-          href="/alimtalk"
-          className={`${baseStyles.tabLink} ${pathname === '/alimtalk' || pathname === '/alimtalk/' ? baseStyles.tabActive : baseStyles.tabInactive}`}
-        >
-          문자 설정
-        </Link>
-        <Link
-          href="/alimtalk/history"
-          className={`${baseStyles.tabLink} ${pathname.startsWith('/alimtalk/history') ? baseStyles.tabActive : baseStyles.tabInactive}`}
-        >
-          발송 내역
-        </Link>
-      </div>
+      <AlimtalkTabs />
 
       <HistoryFilterChips
         chip={batches.chip}

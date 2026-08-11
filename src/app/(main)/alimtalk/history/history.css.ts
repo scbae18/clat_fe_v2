@@ -149,6 +149,17 @@ export const badgeTypeAtt = style({
   fontWeight: 600,
 })
 
+export const badgeTypeBroadcast = style({
+  display: 'inline-flex',
+  padding: '2px 8px',
+  borderRadius: '6px',
+  border: `1px solid ${colors.warning200}`,
+  backgroundColor: colors.warning50,
+  color: colors.gray700,
+  fontSize: '14px',
+  fontWeight: 600,
+})
+
 export const templateTag = style({
   display: 'inline-flex',
   padding: '2px 8px',

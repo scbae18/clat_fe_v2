@@ -23,7 +23,9 @@ function unwrapAlimtalkSettings(res: { data?: unknown }): AlimtalkSettings {
   return inner as AlimtalkSettings
 }
 
-export type AlimtalkBatchType = 'LESSON' | 'ATTENDANCE'
+export type AlimtalkBatchType = 'LESSON' | 'ATTENDANCE' | 'BROADCAST'
+
+export type BroadcastChannel = 'STUDENT' | 'PARENT' | 'BOTH'
 
 export interface AlimtalkBatchListItem {
   batch_id: number
@@ -35,6 +37,7 @@ export interface AlimtalkBatchListItem {
   fail_count: number
   lesson_record_id: number | null
   attendance_session_id: number | null
+  body_text?: string | null
   class_name: string | null
   template_name: string | null
 }
@@ -69,7 +72,16 @@ export interface AlimtalkBatchDetail {
   fail_count: number
   lesson_record_id: number | null
   attendance_session_id: number | null
+  body_text?: string | null
   messages: AlimtalkBatchMessage[]
+}
+
+export interface BroadcastSendResult {
+  batch_id: number
+  total_count: number
+  success_count: number
+  fail_count: number
+  delivery_mode: AlimtalkDeliveryMode
 }
 
 function unwrapBatchDetail(res: { data?: unknown }): AlimtalkBatchDetail {
@@ -112,5 +124,18 @@ export const alimtalkService = {
   async getBatchDetail(batchId: number): Promise<AlimtalkBatchDetail> {
     const { data } = await axiosInstance.get(`/alimtalk/batches/${batchId}`)
     return unwrapBatchDetail(data)
+  },
+
+  async sendBroadcast(dto: {
+    student_ids: number[]
+    channel: BroadcastChannel
+    body: string
+  }): Promise<BroadcastSendResult> {
+    const { data } = await axiosInstance.post('/alimtalk/broadcast', dto)
+    const inner = data.data as BroadcastSendResult | { data: BroadcastSendResult } | undefined
+    if (inner && typeof inner === 'object' && 'data' in inner && inner.data) {
+      return inner.data as BroadcastSendResult
+    }
+    return inner as BroadcastSendResult
   },
 }

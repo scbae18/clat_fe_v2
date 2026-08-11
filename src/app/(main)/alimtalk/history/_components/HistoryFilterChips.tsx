@@ -9,6 +9,7 @@ type Stats = {
   fail: number
   lesson: number
   att: number
+  broadcast: number
 }
 
 type HistoryFilterChipsProps = {
@@ -59,6 +60,14 @@ export function HistoryFilterChips({ chip, onChipChange, stats }: HistoryFilterC
       >
         출결 문자
         <span>{stats.att}</span>
+      </button>
+      <button
+        type="button"
+        className={`${styles.chip} ${chip === 'BROADCAST' ? styles.chipActive : styles.chipInactive}`}
+        onClick={() => onChipChange('BROADCAST')}
+      >
+        전체 공지
+        <span>{stats.broadcast}</span>
       </button>
     </div>
   )

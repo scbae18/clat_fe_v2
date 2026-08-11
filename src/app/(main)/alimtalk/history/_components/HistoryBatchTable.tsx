@@ -83,10 +83,14 @@ export function HistoryBatchTable({
                   <td className={styles.td}>
                     <span
                       className={
-                        r.type === 'LESSON' ? styles.badgeTypeLesson : styles.badgeTypeAtt
+                        r.type === 'LESSON'
+                          ? styles.badgeTypeLesson
+                          : r.type === 'ATTENDANCE'
+                            ? styles.badgeTypeAtt
+                            : styles.badgeTypeBroadcast
                       }
                     >
-                      {r.type === 'LESSON' ? '수업' : '출결'}
+                      {r.type === 'LESSON' ? '수업' : r.type === 'ATTENDANCE' ? '출결' : '공지'}
                     </span>
                   </td>
                   <td className={styles.td}>

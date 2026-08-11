@@ -2,7 +2,7 @@ import type { AlimtalkBatchMessage } from '@/services/alimtalk'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
-export type ChipFilter = 'all' | 'complete' | 'fail' | 'LESSON' | 'ATTENDANCE'
+export type ChipFilter = 'all' | 'complete' | 'fail' | 'LESSON' | 'ATTENDANCE' | 'BROADCAST'
 
 export type GroupedStudentMessages = {
   name: string

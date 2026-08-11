@@ -59,7 +59,8 @@ export function useAlimtalkBatches() {
     const fail = rows.filter((r) => r.fail_count > 0).length
     const lesson = rows.filter((r) => r.type === 'LESSON').length
     const att = rows.filter((r) => r.type === 'ATTENDANCE').length
-    return { complete, fail, lesson, att, total: meta?.total ?? rows.length }
+    const broadcast = rows.filter((r) => r.type === 'BROADCAST').length
+    return { complete, fail, lesson, att, broadcast, total: meta?.total ?? rows.length }
   }, [rows, meta])
 
   const filtered = useMemo(() => {
@@ -68,6 +69,7 @@ export function useAlimtalkBatches() {
       if (chip === 'fail' && r.fail_count === 0) return false
       if (chip === 'LESSON' && r.type !== 'LESSON') return false
       if (chip === 'ATTENDANCE' && r.type !== 'ATTENDANCE') return false
+      if (chip === 'BROADCAST' && r.type !== 'BROADCAST') return false
       return true
     })
   }, [rows, chip])
