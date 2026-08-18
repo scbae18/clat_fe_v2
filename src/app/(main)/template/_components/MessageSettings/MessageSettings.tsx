@@ -29,21 +29,26 @@ import {
   dragDotStyle,
   rowLabelStyle,
   itemTypeBadgeStyle,
+  recipientGroupStyle,
+  recipientButtonStyle,
 } from './MessageSettings.css'
 
 const ITEM_TYPE_LABELS: Record<string, string> = {
-  number: '\uC810\uC218\uD615',
+  number: '점수형',
   text: '텍스트형',
   choice: '선택형',
   completion: '완료형',
   inline: '텍스트형',
 }
 
+type RecipientChannel = 'parent' | 'student'
+
 interface MessageSettingsProps {
   messageOrder: string[]
   allItemsMap: Map<string, TemplateItem>
   onToggle: (id: string) => void
   onReorder: (newOrder: string[]) => void
+  onRecipientToggle?: (id: string, channel: RecipientChannel) => void
   /** 수업 화면 등: 토글은 표시만 하고 순서만 변경 */
   toggleDisabled?: boolean
 }
@@ -51,6 +56,7 @@ interface MessageSettingsProps {
 interface SortableRowProps {
   item: TemplateItem
   onToggle: (id: string) => void
+  onRecipientToggle?: (id: string, channel: RecipientChannel) => void
   toggleDisabled?: boolean
 }
 
@@ -73,7 +79,33 @@ function DragHandle() {
   )
 }
 
-function SortableRow({ item, onToggle, toggleDisabled }: SortableRowProps) {
+function RecipientToggleButton({
+  label,
+  pressed,
+  disabled,
+  onChange,
+}: {
+  label: string
+  pressed: boolean
+  disabled?: boolean
+  onChange: () => void
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={pressed}
+      aria-label={label}
+      disabled={disabled}
+      data-pressed={pressed}
+      className={recipientButtonStyle}
+      onClick={disabled ? undefined : onChange}
+    >
+      {label}
+    </button>
+  )
+}
+
+function SortableRow({ item, onToggle, onRecipientToggle, toggleDisabled }: SortableRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
   })
@@ -82,6 +114,8 @@ function SortableRow({ item, onToggle, toggleDisabled }: SortableRowProps) {
     transform: CSS.Transform.toString(transform),
     transition,
   }
+
+  const recipientDisabled = toggleDisabled || !item.isInMessage
 
   return (
     <div
@@ -98,6 +132,22 @@ function SortableRow({ item, onToggle, toggleDisabled }: SortableRowProps) {
       />
       <span className={rowLabelStyle}>{item.label.replace(' *', '')}</span>
       <span className={itemTypeBadgeStyle}>{ITEM_TYPE_LABELS[item.itemType] ?? ''}</span>
+      {item.itemType !== 'attendance' && (
+        <div className={recipientGroupStyle}>
+          <RecipientToggleButton
+            label="학부모에게 전송"
+            pressed={item.sendToParent}
+            disabled={recipientDisabled}
+            onChange={() => onRecipientToggle?.(item.id, 'parent')}
+          />
+          <RecipientToggleButton
+            label="학생에게 전송"
+            pressed={item.sendToStudent}
+            disabled={recipientDisabled}
+            onChange={() => onRecipientToggle?.(item.id, 'student')}
+          />
+        </div>
+      )}
       <Toggle
         checked={item.isInMessage}
         onChange={() => onToggle(item.id)}
@@ -112,6 +162,7 @@ export default function MessageSettings({
   allItemsMap,
   onToggle,
   onReorder,
+  onRecipientToggle,
   toggleDisabled,
 }: MessageSettingsProps) {
   const sensors = useSensors(
@@ -147,6 +198,7 @@ export default function MessageSettings({
                   key={id}
                   item={item}
                   onToggle={onToggle}
+                  onRecipientToggle={onRecipientToggle}
                   toggleDisabled={toggleDisabled}
                 />
               )

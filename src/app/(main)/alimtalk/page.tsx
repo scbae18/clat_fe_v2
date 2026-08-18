@@ -6,13 +6,9 @@ import useToast from '@/hooks/useToast'
 import { alimtalkService, type AlimtalkDeliveryMode } from '@/services/alimtalk'
 import InfoIcon from '@/assets/icons/icon-info.svg'
 import { AlimtalkTabs } from './_components/AlimtalkTabs'
+import { LESSON_ALIMTALK_FRAME_HEADER } from '@/lib/lessonAlimtalkFrame'
+import LessonAlimtalkFramePreview from '@/components/message/LessonAlimtalkFramePreview'
 import * as styles from './alimtalkSettings.css'
-
-const DEFAULT_INTRO =
-  '\uC548\uB155\uD558\uC138\uC694, {\uD559\uC6D0\uBA85} {\uAC15\uC0AC\uBA85}\uC785\uB2C8\uB2E4.\n' +
-  '{\uD559\uC0DD\uC774\uB984}\uC758 \uC218\uC5C5 \uACB0\uACFC\uB97C \uC548\uB0B4\uB4DC\uB9BD\uB2C8\uB2E4.'
-
-const DEFAULT_OUTRO = '\uAC10\uC0AC\uD569\uB2C8\uB2E4.\n{\uD559\uC6D0\uBA85} \uB4DC\uB9BC.'
 
 const PREVIEW_MIDDLE =
   '\u25A0 \uC624\uB298\uC758 \uD559\uC2B5 \uB0B4\uC6A9: {\uB0B4\uC6A9}\n' +
@@ -55,8 +51,8 @@ export default function AlimtalkSettingsPage() {
       try {
         const s = await alimtalkService.getSettings()
         if (cancelled) return
-        setIntro(s.intro_text?.trim() ? s.intro_text : DEFAULT_INTRO)
-        setOutro(s.outro_text?.trim() ? s.outro_text : DEFAULT_OUTRO)
+        setIntro(s.intro_text ?? '')
+        setOutro(s.outro_text ?? '')
         setDeliveryMode(s.delivery_mode)
       } catch {
         if (!cancelled) error('\uC124\uC815\uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC5B4\uC694.')
@@ -89,8 +85,8 @@ export default function AlimtalkSettingsPage() {
     setSaving(true)
     try {
       await alimtalkService.putSettings({
-        intro_text: intro,
-        outro_text: outro,
+        intro_text: intro.trim() || null,
+        outro_text: outro.trim() || null,
       })
       success('\uC800\uC7A5\uD588\uC5B4\uC694.')
     } catch {
@@ -100,9 +96,7 @@ export default function AlimtalkSettingsPage() {
     }
   }
 
-  const previewBlock = [intro.trim() || DEFAULT_INTRO, PREVIEW_MIDDLE, outro.trim() || DEFAULT_OUTRO].join(
-    '\n\n'
-  )
+  const previewBlock = [intro.trim(), PREVIEW_MIDDLE, outro.trim()].filter(Boolean).join('\n\n')
 
   if (loading) {
     return null
@@ -143,6 +137,7 @@ export default function AlimtalkSettingsPage() {
               value={intro}
               onChange={(e) => setIntro(e.target.value)}
               rows={4}
+              placeholder="비워 두면 문자에 넣지 않아요"
               aria-label={'\uC778\uD2B8\uB85C \uBB38\uAD6C'}
             />
             <div className={styles.varSectionLabel}>
@@ -171,6 +166,7 @@ export default function AlimtalkSettingsPage() {
               value={outro}
               onChange={(e) => setOutro(e.target.value)}
               rows={4}
+              placeholder="비워 두면 문자에 넣지 않아요"
               aria-label={'\uC544\uC6C3\uD2B8\uB85C \uBB38\uAD6C'}
             />
             <div className={styles.varSectionLabel}>
@@ -209,8 +205,11 @@ export default function AlimtalkSettingsPage() {
               <p className={styles.previewHeaderText}>{'\uC54C\uB9BC\uD1A1 \uC0C1\uC138 \uB3C4\uCC29'}</p>
             </div>
             <div className={styles.previewBubble}>
-              <p className={styles.previewBodyText}>{previewBlock}</p>
-              <div className={styles.previewCta}>{'\uD559\uC2B5 \uB300\uC2DC\uBCF4\uB4DC \uBCF4\uAE30'}</div>
+              <LessonAlimtalkFramePreview
+                header={LESSON_ALIMTALK_FRAME_HEADER}
+                body={previewBlock}
+                highlightVars
+              />
             </div>
             <p className={styles.previewTime}>{'\uC624\uD6C4 09:54'}</p>
           </div>

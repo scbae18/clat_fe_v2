@@ -25,6 +25,8 @@ export function lessonItemToTemplateItem(item: LessonItemDetail): TemplateItem {
     label: item.name,
     isActive: true,
     isInMessage: item.include_in_message || source === 'adhoc',
+    sendToParent: item.send_to_parent !== false,
+    sendToStudent: item.send_to_student !== false,
     locked: item.item_type === 'ATTENDANCE' || source === 'adhoc',
     category: item.is_common ? 'common' : 'individual',
     itemType: mapLessonItemType(item),

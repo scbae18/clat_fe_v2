@@ -41,6 +41,8 @@ export default function useTemplateEditor(initial: InitialData = {}) {
       label: '출결',
       isActive: true,
       isInMessage: true,
+      sendToParent: true,
+      sendToStudent: true,
       locked: true,
       category: 'individual',
       itemType: 'attendance',
@@ -71,6 +73,8 @@ export default function useTemplateEditor(initial: InitialData = {}) {
           item_type: ITEM_TYPE_MAP[item.itemType],
           is_common: item.category === 'common',
           include_in_message: item.isInMessage,
+          send_to_parent: item.sendToParent,
+          send_to_student: item.sendToStudent,
           sort_order: sortOrder >= 0 ? sortOrder : 999,
           options: item.choices ?? [],
         }
@@ -95,6 +99,8 @@ export default function useTemplateEditor(initial: InitialData = {}) {
       item_type: 'ATTENDANCE',
       is_common: false,
       include_in_message: true,
+      send_to_parent: true,
+      send_to_student: true,
       sort_order: attendanceSortOrder >= 0 ? attendanceSortOrder : 0,
       options: [],
     }
@@ -128,6 +134,8 @@ export default function useTemplateEditor(initial: InitialData = {}) {
       item_type: 'ATTENDANCE',
       is_common: false,
       include_in_message: true,
+      send_to_parent: true,
+      send_to_student: true,
       sort_order: attendanceSortOrder >= 0 ? attendanceSortOrder : 0,
       options: [],
     }
@@ -169,6 +177,8 @@ export default function useTemplateEditor(initial: InitialData = {}) {
         label: '',
         isActive: true,
         isInMessage: true,
+        sendToParent: true,
+        sendToStudent: true,
         category: 'common',
         itemType: 'inline',
       },
@@ -203,6 +213,8 @@ export default function useTemplateEditor(initial: InitialData = {}) {
         label,
         isActive: true,
         isInMessage: true,
+        sendToParent: true,
+        sendToStudent: true,
         category: 'individual',
         itemType: type as TemplateItem['itemType'],
         choices,
@@ -214,6 +226,19 @@ export default function useTemplateEditor(initial: InitialData = {}) {
   const handleMessagePreviewToggle = (id: string) => {
     const toggle = (prev: TemplateItem[]) =>
       prev.map((item) => (item.id === id ? { ...item, isInMessage: !item.isInMessage } : item))
+    setCommonItems(toggle)
+    setIndividualItems(toggle)
+  }
+
+  const handleRecipientToggle = (id: string, channel: 'parent' | 'student') => {
+    if (id === '__attendance__') return
+    const toggle = (prev: TemplateItem[]) =>
+      prev.map((item) => {
+        if (item.id !== id) return item
+        return channel === 'parent'
+          ? { ...item, sendToParent: !item.sendToParent }
+          : { ...item, sendToStudent: !item.sendToStudent }
+      })
     setCommonItems(toggle)
     setIndividualItems(toggle)
   }
@@ -240,6 +265,7 @@ export default function useTemplateEditor(initial: InitialData = {}) {
     handleDeleteIndividualItem,
     handleAddIndividualItem,
     handleMessagePreviewToggle,
+    handleRecipientToggle,
     handleMessageReorder,
   }
 }

@@ -14,6 +14,12 @@ import { lessonService, type LessonPreviewRow } from '@/services/lesson'
 import { useQueryClient } from '@tanstack/react-query'
 import { invalidateLessonLists } from '@/lib/queryKeys'
 import { useToastStore } from '@/stores/toastStore'
+import { useUserStore } from '@/stores/userStore'
+import LessonAlimtalkFramePreview from '@/components/message/LessonAlimtalkFramePreview'
+import {
+  fillLessonAlimtalkFrameHeader,
+  stripParentDashboardPreviewLine,
+} from '@/lib/lessonAlimtalkFrame'
 import * as styles from './AlimtalkSendModal.css'
 
 function maskPhone(phone: string): string {
@@ -51,6 +57,7 @@ export default function AlimtalkSendModal({
 }: AlimtalkSendModalProps) {
   const queryClient = useQueryClient()
   const addToast = useToastStore((s) => s.addToast)
+  const teacherName = useUserStore((s) => s.user?.name) ?? '강사명'
   const messageOrderModal = useDisclosure()
   const [rows, setRows] = useState<LessonPreviewRow[]>([])
   const [selected, setSelected] = useState<Set<number>>(new Set())
@@ -112,6 +119,14 @@ export default function AlimtalkSendModal({
   }
 
   const focused = rows.find((r) => r.student_id === focusId)
+  const frameHeader = focused
+    ? fillLessonAlimtalkFrameHeader({
+        academyName: lesson.academy_name?.trim() || '학원명',
+        teacherName,
+        studentName: focused.student_name,
+        lessonDate: lesson.lesson_date,
+      })
+    : ''
 
   const handleClose = () => {
     if (sending) return
@@ -299,14 +314,24 @@ export default function AlimtalkSendModal({
               <>
                 <div>
                   <div className={styles.previewSectionLabel}>{'\uD559\uC0DD\uC6A9'}</div>
-                  <div className={styles.previewBox}>{focused.message || '\u2014'}</div>
+                  <div className={styles.previewBox}>
+                    <LessonAlimtalkFramePreview
+                      header={frameHeader}
+                      body={focused.message || ''}
+                    />
+                  </div>
                 </div>
                 <div>
                   <div className={styles.previewSectionLabel}>{'\uD559\uBD80\uBAA8\uC6A9'}</div>
                   <div className={styles.previewBox}>
-                    {focused.parent_phone?.trim()
-                      ? focused.message_for_parent || '\u2014'
-                      : '\uD559\uBD80\uBAA8 \uC5F0\uB77D\uCC98\uAC00 \uC5C6\uC5B4 \uC774 \uCC44\uB110\uB85C\uB294 \uBC1C\uC1A1\uB418\uC9C0 \uC54A\uC544\uC694.'}
+                    {focused.parent_phone?.trim() ? (
+                      <LessonAlimtalkFramePreview
+                        header={frameHeader}
+                        body={stripParentDashboardPreviewLine(focused.message_for_parent || '')}
+                      />
+                    ) : (
+                      '\uD559\uBD80\uBAA8 \uC5F0\uB77D\uCC98\uAC00 \uC5C6\uC5B4 \uC774 \uCC44\uB110\uB85C\uB294 \uBC1C\uC1A1\uB418\uC9C0 \uC54A\uC544\uC694.'
+                    )}
                   </div>
                 </div>
               </>

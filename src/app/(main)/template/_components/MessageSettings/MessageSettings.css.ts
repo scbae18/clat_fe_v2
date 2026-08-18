@@ -21,9 +21,10 @@ export const rowStyle = style({
   gap: '8px',
   backgroundColor: colors.white,
   borderRadius: '8px',
-  height: '52px',
+  minHeight: '52px',
   padding: '12px',
   userSelect: 'none',
+  flexWrap: 'wrap',
 })
 
 export const rowDraggingStyle = style({
@@ -75,4 +76,51 @@ export const itemTypeBadgeStyle = style({
   color: colors.gray500,
   letterSpacing: '-0.03em',
   flexShrink: 0,
+})
+
+export const recipientGroupStyle = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  flexShrink: 0,
+})
+
+export const recipientButtonStyle = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '6px 10px',
+  border: 'none',
+  borderRadius: '8px',
+  cursor: 'pointer',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.titleSm.fontWeight,
+  letterSpacing: '-0.03em',
+  lineHeight: '140%',
+  whiteSpace: 'nowrap',
+  backgroundColor: colors.gray50,
+  color: colors.gray500,
+  transition: 'background-color 0.2s, color 0.2s',
+  selectors: {
+    '&:hover:not(:disabled)': {
+      backgroundColor: colors.gray75,
+    },
+    '&[data-pressed="true"]': {
+      backgroundColor: colors.primary100,
+      color: colors.primary500,
+    },
+    '&[data-pressed="true"]:hover:not(:disabled)': {
+      backgroundColor: colors.primary200,
+    },
+    '&:disabled': {
+      cursor: 'not-allowed',
+      backgroundColor: colors.gray50,
+      color: colors.gray200,
+    },
+    '&[data-pressed="true"]:disabled': {
+      backgroundColor: colors.primary50,
+      color: colors.primary300,
+    },
+  },
 })

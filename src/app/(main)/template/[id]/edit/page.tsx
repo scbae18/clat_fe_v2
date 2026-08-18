@@ -30,6 +30,8 @@ const ATTENDANCE_DISPLAY: TemplateItem = {
   label: '출결 *',
   isActive: true,
   isInMessage: true,
+  sendToParent: true,
+  sendToStudent: true,
   locked: true,
   category: 'individual',
   itemType: 'attendance',
@@ -97,6 +99,7 @@ function TemplateEditForm({ id, initialData }: { id: number; initialData: Editor
               messageOrder={editor.messageOrder}
               allItemsMap={editor.allItemsMap}
               onToggle={editor.handleMessagePreviewToggle}
+              onRecipientToggle={editor.handleRecipientToggle}
               onReorder={editor.handleMessageReorder}
             />
           </div>

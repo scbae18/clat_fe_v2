@@ -136,6 +136,9 @@ export const textareaBox = style({
       outline: `2px solid ${colors.primary200}`,
       outlineOffset: '1px',
     },
+    '&::placeholder': {
+      color: colors.gray300,
+    },
   },
 })
 
@@ -244,7 +247,22 @@ export const previewBodyText = style({
   lineHeight: 1.6,
   color: colors.gray900,
   whiteSpace: 'pre-wrap',
+  margin: '12px 0',
+})
+
+export const previewDefaultText = style({
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '14px',
+  fontWeight: 500,
+  lineHeight: 1.6,
+  color: colors.gray500,
+  whiteSpace: 'pre-wrap',
   margin: 0,
+})
+
+export const previewDefaultVar = style({
+  color: colors.primary400,
+  fontWeight: 600,
 })
 
 export const previewCta = style({

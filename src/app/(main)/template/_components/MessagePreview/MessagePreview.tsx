@@ -36,7 +36,10 @@ interface MessagePreviewProps {
 export default function MessagePreview({ messageOrder, allItemsMap }: MessagePreviewProps) {
   const activeItems = messageOrder
     .map((id) => allItemsMap.get(id))
-    .filter((item): item is TemplateItem => !!item && item.isActive && item.isInMessage)
+    .filter(
+      (item): item is TemplateItem =>
+        !!item && item.isActive && item.isInMessage && (item.sendToParent || item.sendToStudent),
+    )
 
   const today = formatDate(new Date())
   const user = useUserStore((s) => s.user)

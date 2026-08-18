@@ -26,6 +26,8 @@ const ATTENDANCE_DISPLAY: TemplateItem = {
   label: '출결 *',
   isActive: true,
   isInMessage: true,
+  sendToParent: true,
+  sendToStudent: true,
   locked: true,
   category: 'individual',
   itemType: 'attendance',
@@ -93,6 +95,7 @@ export default function TemplateNewPage() {
               messageOrder={editor.messageOrder}
               allItemsMap={editor.allItemsMap}
               onToggle={editor.handleMessagePreviewToggle}
+              onRecipientToggle={editor.handleRecipientToggle}
               onReorder={editor.handleMessageReorder}
             />
           </div>

@@ -25,6 +25,8 @@ export interface LessonItemDetail {
   item_type: 'TEXT' | 'NUMBER' | 'SELECT' | 'COMPLETE' | 'ATTENDANCE' | 'SCORE'
   is_common: boolean
   include_in_message: boolean
+  send_to_parent?: boolean
+  send_to_student?: boolean
   sort_order: number
   options?: { id: number; label: string; sort_order: number }[]
 }

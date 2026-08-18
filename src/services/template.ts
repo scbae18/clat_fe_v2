@@ -4,9 +4,11 @@ import type { TemplateItem as EditorItem } from '@/app/(main)/template/_types/te
 export interface TemplateItemDetail {
   id: number
   name: string
-   item_type: 'TEXT' | 'SELECT' | 'COMPLETE' | 'ATTENDANCE' | 'SCORE'
+  item_type: 'TEXT' | 'SELECT' | 'COMPLETE' | 'ATTENDANCE' | 'SCORE'
   is_common: boolean
   include_in_message: boolean
+  send_to_parent?: boolean
+  send_to_student?: boolean
   is_default_attendance: boolean
   sort_order: number
   options?: string[]
@@ -38,6 +40,8 @@ export interface CreateTemplateItemDto {
   item_type: string
   is_common: boolean
   include_in_message: boolean
+  send_to_parent?: boolean
+  send_to_student?: boolean
   sort_order: number
   options: string[]
 }
@@ -53,6 +57,8 @@ export interface UpdateTemplateItemDto {
   item_type?: string
   is_common?: boolean
   include_in_message?: boolean
+  send_to_parent?: boolean
+  send_to_student?: boolean
   sort_order?: number
   options?: string[]
 }
@@ -84,6 +90,8 @@ export const toEditorItems = (detail: TemplateDetail) => {
     label: item.name,
     isActive: true,
     isInMessage: item.include_in_message,
+    sendToParent: item.send_to_parent !== false,
+    sendToStudent: item.send_to_student !== false,
     category: item.is_common ? 'common' : 'individual',
     itemType: API_TO_ITEM_TYPE[item.item_type] ?? 'text',
     choices: item.options?.map((o: any) => (typeof o === 'string' ? o : o.label)) ?? [],

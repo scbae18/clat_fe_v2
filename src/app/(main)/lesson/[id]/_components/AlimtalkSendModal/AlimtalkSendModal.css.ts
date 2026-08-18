@@ -181,7 +181,6 @@ export const previewBox = style({
   backgroundColor: colors.white,
   padding: '16px',
   borderRadius: '12px',
-  whiteSpace: 'pre-wrap',
   color: colors.gray700,
   fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: 500,
