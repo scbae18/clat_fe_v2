@@ -53,6 +53,11 @@ export const itemBody = style({
   minWidth: 0,
 })
 
+export const itemDescription = style({
+  whiteSpace: 'pre-wrap',
+  overflowWrap: 'break-word',
+})
+
 export const actions = style({
   marginTop: '24px',
 })

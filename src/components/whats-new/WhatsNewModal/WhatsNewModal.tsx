@@ -34,7 +34,7 @@ export function WhatsNewContent({ title, subtitle, items }: WhatsNewContentProps
               <Text as="p" variant="titleMd">
                 {item.title}
               </Text>
-              <Text as="p" variant="bodyMd" color="gray500">
+              <Text as="p" variant="bodyMd" color="gray500" className={styles.itemDescription}>
                 {item.description}
               </Text>
             </div>
