@@ -48,6 +48,41 @@ export const tabInactive = style({
   color: colors.gray500,
 })
 
+export const tabComingSoon = style({
+  position: 'relative',
+  color: colors.gray300,
+  cursor: 'not-allowed',
+})
+
+export const comingSoonTooltip = style({
+  position: 'absolute',
+  left: '50%',
+  bottom: 'calc(100% + 8px)',
+  transform: 'translateX(-50%)',
+  padding: '6px 10px',
+  borderRadius: '6px',
+  backgroundColor: colors.gray900,
+  color: colors.white,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '12px',
+  fontWeight: 500,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  whiteSpace: 'nowrap',
+  opacity: 0,
+  pointerEvents: 'none',
+  transition: 'opacity 0.15s ease',
+  zIndex: 1,
+  selectors: {
+    [`${tabComingSoon}:hover &`]: {
+      opacity: 1,
+    },
+    [`${tabComingSoon}:focus-visible &`]: {
+      opacity: 1,
+    },
+  },
+})
+
 export const deliveryBanner = style({
   display: 'flex',
   alignItems: 'center',

@@ -12,6 +12,7 @@ import type {
   AdminUserDetail,
   AdminUserList,
 } from '@/types/admin'
+import type { UpdateNotice, UpdateNoticeItem } from '@/lib/whatsNew'
 
 type Envelope<T> = { success: boolean; data: T }
 
@@ -93,6 +94,27 @@ export const admin = {
     const { data } = await axiosInstance.get<Envelope<AdminHealth>>('/admin/health', {
       timeout: ADMIN_TIMEOUT,
     })
+    return unwrap(data)
+  },
+
+  async listUpdateNotices() {
+    const { data } = await axiosInstance.get<Envelope<UpdateNotice[]>>('/admin/update-notices')
+    return unwrap(data)
+  },
+
+  async publishUpdateNotice(payload: {
+    title: string
+    subtitle: string
+    items: UpdateNoticeItem[]
+  }) {
+    const { data } = await axiosInstance.post<Envelope<UpdateNotice>>('/admin/update-notices', payload)
+    return unwrap(data)
+  },
+
+  async deactivateUpdateNotice() {
+    const { data } = await axiosInstance.post<Envelope<{ deactivated: boolean }>>(
+      '/admin/update-notices/deactivate',
+    )
     return unwrap(data)
   },
 }

@@ -1010,3 +1010,58 @@ export const okBanner = style({
   padding: '32px',
   textAlign: 'center',
 })
+
+export const noticeFormStack = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+})
+
+export const noticeItemCard = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
+  padding: '16px',
+  borderRadius: '12px',
+  border: `1px solid ${vars.color.gray[75]}`,
+  backgroundColor: vars.color.gray[50],
+})
+
+export const noticeItemHead = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '8px',
+})
+
+export const noticeItemIndex = style({
+  width: '24px',
+  height: '24px',
+  borderRadius: '8px',
+  backgroundColor: vars.color.primary[100],
+  color: vars.color.primary[500],
+  fontSize: '12px',
+  fontWeight: 700,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+})
+
+export const noticeItemFields = style({
+  display: 'grid',
+  gridTemplateColumns: '1fr',
+  gap: '12px',
+  '@media': {
+    '(min-width: 768px)': {
+      gridTemplateColumns: '1fr 2fr',
+    },
+  },
+})
+
+export const noticePreviewWrap = style({
+  borderRadius: '16px',
+  border: `1px solid ${vars.color.gray[100]}`,
+  padding: '24px',
+  backgroundColor: colors.white,
+})
+

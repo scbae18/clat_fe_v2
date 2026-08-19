@@ -5,6 +5,7 @@ import Sidebar from '@/components/common/Sidebar'
 import { ToastContainer } from '@/components/common/Toast'
 import UserInitializer from '@/components/common/UserInitializer'
 import AttendanceFloatingBarHost from '@/components/attendance/AttendanceFloatingBarHost'
+import WhatsNewModalHost from '@/components/whats-new/WhatsNewModal/WhatsNewModalHost'
 import { getSidebarWidth } from '@/lib/sidebar'
 import { useUiStore } from '@/stores/uiStore'
 import { mainStyle } from './MainShell.css'
@@ -36,6 +37,7 @@ export default function MainShell({ children }: { children: React.ReactNode }) {
       </main>
       <ToastContainer />
       <AttendanceFloatingBarHost />
+      <WhatsNewModalHost />
     </div>
   )
 }

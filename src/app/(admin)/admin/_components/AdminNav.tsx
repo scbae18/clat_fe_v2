@@ -10,6 +10,7 @@ import {
   GraduationCap,
   MessageSquare,
   Shield,
+  Megaphone,
 } from 'lucide-react'
 import LogoSymbol from '@/assets/logo/logo-symbol.svg'
 import * as styles from '../admin.css'
@@ -20,6 +21,7 @@ const NAV = [
   { href: '/admin/classes', label: '반 & 학생', icon: GraduationCap },
   { href: '/admin/lessons', label: '수업 기록', icon: BookOpen },
   { href: '/admin/alimtalk', label: '알림톡', icon: MessageSquare },
+  { href: '/admin/updates', label: '업데이트 모달', icon: Megaphone },
   { href: '/admin/health', label: '헬스체크', icon: HeartPulse },
 ] as const
 
