@@ -200,7 +200,10 @@ export default function ParentDashboardPage({ params }: { params: Promise<{ toke
                       key={`${it.lesson_date}-${it.class_name}-${it.item_name}-${idx}`}
                       className={styles.todoItem}
                     >
-                      <span className={styles.todoHomework}>{it.item_name}</span>
+                      <span className={styles.todoMain}>
+                        <span className={styles.todoHomework}>{it.item_name}</span>
+                        {it.note ? <span className={styles.todoNote}>{it.note}</span> : null}
+                      </span>
                       <div className={styles.todoTags}>
                         <span className={styles.todoClassBlue}>{it.class_name}</span>
                         <span className={styles.todoTemplateGreen}>

@@ -168,6 +168,14 @@ export const activeRowTdStyle = style({
   backgroundColor: colors.success50,
 })
 
+export const completeRowTdStyle = style({
+  selectors: {
+    'td&': {
+      backgroundColor: colors.primary50,
+    },
+  },
+})
+
 export const toolbarStyle = style({
   display: 'flex',
   alignItems: 'center',
@@ -268,7 +276,7 @@ export const emptyStateIconStyle = style({
   color: colors.gray300,
 })
 
-/** SCORE column header: title + live stats row */
+/** SCORE column header: title + max score row */
 export const scoreColHeaderStyle = style({
   display: 'flex',
   flexDirection: 'column',
@@ -278,15 +286,6 @@ export const scoreColHeaderStyle = style({
   paddingBottom: '4px',
   whiteSpace: 'normal',
   minWidth: '120px',
-})
-
-export const scoreColStatsStyle = style({
-  fontSize: fontStyles.labelSm.fontSize,
-  fontWeight: fontStyles.labelSm.fontWeight,
-  color: colors.gray500,
-  letterSpacing: '-0.03em',
-  lineHeight: '140%',
-  whiteSpace: 'nowrap',
 })
 
 export const scoreHeaderMaxRowStyle = style({
@@ -394,12 +393,80 @@ export const scoreInputMaxStyle = style([
   },
 ])
 
+export const completeHeaderNoteInputStyle = style([
+  scoreInputStyle,
+  {
+    minWidth: '88px',
+    width: '120px',
+    flexShrink: 0,
+    backgroundColor: colors.white,
+    border: `1px solid ${colors.gray200}`,
+    selectors: {
+      '&::placeholder': {
+        color: colors.gray300,
+      },
+      '&:focus': {
+        backgroundColor: colors.white,
+        borderColor: colors.primary300,
+        boxShadow: `0 0 0 1px ${colors.primary200}`,
+      },
+    },
+  },
+])
+
 export const colHeaderWrapStyle = style({
   display: 'flex',
-  alignItems: 'flex-start',
+  alignItems: 'center',
   justifyContent: 'space-between',
-  gap: '4px',
+  gap: '8px',
   width: '100%',
+})
+
+export const colHeaderTitleBlockStyle = style({
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: '6px',
+  minWidth: 0,
+})
+
+export const partialChipRecipe = recipe({
+  base: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '2px 6px',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: fontStyles.labelSm.fontSize,
+    fontWeight: fontStyles.labelSm.fontWeight,
+    lineHeight: '140%',
+    letterSpacing: '-0.03em',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    transition: 'background-color 0.15s, color 0.15s',
+  },
+  variants: {
+    on: {
+      true: {
+        backgroundColor: colors.primary50,
+        color: colors.primary500,
+      },
+      false: {
+        backgroundColor: colors.gray50,
+        color: colors.gray500,
+        selectors: {
+          '&:hover': {
+            backgroundColor: colors.gray100,
+            color: colors.gray700,
+          },
+        },
+      },
+    },
+  },
+  defaultVariants: {
+    on: false,
+  },
 })
 
 export const itemControlButtonStyle = style({

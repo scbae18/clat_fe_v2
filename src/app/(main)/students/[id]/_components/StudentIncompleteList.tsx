@@ -35,8 +35,13 @@ export function StudentIncompleteList({
               onClick={() => onSelect(item)}
             >
               <div className={styles.incompleteLeft}>
-                <CheckIcon width={24} height={24} style={{ flexShrink: 0 }} />
-                <span className={styles.incompleteHomeworkMain}>{item.item_name}</span>
+                <CheckIcon width={24} height={24} className={styles.incompleteCheckIcon} />
+                <span className={styles.incompleteTextBlock}>
+                  <span className={styles.incompleteHomeworkMain}>{item.item_name}</span>
+                  {item.note ? (
+                    <span className={styles.incompleteNote}>{item.note}</span>
+                  ) : null}
+                </span>
               </div>
               <div className={styles.incompleteTagsRow}>
                 <span className={styles.incompleteClassAccent}>{item.class_name}</span>

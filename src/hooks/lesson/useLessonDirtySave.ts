@@ -216,9 +216,19 @@ export function useLessonDirtySave(lessonId: number) {
   const scheduleAutoSaveStudentCells = useCallback(
     (cellKeys: string[]) => {
       const items = lessonRef.current?.items ?? []
+      const completeBatches = new Map<string, string[]>()
+
       for (const key of cellKeys) {
         const { source, itemId } = parseStudentCellKey(key)
         const itemType = getLessonItemType(items, source, itemId)
+
+        if (itemType === 'COMPLETE') {
+          const batchKey = `${source}:${itemId}`
+          const batch = completeBatches.get(batchKey) ?? []
+          batch.push(key)
+          completeBatches.set(batchKey, batch)
+          continue
+        }
 
         if (isImmediateSaveItemType(itemType)) {
           clearDebounceTimer(`cell:${key}`)
@@ -227,6 +237,17 @@ export function useLessonDirtySave(lessonId: number) {
           scheduleDebouncedSave(`cell:${key}`, () => {
             void persistTargets({ studentCells: [key], silent: true })
           })
+        }
+      }
+
+      for (const [batchKey, keys] of completeBatches) {
+        if (keys.length > 1) {
+          scheduleDebouncedSave(`complete-col:${batchKey}`, () => {
+            void persistTargets({ studentCells: keys, silent: true })
+          })
+        } else {
+          clearDebounceTimer(`cell:${keys[0]}`)
+          void persistTargets({ studentCells: keys, silent: true })
         }
       }
     },

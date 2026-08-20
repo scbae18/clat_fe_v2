@@ -59,13 +59,14 @@ export default function useLessonDetail(lessonId: number) {
     triggerReload,
   })
 
-  const { inputCount } = useLessonProgress(students)
+  const { inputCount } = useLessonProgress(students, lesson?.items)
 
   const {
     addAdhocItem,
     removeAdhocItem,
     excludeTemplateItem,
     updateLessonItemOrder,
+    setItemPartial,
   } = useLessonAdhocItems({
     lessonId,
     setLesson,
@@ -121,5 +122,6 @@ export default function useLessonDetail(lessonId: number) {
     removeAdhocItem,
     excludeTemplateItem,
     updateLessonItemOrder,
+    setItemPartial,
   }
 }

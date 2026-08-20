@@ -30,6 +30,7 @@ export interface IncompleteItem {
   lesson_student_data_id?: number
   lesson_adhoc_student_data_id?: number
   item_name: string
+  note?: string | null
   lesson_date: string
   class_name: string
   template_name: string

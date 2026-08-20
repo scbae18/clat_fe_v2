@@ -130,6 +130,14 @@ export const trackingLabelStyle = style({
   lineHeight: '140%',
 })
 
+export const trackingMetaStyle = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.labelSm.fontWeight,
+  color: colors.gray500,
+  letterSpacing: '-0.03em',
+  lineHeight: '140%',
+})
+
 export const scrollBodyStyle = style({
   overflowY: 'auto',
   flex: 1,

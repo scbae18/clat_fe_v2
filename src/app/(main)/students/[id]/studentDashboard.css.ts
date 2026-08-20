@@ -266,7 +266,18 @@ export const incompleteLeft = style({
   alignItems: 'center',
   gap: '12px',
   minWidth: 0,
+  flex: 1,
+})
+
+export const incompleteCheckIcon = style({
   flexShrink: 0,
+})
+
+export const incompleteTextBlock = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  minWidth: 0,
 })
 
 export const incompleteHomeworkMain = style({
@@ -275,6 +286,20 @@ export const incompleteHomeworkMain = style({
   lineHeight: 1.4,
   letterSpacing: '-0.03em',
   color: colors.gray900,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+})
+
+export const incompleteNote = style({
+  fontSize: '13px',
+  fontWeight: 500,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  color: colors.gray500,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 })
 
 export const incompleteTagsRow = style({

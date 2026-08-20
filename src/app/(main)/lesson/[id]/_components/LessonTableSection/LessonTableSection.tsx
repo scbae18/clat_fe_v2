@@ -12,9 +12,9 @@ import type { LessonStudent, Attendance, CompletionStatus } from '@/types/lesson
 import type { LessonItemDetail, CreateLessonAdhocItemBody } from '@/services/lesson'
 import AddItemForm from '@/app/(main)/template/_components/AddItemForm/AddItemForm'
 import Modal from '@/components/common/Modal'
-import { cohortScoreMetric } from '@/lib/lessonScore'
 import { lessonItemRef, matchesLessonItem } from '@/lib/lessonItemRef'
 import type { ItemSource } from '@/lib/lessonItemRef'
+import { isLessonStudentInputComplete } from '@/lib/lessonProgress'
 import {
   tableStyle,
   tableWrapStyle,
@@ -28,6 +28,7 @@ import {
   nameCellStyle,
   addColumnCellStyle,
   addColumnButtonStyle,
+  completeRowTdStyle,
 } from './LessonTable.css'
 import {
   AttendanceCell,
@@ -51,6 +52,7 @@ interface LessonTableSectionProps {
   onCellBlur?: (studentId: number, source: ItemSource, itemId: number) => void
   onAddItem?: (body: CreateLessonAdhocItemBody) => void | Promise<void>
   onRemoveColumn?: (item: LessonItemDetail) => void
+  onTogglePartial?: (item: LessonItemDetail, isPartial: boolean) => void
 }
 
 export default function LessonTable({
@@ -60,6 +62,7 @@ export default function LessonTable({
   onCellBlur,
   onAddItem,
   onRemoveColumn,
+  onTogglePartial,
 }: LessonTableSectionProps) {
   const tableRef = useRef<HTMLTableElement>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -77,6 +80,14 @@ export default function LessonTable({
     return students.filter((s) => s.name.toLowerCase().includes(query))
   }, [students, searchQuery])
 
+  const partialItemRefs = useMemo(() => {
+    const refs = new Set<string>()
+    for (const item of templateItems) {
+      if (item.is_partial) refs.add(lessonItemRef(item))
+    }
+    return refs
+  }, [templateItems])
+
   const handleRowFocus = (studentId: number) => {
     setFocusedStudentId(studentId)
   }
@@ -85,34 +96,6 @@ export default function LessonTable({
     if (tableRef.current?.contains(e.relatedTarget as Node)) return
     setFocusedStudentId(null)
   }
-
-  const scoreStatsByItemId = useMemo(() => {
-    const m = new Map<string, { avg: number; max: number } | null>()
-    for (const item of dynamicItems) {
-      if (!isScoreItem(item)) continue
-      const key = lessonItemRef(item)
-      const nums: number[] = []
-      let withSlash = 0
-      let withoutSlash = 0
-      for (const s of filteredStudents) {
-        const v = s.items.find((i) => matchesLessonItem(i, item))?.value ?? ''
-        const raw = String(v).trim()
-        if (!raw) continue
-        if (raw.includes('/')) withSlash++
-        else withoutSlash++
-        const n = cohortScoreMetric(v)
-        if (n !== null) nums.push(n)
-      }
-      if (nums.length === 0) m.set(key, null)
-      else if (withSlash > 0 && withoutSlash > 0) m.set(key, null)
-      else
-        m.set(key, {
-          max: Math.max(...nums),
-          avg: nums.reduce((a, b) => a + b, 0) / nums.length,
-        })
-    }
-    return m
-  }, [dynamicItems, filteredStudents])
 
   const updateAttendance = (studentId: number, value: Attendance) => {
     onChange(students.map((s) => (s.id === studentId ? { ...s, attendance: value } : s)))
@@ -184,22 +167,17 @@ export default function LessonTable({
                     </div>
                   </div>
                 </th>
-                {dynamicItems.map((item) => {
-                  const stats = isScoreItem(item)
-                    ? (scoreStatsByItemId.get(lessonItemRef(item)) ?? null)
-                    : null
-                  return (
+                {dynamicItems.map((item) => (
                     <DynamicColumnHeader
                       key={lessonItemRef(item)}
                       item={item}
                       students={students}
                       onChange={onChange}
-                      stats={stats}
                       canRemove={onRemoveColumn != null}
                       onRemoveColumn={onRemoveColumn}
+                      onTogglePartial={onTogglePartial}
                     />
-                  )
-                })}
+                ))}
                 {onAddItem ? (
                   <th className={addColumnCellStyle}>
                     <button
@@ -215,15 +193,17 @@ export default function LessonTable({
               </tr>
             </thead>
             <tbody>
-              {filteredStudents.map((student) => (
+              {filteredStudents.map((student) => {
+                const isComplete = isLessonStudentInputComplete(student, partialItemRefs)
+                return (
                 <tr key={student.id}>
-                  <td className={getTdClassName(tdCompactStyle, student.id, focusedStudentId)}>
+                  <td className={getTdClassName(tdCompactStyle, student.id, focusedStudentId, isComplete)}>
                     <Link href={`/students/${student.id}`} className={nameCellStyle}>
                       {student.name}
                     </Link>
                   </td>
                   <td
-                    className={getTdClassName(tdCompactStyle, student.id, focusedStudentId)}
+                    className={getTdClassName(tdCompactStyle, student.id, focusedStudentId, isComplete)}
                     onMouseDown={() => handleRowFocus(student.id)}
                     onFocusCapture={() => handleRowFocus(student.id)}
                   >
@@ -242,6 +222,7 @@ export default function LessonTable({
                         : tdStyle,
                       student.id,
                       focusedStudentId,
+                      isComplete,
                     )
                     const focusHandlers = {
                       onMouseDown: () => handleRowFocus(student.id),
@@ -276,7 +257,7 @@ export default function LessonTable({
                               updateItem(
                                 student.id,
                                 item,
-                                v ?? '',
+                                studentItem?.value ?? '',
                                 v === '완료' ? true : v === '미완료' ? false : null,
                               )
                             }
@@ -309,9 +290,16 @@ export default function LessonTable({
                       </td>
                     )
                   })}
-                  {onAddItem ? <td className={addColumnCellStyle} /> : null}
+                  {onAddItem ? (
+                    <td
+                      className={
+                        isComplete ? `${addColumnCellStyle} ${completeRowTdStyle}` : addColumnCellStyle
+                      }
+                    />
+                  ) : null}
                 </tr>
-              ))}
+              )
+              })}
             </tbody>
           </table>
         </div>

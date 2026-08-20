@@ -67,6 +67,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     removeAdhocItem,
     excludeTemplateItem,
     updateLessonItemOrder,
+    setItemPartial,
   } = useLessonDetail(lessonId)
 
   const templateModal = useDisclosure()
@@ -287,6 +288,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           onCellBlur={flushPendingStudentCellSave}
           onAddItem={addAdhocItem}
           onRemoveColumn={handleRemoveItem}
+          onTogglePartial={(item, isPartial) => void setItemPartial(item, isPartial)}
         />
       </div>
 

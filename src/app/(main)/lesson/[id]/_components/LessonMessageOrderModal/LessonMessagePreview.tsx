@@ -51,7 +51,7 @@ function resolvePreviewValue(
   if (item.itemType === 'completion') {
     if (studentItem?.is_completed === true) return '완료'
     if (studentItem?.is_completed === false) return '미완료'
-    return studentItem?.value?.trim() || '입력 필요'
+    return '입력 필요'
   }
 
   const value = studentItem?.value?.trim()

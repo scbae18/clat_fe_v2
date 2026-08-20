@@ -169,7 +169,28 @@ export const todoHomework = style({
   color: colors.gray900,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
-  flexShrink: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+})
+
+export const todoMain = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  minWidth: 0,
+  flex: 1,
+})
+
+export const todoNote = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 500,
+  color: colors.gray500,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 })
 
 export const todoClassBlue = style({

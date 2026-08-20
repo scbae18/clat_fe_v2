@@ -137,10 +137,50 @@ export function useLessonAdhocItems({
     [lessonId, setLesson],
   )
 
+  const setItemPartial = useCallback(
+    async (item: { source?: 'template' | 'adhoc'; id: number }, isPartial: boolean) => {
+      const source = item.source ?? 'template'
+      const matches = (row: LessonDetail['items'][number]) =>
+        (row.source ?? 'template') === source && row.id === item.id
+
+      setLesson((prev) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          items: prev.items.map((row) => (matches(row) ? { ...row, is_partial: isPartial } : row)),
+        }
+      })
+      try {
+        const updated = await lessonService.setItemPartial(lessonId, {
+          source,
+          id: item.id,
+          is_partial: isPartial,
+        })
+        setLesson((prev) => (prev ? { ...prev, items: updated } : prev))
+      } catch (err: unknown) {
+        setLesson((prev) => {
+          if (!prev) return prev
+          return {
+            ...prev,
+            items: prev.items.map((row) =>
+              matches(row) ? { ...row, is_partial: !isPartial } : row,
+            ),
+          }
+        })
+        const msg =
+          (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data
+            ?.error?.message ?? '일부입력 설정에 실패했어요.'
+        addToast({ variant: 'error', message: msg })
+      }
+    },
+    [lessonId, addToast, setLesson],
+  )
+
   return {
     addAdhocItem,
     removeAdhocItem,
     excludeTemplateItem,
     updateLessonItemOrder,
+    setItemPartial,
   }
 }

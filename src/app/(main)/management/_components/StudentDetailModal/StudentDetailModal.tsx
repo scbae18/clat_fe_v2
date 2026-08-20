@@ -37,6 +37,7 @@ import {
   trackingListStyle,
   trackingItemStyle,
   trackingLabelStyle,
+  trackingMetaStyle,
   completeButtonStyle,
   completeCheckIconStyle,
   scrollBodyStyle,
@@ -214,8 +215,10 @@ export default function StudentDetailModal({
                         <span className={trackingLabelStyle}>
                           {formatLessonDateKo(item.lesson_date)}
                         </span>
-                        <span style={{ fontSize: '12px', color: '#9492A9' }}>
-                          {item.item_name} · {item.class_name}
+                        <span className={trackingMetaStyle}>
+                          {item.note
+                            ? `${item.item_name} · ${item.note} · ${item.class_name}`
+                            : `${item.item_name} · ${item.class_name}`}
                         </span>
                       </div>
                       <button

@@ -16,6 +16,7 @@ export type ParentDashboardData = {
   ai_feedback_status: 'ready' | 'pending' | 'failed'
   incomplete_items: Array<{
     item_name: string
+    note?: string | null
     lesson_date: string
     class_name: string
     template_name: string

@@ -27,6 +27,7 @@ export interface LessonItemDetail {
   include_in_message: boolean
   send_to_parent?: boolean
   send_to_student?: boolean
+  is_partial?: boolean
   sort_order: number
   options?: { id: number; label: string; sort_order: number }[]
 }
@@ -233,6 +234,16 @@ export const lessonService = {
     body: { items: Array<{ source: 'template' | 'adhoc'; id: number }> },
   ): Promise<LessonItemDetail[]> {
     const { data } = await axiosInstance.put(`/lessons/${lessonId}/item-order`, body)
+    const payload = data.data as { items?: LessonItemDetail[] } | LessonItemDetail[]
+    if (Array.isArray(payload)) return payload
+    return payload.items ?? []
+  },
+
+  async setItemPartial(
+    lessonId: number,
+    body: { source: 'template' | 'adhoc'; id: number; is_partial: boolean },
+  ): Promise<LessonItemDetail[]> {
+    const { data } = await axiosInstance.put(`/lessons/${lessonId}/item-partial`, body)
     const payload = data.data as { items?: LessonItemDetail[] } | LessonItemDetail[]
     if (Array.isArray(payload)) return payload
     return payload.items ?? []
