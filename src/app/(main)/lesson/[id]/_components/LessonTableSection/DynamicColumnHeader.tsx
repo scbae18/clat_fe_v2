@@ -11,6 +11,7 @@ import {
   scoreHeaderMaxLabelStyle,
   scoreHeaderMaxSuffixStyle,
   scoreInputMaxStyle,
+  completeColHeaderStyle,
   completeHeaderNoteInputStyle,
   colHeaderWrapStyle,
   colHeaderTitleBlockStyle,
@@ -171,7 +172,7 @@ export function DynamicColumnHeader({
           </div>
         </div>
       ) : isComplete ? (
-        <div className={scoreColHeaderStyle}>
+        <div className={completeColHeaderStyle}>
           {titleRow}
           <div className={scoreHeaderMaxRowStyle}>
             <span className={scoreHeaderMaxLabelStyle}>내용</span>
@@ -183,6 +184,7 @@ export function DynamicColumnHeader({
               onChange={(ev) =>
                 onChange(applyCompleteNoteToAllStudents(students, item, ev.target.value))
               }
+              onKeyDown={(ev) => ev.stopPropagation()}
               placeholder="선택"
               aria-label={`${item.name} 내용`}
             />

@@ -277,17 +277,13 @@ export const emptyStateIconStyle = style({
   color: colors.gray300,
 })
 
-/** SCORE column header: title + max score row */
-export const scoreColHeaderStyle = style({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'flex-start',
-  gap: '4px',
-  paddingTop: '4px',
-  paddingBottom: '4px',
-  whiteSpace: 'normal',
-  minWidth: '120px',
-})
+/** COMPLETE column header: title + shared note row */
+export const completeColHeaderStyle = style([
+  scoreColHeaderStyle,
+  {
+    minWidth: '280px',
+  },
+])
 
 export const scoreHeaderMaxRowStyle = style({
   display: 'flex',
@@ -397,9 +393,10 @@ export const scoreInputMaxStyle = style([
 export const completeHeaderNoteInputStyle = style([
   scoreInputStyle,
   {
-    minWidth: '88px',
-    width: '120px',
+    minWidth: '200px',
+    width: '240px',
     flexShrink: 0,
+    padding: '0 8px',
     backgroundColor: colors.white,
     border: `1px solid ${colors.gray200}`,
     selectors: {

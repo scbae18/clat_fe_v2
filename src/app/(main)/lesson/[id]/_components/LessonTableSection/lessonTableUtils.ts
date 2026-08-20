@@ -1,7 +1,7 @@
 import type { LessonStudent } from '@/types/lessonStudent'
 import type { LessonItemDetail, CreateLessonAdhocItemBody } from '@/services/lesson'
 import { joinScoreStorage, splitScoreStorage } from '@/lib/lessonScore'
-import { completeItemNote } from '@/lib/completeNote'
+import { completeItemNoteDraft } from '@/lib/completeNote'
 import { matchesLessonItem } from '@/lib/lessonItemRef'
 import { activeRowTdStyle, completeRowTdStyle } from './LessonTable.css'
 
@@ -78,8 +78,8 @@ export function isCompleteItem(item: LessonItemDetail) {
 export function getCompleteColumnNote(students: LessonStudent[], item: LessonItemDetail): string {
   for (const s of students) {
     const v = s.items.find((i) => matchesLessonItem(i, item))?.value ?? ''
-    const note = completeItemNote(v)
-    if (note) return note
+    const note = completeItemNoteDraft(v)
+    if (note != null) return note
   }
   return ''
 }
