@@ -8,4 +8,9 @@ export const updateNotices = {
     const { data } = await axiosInstance.get<Envelope<UpdateNotice | null>>('/update-notices/current')
     return data.data
   },
+
+  async list() {
+    const { data } = await axiosInstance.get<Envelope<UpdateNotice[]>>('/update-notices')
+    return data.data
+  },
 }

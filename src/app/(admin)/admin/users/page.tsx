@@ -59,25 +59,29 @@ export default function AdminUsersPage() {
               {data.items.map((u) => (
                 <tr key={u.id}>
                   <td className={styles.td}>
-                    <Link href={`/admin/users/${u.id}`} className={styles.nameLink}>
-                      {u.name}
-                      <ChevronRight size={14} />
-                    </Link>
-                    <span className={styles.muted}>{u.email}</span>
+                    <div className={styles.cellStack}>
+                      <Link href={`/admin/users/${u.id}`} className={styles.nameLink}>
+                        {u.name}
+                        <ChevronRight size={14} />
+                      </Link>
+                      <span className={styles.muted}>{u.email}</span>
+                    </div>
                   </td>
                   <td className={styles.td}>
-                    {formatYmd(u.created_at)}
-                    <span className={styles.muted}>{fromNow(u.created_at)}</span>
+                    <div className={styles.cellStack}>
+                      <span>{formatYmd(u.created_at)}</span>
+                      <span className={styles.muted}>{fromNow(u.created_at)}</span>
+                    </div>
                   </td>
                   <td className={styles.td}>{u.class_count}</td>
                   <td className={styles.td}>{u.student_count}</td>
                   <td className={styles.td}>{u.template_count}</td>
                   <td className={styles.td}>
                     {u.last_lesson_at ? (
-                      <>
-                        {formatMd(u.last_lesson_at)}
+                      <div className={styles.cellStack}>
+                        <span>{formatMd(u.last_lesson_at)}</span>
                         <span className={styles.muted}>{fromNow(u.last_lesson_at)}</span>
-                      </>
+                      </div>
                     ) : (
                       <span className={styles.mutedInline}>없음</span>
                     )}

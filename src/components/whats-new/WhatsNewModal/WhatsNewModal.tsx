@@ -3,7 +3,7 @@
 import Button from '@/components/common/Button'
 import Modal from '@/components/common/Modal'
 import Text from '@/components/common/Text'
-import type { UpdateNoticeItem } from '@/lib/whatsNew'
+import { resolveNoticeImageUrl, type UpdateNoticeItem } from '@/lib/whatsNew'
 import * as styles from './WhatsNewModal.css'
 
 export type WhatsNewContentProps = {
@@ -37,6 +37,14 @@ export function WhatsNewContent({ title, subtitle, items }: WhatsNewContentProps
               <Text as="p" variant="bodyMd" color="gray500" className={styles.itemDescription}>
                 {item.description}
               </Text>
+              {item.image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={resolveNoticeImageUrl(item.image_url)}
+                  alt={item.title}
+                  className={styles.itemImage}
+                />
+              ) : null}
             </div>
           </li>
         ))}
@@ -49,10 +57,12 @@ export default function WhatsNewModal({
   isOpen,
   content,
   onClose,
+  confirmLabel = '확인했어요',
 }: {
   isOpen: boolean
   content: WhatsNewContentProps | null
   onClose: () => void
+  confirmLabel?: string
 }) {
   if (!content) return null
 
@@ -61,7 +71,7 @@ export default function WhatsNewModal({
       <WhatsNewContent {...content} />
       <div className={styles.actions}>
         <Button variant="primary" size="md" fullWidth onClick={onClose}>
-          확인했어요
+          {confirmLabel}
         </Button>
       </div>
     </Modal>

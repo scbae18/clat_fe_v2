@@ -168,7 +168,9 @@ export const pageSub = style({
   fontSize: '14px',
   fontWeight: 500,
   letterSpacing: tracking,
+  lineHeight: 1.55,
   color: vars.color.gray[500],
+  maxWidth: '720px',
 })
 
 export const sectionTitle = style({
@@ -395,6 +397,11 @@ export const table = style({
   textAlign: 'left',
   fontSize: '14px',
   letterSpacing: tracking,
+  borderCollapse: 'collapse',
+})
+
+export const tableWide = style({
+  minWidth: '880px',
 })
 
 export const th = style({
@@ -412,12 +419,17 @@ export const td = style({
   fontWeight: 500,
   color: vars.color.gray[700],
   borderBottom: `1px solid ${vars.color.gray[100]}`,
-  verticalAlign: 'middle',
+  verticalAlign: 'top',
+  lineHeight: 1.45,
   selectors: {
     'tr:hover &': {
       backgroundColor: 'rgba(241, 244, 253, 0.4)',
     },
   },
+})
+
+export const clickRow = style({
+  cursor: 'pointer',
 })
 
 export const tdRight = style([td, { textAlign: 'right' }])
@@ -433,11 +445,21 @@ export const nameLink = style({
   },
 })
 
+export const cellStack = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: '2px',
+  minWidth: 0,
+})
+
 export const muted = style({
   display: 'block',
   fontSize: '12px',
   fontWeight: 500,
+  lineHeight: 1.45,
   color: vars.color.gray[500],
+  overflowWrap: 'anywhere',
 })
 
 export const mutedInline = style({
@@ -614,7 +636,14 @@ export const metaRow = style({
   gap: '12px',
   marginTop: '6px',
   fontSize: '14px',
+  lineHeight: 1.45,
   color: vars.color.gray[500],
+})
+
+export const metaItem = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '6px',
 })
 
 export const headerRow = style({
@@ -661,6 +690,9 @@ export const funnelNum = style({
 export const dropText = style({
   fontSize: '12px',
   color: vars.color.semantic.error[500],
+  whiteSpace: 'pre-wrap',
+  wordBreak: 'break-word',
+  lineHeight: 1.5,
 })
 
 export const track = style({
@@ -941,6 +973,8 @@ export const preview = style({
   WebkitLineClamp: 2,
   WebkitBoxOrient: 'vertical',
   overflow: 'hidden',
+  whiteSpace: 'pre-wrap',
+  wordBreak: 'break-word',
 })
 
 export const mono = style({
@@ -1063,5 +1097,90 @@ export const noticePreviewWrap = style({
   border: `1px solid ${vars.color.gray[100]}`,
   padding: '24px',
   backgroundColor: colors.white,
+})
+
+export const noticeImageField = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+})
+
+export const noticeImagePreviewWrap = style({
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: '12px',
+})
+
+export const noticeImagePreview = style({
+  display: 'block',
+  width: '160px',
+  height: '100px',
+  objectFit: 'cover',
+  borderRadius: '8px',
+  border: `1px solid ${vars.color.gray[75]}`,
+  backgroundColor: colors.white,
+})
+
+export const srOnly = style({
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  padding: 0,
+  margin: '-1px',
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+})
+
+export const messageBody = style({
+  margin: 0,
+  fontSize: '14px',
+  fontWeight: 500,
+  lineHeight: 1.7,
+  letterSpacing: tracking,
+  color: vars.color.gray[700],
+  whiteSpace: 'pre-wrap',
+  wordBreak: 'break-word',
+  overflowWrap: 'anywhere',
+})
+
+export const messageCard = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
+  padding: '16px',
+  borderRadius: '12px',
+  border: `1px solid ${vars.color.gray[75]}`,
+  backgroundColor: vars.color.gray[50],
+})
+
+export const messageCardHead = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: '8px',
+})
+
+export const messageMeta = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '8px 16px',
+  fontSize: '12px',
+  fontWeight: 500,
+  lineHeight: 1.45,
+  color: vars.color.gray[500],
+})
+
+export const messageLabel = style({
+  fontSize: '12px',
+  fontWeight: 600,
+  color: vars.color.gray[600],
+})
+
+export const recipientList = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
 })
 

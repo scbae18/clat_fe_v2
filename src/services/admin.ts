@@ -1,8 +1,11 @@
 import axiosInstance from '@/lib/api/axiosInstance'
 import { isAxiosError } from '@/lib/api/http'
 import type {
+  AdminAlimtalkBatchDetail,
+  AdminAlimtalkBatchList,
   AdminAlimtalkList,
   AdminAlimtalkStatus,
+  AdminAlimtalkBatchType,
   AdminClassList,
   AdminCreatedUser,
   AdminDashboard,
@@ -82,11 +85,40 @@ export const admin = {
     return unwrap(data)
   },
 
-  async listAlimtalk(status: AdminAlimtalkStatus = 'all', page = 1, limit = 50) {
+  async listAlimtalk(
+    status: AdminAlimtalkStatus = 'all',
+    page = 1,
+    limit = 50,
+    type?: AdminAlimtalkBatchType,
+  ) {
     const { data } = await axiosInstance.get<Envelope<AdminAlimtalkList>>('/admin/alimtalk/messages', {
-      params: { status, page, limit },
+      params: { status, page, limit, type },
       timeout: ADMIN_TIMEOUT,
     })
+    return unwrap(data)
+  },
+
+  async listAlimtalkBatches(
+    status: AdminAlimtalkStatus = 'all',
+    page = 1,
+    limit = 50,
+    type?: AdminAlimtalkBatchType,
+  ) {
+    const { data } = await axiosInstance.get<Envelope<AdminAlimtalkBatchList>>(
+      '/admin/alimtalk/batches',
+      {
+        params: { status, page, limit, type },
+        timeout: ADMIN_TIMEOUT,
+      },
+    )
+    return unwrap(data)
+  },
+
+  async getAlimtalkBatch(id: number) {
+    const { data } = await axiosInstance.get<Envelope<AdminAlimtalkBatchDetail>>(
+      `/admin/alimtalk/batches/${id}`,
+      { timeout: ADMIN_TIMEOUT },
+    )
     return unwrap(data)
   },
 
@@ -108,6 +140,17 @@ export const admin = {
     items: UpdateNoticeItem[]
   }) {
     const { data } = await axiosInstance.post<Envelope<UpdateNotice>>('/admin/update-notices', payload)
+    return unwrap(data)
+  },
+
+  async uploadUpdateNoticeImage(file: File) {
+    const formData = new FormData()
+    formData.append('file', file)
+    const { data } = await axiosInstance.post<Envelope<{ url: string }>>(
+      '/admin/update-notices/images',
+      formData,
+      { timeout: ADMIN_TIMEOUT },
+    )
     return unwrap(data)
   },
 

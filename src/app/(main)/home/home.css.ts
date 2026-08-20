@@ -66,6 +66,18 @@ export const bannerTitleStyle = style({
   },
 })
 
+export const bannerLogoWrapStyle = style({
+  overflow: 'hidden',
+  height: '24px',
+  width: '120px',
+})
+
+export const bannerLogoStyle = style({
+  height: '16px',
+  width: 'auto',
+  marginLeft: '3px',
+})
+
 export const bannerIllustWrapStyle = style({
   position: 'absolute',
   right: '-140px',
@@ -84,11 +96,17 @@ export const bannerIllustWrapStyle = style({
   },
 })
 
+export const bannerIllustStyle = style({
+  objectFit: 'contain',
+  objectPosition: 'right bottom',
+})
+
 export const sectionHeaderStyle = style({
   display: 'flex',
   alignItems: 'center',
   gap: '8px',
   marginBottom: '16px',
+  color: colors.gray900,
 })
 
 export const sectionTitleStyle = style({
@@ -96,93 +114,6 @@ export const sectionTitleStyle = style({
   fontWeight: 700,
   letterSpacing: '-0.03em',
   color: colors.gray900,
-})
-
-export const tabListStyle = style({
-  display: 'flex',
-  gap: '8px',
-  marginBottom: '16px',
-})
-
-export const tabButtonStyle = style({
-  padding: '8px 16px',
-  borderRadius: '100px',
-  border: 'none',
-  background: colors.gray50,
-  color: colors.gray500,
-  ...fontStyles.labelSm,
-  fontWeight: 600,
-  letterSpacing: '-0.03em',
-  cursor: 'pointer',
-  transition: 'all 0.15s',
-})
-
-export const tabButtonActiveStyle = style({
-  padding: '7px 16px',
-  borderRadius: '100px',
-  border: 'none',
-  background: colors.primary500,
-  color: colors.white,
-  ...fontStyles.labelSm,
-  fontWeight: 600,
-  letterSpacing: '-0.03em',
-  cursor: 'pointer',
-  transition: 'all 0.15s',
-})
-
-export const stepCardStyle = style({
-  background: colors.gray50,
-  borderRadius: '20px',
-  padding: '24px 28px',
-})
-
-export const stepCardHeaderStyle = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '10px',
-  marginBottom: '16px',
-})
-
-export const stepCardTitleStyle = style({
-  ...fontStyles.headingSm,
-  letterSpacing: '-0.03em',
-  color: colors.gray900,
-})
-
-export const stepItemListStyle = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '10px',
-})
-
-export const stepItemStyle = style({
-  display: 'flex',
-  alignItems: 'flex-start',
-  gap: '10px',
-})
-
-export const stepNumberStyle = style({
-  flexShrink: 0,
-  padding: '0 12px',
-  height: '20px',
-  borderRadius: '100px',
-  background: colors.gray75,
-  color: colors.gray500,
-  fontSize: '11px',
-  fontWeight: 600,
-  letterSpacing: '-0.03em',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginTop: '2px',
-  whiteSpace: 'nowrap',
-})
-
-export const stepItemTextStyle = style({
-  ...fontStyles.bodyMd,
-  color: colors.gray700,
-  letterSpacing: '-0.03em',
-  lineHeight: '1.65',
 })
 
 export const cardGridStyle = style({
@@ -305,6 +236,10 @@ export const cardImageWrapStyle = style({
   },
 })
 
+export const cardImageStyle = style({
+  objectFit: 'contain',
+})
+
 export const guideCardLinkStyle = style({
   display: 'block',
   textDecoration: 'none',
@@ -313,7 +248,7 @@ export const guideCardLinkStyle = style({
   selectors: {
     '&:hover': {
       transform: 'translateY(-2px)',
-      boxShadow: '0 8px 24px rgba(87, 116, 218, 0.18)',
+      boxShadow: `0 8px 24px ${colors.primary400}2e`,
     },
     '&:focus-visible': {
       outline: `2px solid ${colors.primary500}`,

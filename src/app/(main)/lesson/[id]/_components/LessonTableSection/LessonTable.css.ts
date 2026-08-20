@@ -2,6 +2,7 @@
 import { recipe } from '@vanilla-extract/recipes'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { zIndex } from '@/styles/tokens/zIndex'
 
 export const tableWrapStyle = style({
   overflowX: 'auto',
@@ -428,6 +429,25 @@ export const colHeaderTitleBlockStyle = style({
   alignItems: 'center',
   gap: '6px',
   minWidth: 0,
+})
+
+export const partialTooltipStyle = style({
+  position: 'fixed',
+  left: 'var(--partial-tooltip-x)',
+  top: 'var(--partial-tooltip-y)',
+  transform: 'translate(-50%, calc(-100% - 6px))',
+  zIndex: zIndex.tooltip,
+  width: 'max-content',
+  padding: '6px 10px',
+  borderRadius: '8px',
+  backgroundColor: colors.gray900,
+  color: colors.white,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 500,
+  lineHeight: 1.45,
+  letterSpacing: '-0.03em',
+  whiteSpace: 'nowrap',
+  pointerEvents: 'none',
 })
 
 export const partialChipRecipe = recipe({

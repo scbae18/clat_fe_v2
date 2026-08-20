@@ -56,6 +56,19 @@ export const itemBody = style({
 export const itemDescription = style({
   whiteSpace: 'pre-wrap',
   overflowWrap: 'break-word',
+  lineHeight: 1.65,
+})
+
+export const itemImage = style({
+  display: 'block',
+  width: '100%',
+  maxHeight: '240px',
+  marginTop: '8px',
+  objectFit: 'contain',
+  objectPosition: 'left center',
+  borderRadius: '8px',
+  backgroundColor: colors.white,
+  border: `1px solid ${colors.gray75}`,
 })
 
 export const actions = style({

@@ -177,6 +177,66 @@ export type AdminLessonList = {
 }
 
 export type AdminAlimtalkStatus = 'all' | 'SUCCESS' | 'FAIL'
+export type AdminAlimtalkBatchType = 'LESSON' | 'ATTENDANCE' | 'BROADCAST'
+
+export type AdminAlimtalkBatchListItem = {
+  batch_id: number
+  batch_type: AdminAlimtalkBatchType
+  delivery_mode: string
+  sent_at: string
+  total_count: number
+  success_count: number
+  fail_count: number
+  teacher_id: number
+  teacher_name: string
+  teacher_email: string
+  lesson_record_id: number | null
+  class_name: string | null
+  template_name: string | null
+  lesson_date: string | null
+}
+
+export type AdminAlimtalkBatchList = {
+  summary: {
+    batch_total: number
+    batch_with_fail: number
+    total: number
+    success: number
+    fail: number
+  }
+  items: AdminAlimtalkBatchListItem[]
+  meta: AdminMeta
+}
+
+export type AdminAlimtalkBatchMessage = {
+  message_id: number
+  student_id: number
+  student_name: string
+  phone_type: 'STUDENT' | 'PARENT'
+  phone: string
+  message_body: string
+  status: 'SUCCESS' | 'FAIL'
+  error_message: string | null
+}
+
+export type AdminAlimtalkBatchDetail = {
+  batch_id: number
+  batch_type: AdminAlimtalkBatchType
+  delivery_mode: string
+  sent_at: string
+  total_count: number
+  success_count: number
+  fail_count: number
+  body_text: string | null
+  teacher_id: number
+  teacher_name: string
+  teacher_email: string
+  lesson_record_id: number | null
+  class_name: string | null
+  template_name: string | null
+  lesson_date: string | null
+  messages: AdminAlimtalkBatchMessage[]
+}
 
 export type AdminAlimtalkList = {
   summary: { total: number; success: number; fail: number }

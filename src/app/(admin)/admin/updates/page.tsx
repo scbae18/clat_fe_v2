@@ -1,8 +1,8 @@
 'use client'
 
-import { useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2, Megaphone, Plus, Trash2 } from 'lucide-react'
+import { ImagePlus, Loader2, Megaphone, Plus, Trash2 } from 'lucide-react'
 import Button from '@/components/common/Button/Button'
 import Input from '@/components/common/Input/Input'
 import Textarea from '@/components/common/Textarea'
@@ -10,12 +10,14 @@ import { AdminHeader } from '../_components/AdminUi'
 import { WhatsNewContent } from '@/components/whats-new/WhatsNewModal/WhatsNewModal'
 import { admin, adminErrorMessage } from '@/services/admin'
 import useToast from '@/hooks/useToast'
-import type { UpdateNoticeItem } from '@/lib/whatsNew'
+import { resolveNoticeImageUrl, type UpdateNoticeItem } from '@/lib/whatsNew'
 import { formatMdHm } from '../_lib/format'
 import * as styles from '../admin.css'
 
 const DEFAULT_TITLE = '업데이트가 있어요'
 const DEFAULT_SUBTITLE = '이번 배포에서 아래 기능이 추가됐어요.'
+const IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif'
+const IMAGE_MAX_BYTES = 5 * 1024 * 1024
 
 function emptyItem(): UpdateNoticeItem {
   return { title: '', description: '' }
@@ -29,6 +31,7 @@ export default function AdminUpdatesPage() {
   const [items, setItems] = useState<UpdateNoticeItem[]>([emptyItem(), emptyItem()])
   const [saving, setSaving] = useState(false)
   const [deactivating, setDeactivating] = useState(false)
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null)
 
   const { data, isLoading, isError, error: loadError } = useQuery({
     queryKey: ['admin', 'update-notices'],
@@ -46,6 +49,40 @@ export default function AdminUpdatesPage() {
     setItems((prev) => prev.map((item, i) => (i === index ? { ...item, ...patch } : item)))
   }
 
+  const removeImage = (index: number) => {
+    setItems((prev) =>
+      prev.map((item, i) => {
+        if (i !== index) return item
+        const next = { ...item }
+        delete next.image_url
+        return next
+      }),
+    )
+  }
+
+  const handleImageChange = async (index: number, event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    if (file.size > IMAGE_MAX_BYTES) {
+      error('이미지는 5MB까지 올릴 수 있어요.')
+      return
+    }
+    if (!IMAGE_ACCEPT.split(',').includes(file.type)) {
+      error('JPG, PNG, WEBP, GIF만 올릴 수 있어요.')
+      return
+    }
+    setUploadingIndex(index)
+    try {
+      const { url } = await admin.uploadUpdateNoticeImage(file)
+      updateItem(index, { image_url: url })
+    } catch (err) {
+      error(adminErrorMessage(err))
+    } finally {
+      setUploadingIndex(null)
+    }
+  }
+
   const handlePublish = async (e: FormEvent) => {
     e.preventDefault()
     if (filledItems.length === 0) {
@@ -57,7 +94,14 @@ export default function AdminUpdatesPage() {
       await admin.publishUpdateNotice({
         title: title.trim() || DEFAULT_TITLE,
         subtitle: subtitle.trim() || DEFAULT_SUBTITLE,
-        items: filledItems,
+        items: filledItems.map((item) => {
+          const next: UpdateNoticeItem = {
+            title: item.title.trim(),
+            description: item.description.trim(),
+          }
+          if (item.image_url) next.image_url = item.image_url
+          return next
+        }),
       })
       success('업데이트 모달을 띄웠어요. 아직 확인하지 않은 선생님에게 보여요.')
       await queryClient.invalidateQueries({ queryKey: ['admin', 'update-notices'] })
@@ -89,7 +133,7 @@ export default function AdminUpdatesPage() {
     <div className={styles.stack}>
       <AdminHeader
         title="업데이트 모달"
-        subtitle="내용을 입력하고 게시하면 아직 확인하지 않은 선생님 앱에 모달이 한 번 뜹니다. 코드 수정 없이 다음 배포 안내를 올릴 수 있습니다."
+        subtitle="내용을 입력하고 게시하면 아직 확인하지 않은 선생님 앱에 모달이 한 번 뜹니다. 항목마다 이미지를 붙일 수 있고, 홈 업데이트 소식에서도 다시 볼 수 있습니다."
       />
 
       {active ? (
@@ -165,6 +209,47 @@ export default function AdminUpdatesPage() {
                       maxLength={300}
                     />
                   </label>
+                </div>
+                <div className={styles.noticeImageField}>
+                  <span className={styles.fieldLabel}>이미지 (선택)</span>
+                  {item.image_url ? (
+                    <div className={styles.noticeImagePreviewWrap}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={resolveNoticeImageUrl(item.image_url)}
+                        alt={item.title || `항목 ${index + 1} 미리보기`}
+                        className={styles.noticeImagePreview}
+                      />
+                      <Button type="button" variant="ghost" size="sm" onClick={() => removeImage(index)}>
+                        이미지 제거
+                      </Button>
+                    </div>
+                  ) : (
+                    <div>
+                      <input
+                        id={`notice-image-${index}`}
+                        className={styles.srOnly}
+                        type="file"
+                        accept={IMAGE_ACCEPT}
+                        disabled={uploadingIndex === index}
+                        onChange={(e) => void handleImageChange(index, e)}
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        disabled={uploadingIndex === index}
+                        leftIcon={
+                          uploadingIndex === index ? <Loader2 size={16} /> : <ImagePlus size={16} />
+                        }
+                        onClick={() => {
+                          document.getElementById(`notice-image-${index}`)?.click()
+                        }}
+                      >
+                        {uploadingIndex === index ? '올리는 중…' : '이미지 첨부'}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
