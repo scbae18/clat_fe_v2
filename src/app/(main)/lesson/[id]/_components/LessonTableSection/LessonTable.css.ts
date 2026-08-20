@@ -137,6 +137,13 @@ export const nameCellStyle = style({
   letterSpacing: '-0.03em',
   whiteSpace: 'nowrap',
   textDecoration: 'none',
+  cursor: 'pointer',
+  transition: 'color 0.15s',
+  selectors: {
+    '&:hover': {
+      color: colors.primary500,
+    },
+  },
 })
 
 export const thInnerStyle = style({
@@ -275,6 +282,18 @@ export const emptyStateStyle = style({
 
 export const emptyStateIconStyle = style({
   color: colors.gray300,
+})
+
+/** SCORE column header: title + max score row */
+export const scoreColHeaderStyle = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: '4px',
+  paddingTop: '4px',
+  paddingBottom: '4px',
+  whiteSpace: 'normal',
+  minWidth: '120px',
 })
 
 /** COMPLETE column header: title + shared note row */
