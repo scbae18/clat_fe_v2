@@ -12,6 +12,8 @@ import type { LessonStudent, Attendance, CompletionStatus } from '@/types/lesson
 import type { LessonItemDetail, CreateLessonAdhocItemBody } from '@/services/lesson'
 import AddItemForm from '@/app/(main)/template/_components/AddItemForm/AddItemForm'
 import Modal from '@/components/common/Modal'
+import EnrollStudentsModal from '@/components/student/EnrollStudentsModal/EnrollStudentsModal'
+import useDisclosure from '@/hooks/useDisclosure'
 import { lessonItemRef, matchesLessonItem } from '@/lib/lessonItemRef'
 import type { ItemSource } from '@/lib/lessonItemRef'
 import { isLessonStudentInputComplete } from '@/lib/lessonProgress'
@@ -53,6 +55,7 @@ interface LessonTableSectionProps {
   onAddItem?: (body: CreateLessonAdhocItemBody) => void | Promise<void>
   onRemoveColumn?: (item: LessonItemDetail) => void
   onTogglePartial?: (item: LessonItemDetail, isPartial: boolean) => void
+  onAddStudents?: (studentIds: number[]) => void | Promise<void>
 }
 
 export default function LessonTable({
@@ -63,11 +66,13 @@ export default function LessonTable({
   onAddItem,
   onRemoveColumn,
   onTogglePartial,
+  onAddStudents,
 }: LessonTableSectionProps) {
   const tableRef = useRef<HTMLTableElement>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [focusedStudentId, setFocusedStudentId] = useState<number | null>(null)
   const [isAddFormOpen, setIsAddFormOpen] = useState(false)
+  const addStudentsModal = useDisclosure()
 
   const dynamicItems = useMemo(
     () => templateItems.filter((i) => !i.is_common && i.item_type !== 'ATTENDANCE'),
@@ -142,6 +147,7 @@ export default function LessonTable({
         onChange={setSearchQuery}
         totalCount={students.length}
         filteredCount={filteredStudents.length}
+        onAddStudent={onAddStudents ? addStudentsModal.open : undefined}
       />
 
       {filteredStudents.length === 0 ? (
@@ -320,6 +326,17 @@ export default function LessonTable({
             onCancel={() => setIsAddFormOpen(false)}
           />
         </Modal>
+      ) : null}
+
+      {onAddStudents ? (
+        <EnrollStudentsModal
+          isOpen={addStudentsModal.isOpen}
+          onClose={addStudentsModal.close}
+          currentStudentIds={students.map((s) => s.id)}
+          onConfirm={(ids) => {
+            void onAddStudents(ids)
+          }}
+        />
       ) : null}
     </div>
   )

@@ -1,6 +1,6 @@
 import type { LessonStudent } from '@/types/lessonStudent'
 import type { LessonItemDetail, CreateLessonAdhocItemBody } from '@/services/lesson'
-import { joinScoreStorage, splitScoreStorage } from '@/lib/lessonScore'
+import { cohortScoreMetric, joinScoreStorage, splitScoreStorage } from '@/lib/lessonScore'
 import { completeItemNoteDraft } from '@/lib/completeNote'
 import { matchesLessonItem } from '@/lib/lessonItemRef'
 import { activeRowTdStyle, completeRowTdStyle } from './LessonTable.css'
@@ -52,6 +52,27 @@ export function getScoreColumnMax(students: LessonStudent[], item: LessonItemDet
     if (max) return max
   }
   return ''
+}
+
+/** 입력된 획득 점수만으로 평균. 문자 발송과 동일하게 소수 첫째 자리. */
+export function getScoreColumnAverage(
+  students: LessonStudent[],
+  item: LessonItemDetail,
+): number | null {
+  const nums: number[] = []
+  for (const s of students) {
+    const v = s.items.find((i) => matchesLessonItem(i, item))?.value ?? ''
+    const metric = cohortScoreMetric(v)
+    if (metric != null) nums.push(metric)
+  }
+  if (nums.length === 0) return null
+  const sum = nums.reduce((a, b) => a + b, 0)
+  return Math.round((sum / nums.length) * 10) / 10
+}
+
+export function formatScoreColumnAverage(avg: number | null): string {
+  if (avg == null) return '—'
+  return Number.isInteger(avg) ? `${avg}점` : `${avg.toFixed(1)}점`
 }
 
 export function applyScoreMaxToAllStudents(

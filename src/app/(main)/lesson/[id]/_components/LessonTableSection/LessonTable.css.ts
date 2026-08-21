@@ -293,7 +293,7 @@ export const scoreColHeaderStyle = style({
   paddingTop: '4px',
   paddingBottom: '4px',
   whiteSpace: 'normal',
-  minWidth: '120px',
+  minWidth: '200px',
 })
 
 /** COMPLETE column header: title + shared note row */
@@ -309,6 +309,8 @@ export const scoreHeaderMaxRowStyle = style({
   alignItems: 'center',
   gap: '6px',
   marginTop: '2px',
+  flexWrap: 'nowrap',
+  whiteSpace: 'nowrap',
 })
 
 export const scoreHeaderMaxLabelStyle = style({
@@ -323,6 +325,22 @@ export const scoreHeaderMaxSuffixStyle = style({
   fontWeight: fontStyles.labelSm.fontWeight,
   color: colors.gray500,
   flexShrink: 0,
+})
+
+export const scoreHeaderAvgDividerStyle = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.labelSm.fontWeight,
+  color: colors.gray300,
+  flexShrink: 0,
+})
+
+export const scoreHeaderAvgValueStyle = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  color: colors.gray700,
+  letterSpacing: '-0.03em',
+  lineHeight: '140%',
+  whiteSpace: 'nowrap',
 })
 
 export const scoreInputStyle = style({

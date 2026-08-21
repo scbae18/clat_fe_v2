@@ -45,6 +45,7 @@ export interface LessonDetail {
   attendance_locked?: boolean
   common_data: CommonDataItem[]
   student_data: StudentData[]
+  guest_students?: Array<{ student_id: number; student_name: string }>
   items: LessonItemDetail[]
 }
 
@@ -247,5 +248,21 @@ export const lessonService = {
     const payload = data.data as { items?: LessonItemDetail[] } | LessonItemDetail[]
     if (Array.isArray(payload)) return payload
     return payload.items ?? []
+  },
+
+  async addLessonStudents(
+    lessonId: number,
+    studentIds: number[],
+  ): Promise<{ added_count: number; students: Array<{ student_id: number; student_name: string }> }> {
+    const { data } = await axiosInstance.post(`/lessons/${lessonId}/students`, {
+      student_ids: studentIds,
+    })
+    const payload = data.data as
+      | { added_count: number; students: Array<{ student_id: number; student_name: string }> }
+      | undefined
+    return {
+      added_count: payload?.added_count ?? 0,
+      students: payload?.students ?? [],
+    }
   },
 }

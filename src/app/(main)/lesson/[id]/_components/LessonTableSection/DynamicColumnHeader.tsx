@@ -10,6 +10,8 @@ import {
   scoreHeaderMaxRowStyle,
   scoreHeaderMaxLabelStyle,
   scoreHeaderMaxSuffixStyle,
+  scoreHeaderAvgDividerStyle,
+  scoreHeaderAvgValueStyle,
   scoreInputMaxStyle,
   completeColHeaderStyle,
   completeHeaderNoteInputStyle,
@@ -22,6 +24,8 @@ import {
 import {
   applyScoreMaxToAllStudents,
   applyCompleteNoteToAllStudents,
+  formatScoreColumnAverage,
+  getScoreColumnAverage,
   getScoreColumnMax,
   getCompleteColumnNote,
   isScoreItem,
@@ -168,6 +172,13 @@ export function DynamicColumnHeader({
             />
             <span className={scoreHeaderMaxSuffixStyle} aria-hidden>
               점
+            </span>
+            <span className={scoreHeaderAvgDividerStyle} aria-hidden>
+              ·
+            </span>
+            <span className={scoreHeaderMaxLabelStyle}>평균</span>
+            <span className={scoreHeaderAvgValueStyle}>
+              {formatScoreColumnAverage(getScoreColumnAverage(students, item))}
             </span>
           </div>
         </div>

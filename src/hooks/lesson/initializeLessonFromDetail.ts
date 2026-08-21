@@ -1,5 +1,5 @@
 import type { LessonStudent } from '@/types/lessonStudent'
-import type { LessonDetail } from '@/services/lesson'
+import type { LessonDetail, LessonItemDetail } from '@/services/lesson'
 import type { Student } from '@/types/student'
 import { itemRef } from '@/lib/lessonItemRef'
 
@@ -27,8 +27,21 @@ export function buildStudentsFromDetail(
   const apiNameMap = new Map(
     data.student_data.map((sd) => [sd.student_id, sd.student_name ?? '']),
   )
+  const guestNameMap = new Map(
+    (data.guest_students ?? []).map((g) => [g.student_id, g.student_name]),
+  )
 
-  const baseStudentIds = classStudents.map((s) => s.id)
+  const seen = new Set<number>()
+  const baseStudentIds: number[] = []
+  for (const id of [
+    ...classStudents.map((s) => s.id),
+    ...(data.guest_students ?? []).map((g) => g.student_id),
+    ...data.student_data.map((sd) => sd.student_id),
+  ]) {
+    if (seen.has(id)) continue
+    seen.add(id)
+    baseStudentIds.push(id)
+  }
 
   const students: LessonStudent[] = baseStudentIds.map((studentId) => {
     const sd = data.student_data.find((row) => row.student_id === studentId)
@@ -48,7 +61,7 @@ export function buildStudentsFromDetail(
 
     return {
       id: studentId,
-      name: nameMap.get(studentId) ?? apiNameMap.get(studentId) ?? '',
+      name: nameMap.get(studentId) ?? guestNameMap.get(studentId) ?? apiNameMap.get(studentId) ?? '',
       attendance,
       items: individualItems.map((item) => {
         const existing = sdItems.find((si) => {
@@ -69,4 +82,25 @@ export function buildStudentsFromDetail(
 
   students.sort((a, b) => a.name.localeCompare(b.name, 'ko'))
   return students
+}
+
+export function createEmptyLessonStudent(
+  id: number,
+  name: string,
+  lessonItems: LessonItemDetail[],
+): LessonStudent {
+  const individualItems = lessonItems.filter(
+    (i) => !i.is_common && i.item_type !== 'ATTENDANCE',
+  )
+  return {
+    id,
+    name,
+    attendance: null,
+    items: individualItems.map((item) => ({
+      item_id: item.id,
+      source: item.source ?? 'template',
+      value: '',
+      is_completed: null,
+    })),
+  }
 }

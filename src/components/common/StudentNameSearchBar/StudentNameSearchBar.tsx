@@ -26,6 +26,7 @@ interface StudentNameSearchBarProps {
   onCancelSelection?: () => void
   onSelectAll?: () => void
   onConfirmDelete?: () => void
+  onAddStudent?: () => void
 }
 
 export default function StudentNameSearchBar({
@@ -39,6 +40,7 @@ export default function StudentNameSearchBar({
   onCancelSelection,
   onSelectAll,
   onConfirmDelete,
+  onAddStudent,
 }: StudentNameSearchBarProps) {
   const trimmed = value.trim()
   const countLabel =
@@ -71,6 +73,11 @@ export default function StudentNameSearchBar({
       </label>
       <div className={countClusterStyle}>
         <Chip variant={trimmed.length > 0 ? 'active' : 'default'} label={countLabel} />
+        {!selectionMode && onAddStudent ? (
+          <button type="button" className={countActionButtonStyle} onClick={onAddStudent}>
+            학생 추가
+          </button>
+        ) : null}
         {!selectionMode ? (
           onStartSelection && totalCount > 0 ? (
             <button

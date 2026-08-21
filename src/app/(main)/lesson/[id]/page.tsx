@@ -68,6 +68,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     excludeTemplateItem,
     updateLessonItemOrder,
     setItemPartial,
+    addStudentsToLesson,
   } = useLessonDetail(lessonId)
 
   const templateModal = useDisclosure()
@@ -289,6 +290,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           onAddItem={addAdhocItem}
           onRemoveColumn={handleRemoveItem}
           onTogglePartial={(item, isPartial) => void setItemPartial(item, isPartial)}
+          onAddStudents={addStudentsToLesson}
         />
       </div>
 
