@@ -4,7 +4,8 @@ import {
   dateStyle,
   dateDefaultStyle,
   dateSelectedStyle,
-  statusStyle,
+  chipWrapStyle,
+  statusDotRecipe,
 } from './DateCard.css'
 import Chip from '@/components/common/Chip'
 
@@ -37,7 +38,13 @@ export default function DateCard({ day, date, status, isSelected, onClick }: Dat
       <span className={`${dateStyle} ${isSelected ? dateSelectedStyle : dateDefaultStyle}`}>
         {date}
       </span>
-      <Chip label={STATUS_LABEL[status]} variant={STATUS_VARIANT[status]} />
+      <span className={chipWrapStyle}>
+        <Chip label={STATUS_LABEL[status]} variant={STATUS_VARIANT[status]} />
+      </span>
+      <span
+        className={statusDotRecipe({ status })}
+        aria-label={STATUS_LABEL[status]}
+      />
     </div>
   )
 }

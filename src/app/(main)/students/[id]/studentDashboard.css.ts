@@ -1,6 +1,7 @@
 import { keyframes, style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { phoneTextRules, truncateRules } from '@/styles/tokens/textOverflow'
+import { media } from '@/styles/tokens/breakpoints'
 
 const chartEnter = keyframes({
   '0%': { opacity: 0, transform: 'translateY(10px)' },
@@ -41,12 +42,22 @@ export const pageTitle = style({
   lineHeight: 1.4,
   letterSpacing: '-0.03em',
   color: colors.gray900,
+  '@media': {
+    [media.phone]: {
+      fontSize: '22px',
+    },
+  },
 })
 
 export const columns = style({
   display: 'flex',
   gap: '24px',
   alignItems: 'flex-start',
+  '@media': {
+    [media.phone]: {
+      flexDirection: 'column',
+    },
+  },
 })
 
 export const leftCol = style({
@@ -55,6 +66,11 @@ export const leftCol = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '24px',
+  '@media': {
+    [media.phone]: {
+      width: '100%',
+    },
+  },
 })
 
 export const profileCard = style({
@@ -362,6 +378,12 @@ export const rightCol = style({
   flex: 1,
   minWidth: 0,
   maxWidth: '636px',
+  '@media': {
+    [media.phone]: {
+      width: '100%',
+      maxWidth: '100%',
+    },
+  },
 })
 
 export const panelCard = style({
@@ -372,6 +394,11 @@ export const panelCard = style({
   minHeight: '731px',
   display: 'flex',
   flexDirection: 'column',
+  '@media': {
+    [media.phone]: {
+      minHeight: 0,
+    },
+  },
 })
 
 export const tabRow = style({
@@ -381,6 +408,13 @@ export const tabRow = style({
   padding: '27px 27px 0',
   borderBottom: `1px solid ${colors.gray50}`,
   position: 'relative',
+  '@media': {
+    [media.phone]: {
+      gap: '16px',
+      padding: '16px 16px 0',
+      overflowX: 'auto',
+    },
+  },
 })
 
 export const tabBtn = style({

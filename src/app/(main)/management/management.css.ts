@@ -2,6 +2,7 @@ import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
 import { cardGridResponsive } from '@/styles/tokens/grid'
+import { media } from '@/styles/tokens/breakpoints'
 
 const tabBase = {
   background: 'none',
@@ -14,6 +15,11 @@ const tabBase = {
   padding: 0,
   whiteSpace: 'nowrap',
   flexShrink: 0,
+  '@media': {
+    [media.phone]: {
+      fontSize: fontStyles.titleMd.fontSize,
+    },
+  },
 } as const
 
 export const tabContainerStyle = style({
@@ -23,6 +29,13 @@ export const tabContainerStyle = style({
   gap: '12px 32px',
   marginTop: '60px',
   marginBottom: '24px',
+  '@media': {
+    [media.phone]: {
+      marginTop: '16px',
+      marginBottom: '16px',
+      gap: '12px',
+    },
+  },
 })
 
 export const tabGroupStyle = style({
@@ -38,7 +51,7 @@ export const tabActionsStyle = style({
   flexWrap: 'wrap',
   gap: '8px',
   '@media': {
-    '(max-width: 900px)': {
+    [media.phone]: {
       marginLeft: 0,
       width: '100%',
     },
@@ -56,6 +69,13 @@ export const tabActiveStyle = style([tabBase, {
 export const gridStyle = style({
   ...cardGridResponsive,
   gridAutoRows: 'minmax(190px, auto)',
+  '@media': {
+    [media.tablet]: { gridTemplateColumns: 'repeat(2, 1fr)' },
+    [media.phone]: {
+      gridTemplateColumns: 'repeat(1, 1fr)',
+      gridAutoRows: 'minmax(140px, auto)',
+    },
+  },
 })
 
 export const backButtonStyle = style({

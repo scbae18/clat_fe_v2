@@ -1,6 +1,6 @@
 import { recipe } from '@vanilla-extract/recipes'
 import { colors } from '@/styles/tokens/colors'
-import { sq } from 'date-fns/locale'
+import { media } from '@/styles/tokens/breakpoints'
 
 export const buttonRecipe = recipe({
   base: {
@@ -110,8 +110,24 @@ export const buttonRecipe = recipe({
     },
     size: {
       sm: { padding: '8px 12px', fontSize: '14px', fontWeight: '600', borderRadius: '8px' },
-      md: { padding: '12px 24px', fontSize: '14px', fontWeight: '600', borderRadius: '8px' },
-      lg: { padding: '16px 24px', fontSize: '16px', fontWeight: '600', borderRadius: '12px' },
+      md: {
+        padding: '12px 24px',
+        fontSize: '14px',
+        fontWeight: '600',
+        borderRadius: '8px',
+        '@media': {
+          [media.phone]: { minHeight: '44px' },
+        },
+      },
+      lg: {
+        padding: '16px 24px',
+        fontSize: '16px',
+        fontWeight: '600',
+        borderRadius: '12px',
+        '@media': {
+          [media.phone]: { minHeight: '44px' },
+        },
+      },
     },
     shape: {
       square: {},

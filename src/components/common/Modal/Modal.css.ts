@@ -2,6 +2,7 @@ import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 import { colors } from '@/styles/tokens/colors'
 import { zIndex } from '@/styles/tokens/zIndex'
+import { media } from '@/styles/tokens/breakpoints'
 
 export const overlayStyle = style({
   position: 'fixed',
@@ -39,12 +40,24 @@ export const modalRecipe = recipe({
         maxWidth: 'calc(100vw - 32px)',
         borderRadius: '24px',
         padding: '48px',
+        '@media': {
+          [media.phone]: {
+            padding: '24px',
+            borderRadius: '16px',
+          },
+        },
       },
       lg: {
         width: '960px',
         maxWidth: 'calc(100vw - 32px)',
         borderRadius: '24px',
         padding: '32px',
+        '@media': {
+          [media.phone]: {
+            padding: '20px',
+            borderRadius: '16px',
+          },
+        },
       },
     },
   },

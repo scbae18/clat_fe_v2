@@ -1,6 +1,7 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { media } from '@/styles/tokens/breakpoints'
 
 export const pageRoot = style({
   width: '100%',
@@ -14,6 +15,11 @@ export const pageTitle = style({
   lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray900,
+  '@media': {
+    [media.phone]: {
+      fontSize: '24px',
+    },
+  },
 })
 
 export const pageDesc = style({
@@ -123,7 +129,7 @@ export const fieldGrid = style({
   rowGap: '14px',
   alignItems: 'center',
   '@media': {
-    '(max-width: 560px)': {
+    [media.phone]: {
       gridTemplateColumns: '1fr',
       rowGap: '8px',
     },

@@ -2,6 +2,7 @@ import { style, keyframes } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
 import { zIndex } from '@/styles/tokens/zIndex'
+import { media } from '@/styles/tokens/breakpoints'
 
 const fadeSlideIn = keyframes({
   from: { opacity: 0, transform: 'translateY(8px)' },
@@ -23,6 +24,14 @@ export const containerStyle = style({
   gap: '8px',
   alignItems: 'flex-end',
   pointerEvents: 'none',
+  '@media': {
+    [media.phone]: {
+      top: 'calc(56px + env(safe-area-inset-top, 0px) + 8px)',
+      right: '16px',
+      left: '16px',
+      alignItems: 'stretch',
+    },
+  },
 })
 
 export const toastStyle = style({
@@ -43,6 +52,13 @@ export const toastStyle = style({
   animation: `${fadeSlideIn} 0.25s ease-out`,
   pointerEvents: 'auto',
   whiteSpace: 'pre-wrap',
+  '@media': {
+    [media.phone]: {
+      minWidth: 0,
+      maxWidth: '100%',
+      width: '100%',
+    },
+  },
 })
 
 export const toastClosingStyle = style({

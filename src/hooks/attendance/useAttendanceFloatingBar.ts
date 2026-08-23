@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import { usePathname } from 'next/navigation'
 
 import { attendanceService } from '@/services/attendance'
 import {
@@ -7,8 +6,6 @@ import {
   dispatchAttendanceSessionEnded,
 } from '@/stores/attendanceSessionStore'
 import { useToastStore } from '@/stores/toastStore'
-import { useUiStore } from '@/stores/uiStore'
-import { getSidebarWidth } from '@/lib/sidebar'
 
 import { formatAttendanceRemaining, useRemainingSeconds } from './attendanceTime'
 
@@ -18,9 +15,7 @@ export function useAttendanceFloatingBar() {
   const active = useAttendanceSessionStore((s) => s.active)
   const setActive = useAttendanceSessionStore((s) => s.setActive)
   const attendanceDetailNonce = useAttendanceSessionStore((s) => s.attendanceDetailNonce)
-  const pathname = usePathname()
   const addToast = useToastStore((s) => s.addToast)
-  const sidebarCollapsed = useUiStore((s) => s.sidebarCollapsed)
 
   const [detailOpen, setDetailOpen] = useState(false)
   const [endConfirmOpen, setEndConfirmOpen] = useState(false)
@@ -39,11 +34,6 @@ export function useAttendanceFloatingBar() {
 
   const expiresAt = snapshot?.expiresAt ?? active?.expiresAt ?? null
   const remainingSeconds = useRemainingSeconds(expiresAt)
-
-  const lessonDetailFooter = pathname != null && /^\/lesson\/\d+$/.test(pathname)
-  const bottom = lessonDetailFooter ? 100 : 32
-  const horizontal = 48
-  const sidebar = getSidebarWidth(sidebarCollapsed)
 
   useEffect(() => {
     if (attendanceDetailNonce > 0 && active) setDetailOpen(true)
@@ -148,7 +138,6 @@ export function useAttendanceFloatingBar() {
     late: snapshot?.late ?? 0,
     absent: snapshot?.absent ?? 0,
     remainingLabel: formatAttendanceRemaining(remainingSeconds),
-    barPosition: { left: sidebar + horizontal, right: horizontal, bottom },
     handleEnd,
   }
 }

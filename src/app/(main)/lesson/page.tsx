@@ -19,6 +19,7 @@ import {
   sectionTitleStyle,
   navButtonStyle,
   weekNavStyle,
+  weekLabelStyle,
 } from './lesson.css'
 import { useLessonList } from '@/hooks/lesson/useLessonList'
 
@@ -79,7 +80,9 @@ function LessonPageContent() {
         >
           <ArrowLeftIcon width={24} height={24} />
         </button>
-        <Text variant="headingMd">{headerText}</Text>
+        <span className={weekLabelStyle}>
+          <Text variant="headingMd">{headerText}</Text>
+        </span>
         <button
           type="button"
           className={navButtonStyle}

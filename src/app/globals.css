@@ -16,6 +16,7 @@
     font-family: 'Pretendard', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    min-height: 100dvh;
   }
   
   img, video {

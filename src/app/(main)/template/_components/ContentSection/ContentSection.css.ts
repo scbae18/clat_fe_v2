@@ -1,6 +1,7 @@
 import { style, styleVariants } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { media } from '@/styles/tokens/breakpoints'
 
 export const sectionStyle = style({
   display: 'flex',
@@ -18,6 +19,11 @@ export const itemListStyle = style({
   display: 'grid',
   gridTemplateColumns: '1fr 1fr',
   gap: '8px',
+  '@media': {
+    [media.phone]: {
+      gridTemplateColumns: '1fr',
+    },
+  },
 })
 
 const itemBase = {

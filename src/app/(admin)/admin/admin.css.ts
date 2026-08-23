@@ -2,6 +2,7 @@ import { globalStyle, style, styleVariants } from '@vanilla-extract/css'
 import { vars } from '@/styles/theme.css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { media } from '@/styles/tokens/breakpoints'
 
 const tracking = '-0.03em'
 
@@ -21,12 +22,28 @@ export const sidebar = style({
   flexShrink: 0,
   flexDirection: 'column',
   backgroundColor: vars.color.gray[900],
+  '@media': {
+    [media.phone]: {
+      position: 'relative',
+      width: '100%',
+      height: 'auto',
+      flexDirection: 'row',
+      alignItems: 'center',
+      overflowX: 'auto',
+    },
+  },
 })
 
 export const brandWrap = style({
   display: 'flex',
   alignItems: 'center',
   padding: '56px 36px 40px',
+  '@media': {
+    [media.phone]: {
+      padding: '12px 16px',
+      flexShrink: 0,
+    },
+  },
 })
 
 export const brandLink = style({
@@ -57,6 +74,13 @@ export const nav = style({
   flexDirection: 'column',
   gap: '8px',
   padding: '0 24px',
+  '@media': {
+    [media.phone]: {
+      flexDirection: 'row',
+      padding: '8px 12px',
+      gap: '4px',
+    },
+  },
 })
 
 const navLinkBase = style({
@@ -88,6 +112,11 @@ export const navLink = styleVariants({
 export const sidebarFooter = style({
   borderTop: '1px solid rgba(255,255,255,0.1)',
   padding: '20px 24px',
+  '@media': {
+    [media.phone]: {
+      display: 'none',
+    },
+  },
 })
 
 export const footerLabel = style({
@@ -128,6 +157,12 @@ export const teacherAppLink = style({
 export const main = style({
   minHeight: '100vh',
   paddingLeft: '240px',
+  '@media': {
+    [media.phone]: {
+      paddingLeft: 0,
+      minHeight: 0,
+    },
+  },
 })
 
 export const mainInner = style({
@@ -135,6 +170,12 @@ export const mainInner = style({
   minHeight: '100vh',
   maxWidth: '1200px',
   padding: '48px',
+  '@media': {
+    [media.phone]: {
+      padding: '16px',
+      minHeight: 0,
+    },
+  },
 })
 
 export const stack = style({

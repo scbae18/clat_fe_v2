@@ -1,5 +1,6 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
+import { media } from '@/styles/tokens/breakpoints'
 
 export const pageRoot = style({
   maxWidth: '1200px',
@@ -12,6 +13,12 @@ export const pageTitle = style({
   lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray900,
+  '@media': {
+    [media.phone]: {
+      fontSize: '24px',
+      marginBottom: '24px',
+    },
+  },
 })
 
 export const cardStack = style({

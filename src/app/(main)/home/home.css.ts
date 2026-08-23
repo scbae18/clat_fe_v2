@@ -1,11 +1,17 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { media } from '@/styles/tokens/breakpoints'
 
 export const pageStyle = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '36px',
+  '@media': {
+    [media.phone]: {
+      gap: '20px',
+    },
+  },
 })
 
 export const bannerStyle = style({
@@ -19,7 +25,7 @@ export const bannerStyle = style({
   position: 'relative',
   minHeight: '160px',
   '@media': {
-    'screen and (max-width: 767px)': {
+    [media.phone]: {
       flexDirection: 'column',
       alignItems: 'flex-start',
       padding: '24px 20px',
@@ -41,10 +47,10 @@ export const bannerSubtitleStyle = style({
   letterSpacing: '-0.05em',
   color: colors.gray700,
   '@media': {
-    'screen and (max-width: 1279px)': {
+    [media.tablet]: {
       fontSize: '20px',
     },
-    'screen and (max-width: 767px)': {
+    [media.phone]: {
       fontSize: '18px',
     },
   },
@@ -57,10 +63,10 @@ export const bannerTitleStyle = style({
   color: colors.primary500,
   lineHeight: 1.15,
   '@media': {
-    'screen and (max-width: 1279px)': {
+    [media.tablet]: {
       fontSize: '40px',
     },
-    'screen and (max-width: 767px)': {
+    [media.phone]: {
       fontSize: '32px',
     },
   },
@@ -70,6 +76,11 @@ export const bannerLogoWrapStyle = style({
   overflow: 'hidden',
   height: '24px',
   width: '120px',
+  '@media': {
+    [media.phone]: {
+      display: 'none',
+    },
+  },
 })
 
 export const bannerLogoStyle = style({
@@ -84,13 +95,13 @@ export const bannerIllustWrapStyle = style({
   bottom: '-110px',
   display: 'flex',
   '@media': {
-    'screen and (max-width: 1279px)': {
+    [media.tablet]: {
       right: '-80px',
       bottom: '-80px',
       transform: 'scale(0.75)',
       transformOrigin: 'right bottom',
     },
-    'screen and (max-width: 767px)': {
+    [media.phone]: {
       display: 'none',
     },
   },
@@ -121,7 +132,7 @@ export const cardGridStyle = style({
   gridTemplateColumns: '1fr 1fr',
   gap: '16px',
   '@media': {
-    'screen and (max-width: 767px)': {
+    [media.phone]: {
       gridTemplateColumns: '1fr',
     },
   },
@@ -230,7 +241,7 @@ export const cardImageWrapStyle = style({
   right: -100,
   bottom: -120,
   '@media': {
-    'screen and (max-width: 767px)': {
+    [media.phone]: {
       display: 'none',
     },
   },

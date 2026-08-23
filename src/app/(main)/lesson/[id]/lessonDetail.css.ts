@@ -2,18 +2,34 @@ import { style, keyframes } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { media } from '@/styles/tokens/breakpoints'
+import { zIndex } from '@/styles/tokens/zIndex'
+import { sidebarWidthVar, bottomNavHeightVar } from '@/styles/layoutVars.css'
 
 export const pageStyle = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '60px',
   paddingBottom: '80px',
+  '@media': {
+    [media.phone]: {
+      gap: '32px',
+      paddingBottom: '24px',
+    },
+  },
 })
 
 export const headerStyle = style({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
+  gap: '12px',
+  '@media': {
+    [media.phone]: {
+      flexWrap: 'wrap',
+      alignItems: 'flex-start',
+    },
+  },
 })
 
 export const backButtonStyle = style({
@@ -40,6 +56,12 @@ export const headerButtonGroupStyle = style({
   display: 'flex',
   alignItems: 'center',
   gap: '8px',
+  flexWrap: 'wrap',
+  '@media': {
+    [media.phone]: {
+      width: '100%',
+    },
+  },
 })
 
 export const autoSaveHintStyle = style({
@@ -52,8 +74,8 @@ export const autoSaveHintStyle = style({
 
 export const footerStyle = style({
   position: 'fixed',
-  bottom: 0,
-  left: '240px',
+  bottom: bottomNavHeightVar,
+  left: sidebarWidthVar,
   right: 0,
   display: 'flex',
   justifyContent: 'space-between',
@@ -61,7 +83,14 @@ export const footerStyle = style({
   padding: '16px 48px',
   backgroundColor: colors.primary100,
   borderTop: `1px solid ${colors.gray100}`,
-  zIndex: 100,
+  zIndex: zIndex.footer,
+  '@media': {
+    [media.phone]: {
+      padding: '12px 16px',
+      gap: '8px',
+      flexWrap: 'wrap',
+    },
+  },
 })
 
 export const sectionStyle = style({
@@ -80,11 +109,21 @@ export const templateLabelRowStyle = style({
   display: 'flex',
   alignItems: 'center',
   gap: '12px',
+  '@media': {
+    [media.phone]: {
+      flexWrap: 'wrap',
+    },
+  },
 })
 
 export const templateChipGroupStyle = style({
   display: 'flex',
   gap: '8px',
+  '@media': {
+    [media.phone]: {
+      flexWrap: 'wrap',
+    },
+  },
 })
 
 const shimmer = keyframes({

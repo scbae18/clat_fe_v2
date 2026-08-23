@@ -4,6 +4,8 @@ export const zIndex = {
   floatingBar: 200,
   tooltip: 400,
   chatbot: 1100,
+  moreSheet: 1250,
+  bottomNav: 1260,
   modal: 1300,
   toast: 1400,
 } as const

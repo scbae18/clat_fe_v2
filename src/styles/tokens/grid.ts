@@ -1,4 +1,5 @@
 import type { StyleRule } from '@vanilla-extract/css'
+import { media } from './breakpoints'
 
 export const cardGridBase: StyleRule = {
   display: 'grid',
@@ -9,7 +10,7 @@ export const cardGridBase: StyleRule = {
 export const cardGridResponsive: StyleRule = {
   ...cardGridBase,
   '@media': {
-    'screen and (max-width: 1279px)': { gridTemplateColumns: 'repeat(2, 1fr)' },
-    'screen and (max-width: 767px)': { gridTemplateColumns: 'repeat(1, 1fr)' },
+    [media.tablet]: { gridTemplateColumns: 'repeat(2, 1fr)' },
+    [media.phone]: { gridTemplateColumns: 'repeat(1, 1fr)' },
   },
 }

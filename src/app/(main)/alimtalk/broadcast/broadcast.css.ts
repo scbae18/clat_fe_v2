@@ -1,6 +1,7 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { media } from '@/styles/tokens/breakpoints'
 
 export const layout = style({
   display: 'grid',
@@ -8,7 +9,7 @@ export const layout = style({
   gap: '24px',
   alignItems: 'start',
   '@media': {
-    '(max-width: 960px)': {
+    [media.tablet]: {
       gridTemplateColumns: '1fr',
     },
   },
@@ -26,6 +27,11 @@ export const panel = style({
 
 export const recipientPanel = style({
   minHeight: '640px',
+  '@media': {
+    [media.phone]: {
+      minHeight: 0,
+    },
+  },
 })
 
 export const composeStack = style({

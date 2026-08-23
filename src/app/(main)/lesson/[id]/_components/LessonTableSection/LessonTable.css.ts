@@ -3,6 +3,7 @@ import { recipe } from '@vanilla-extract/recipes'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
 import { zIndex } from '@/styles/tokens/zIndex'
+import { media } from '@/styles/tokens/breakpoints'
 
 export const tableWrapStyle = style({
   overflowX: 'auto',
@@ -76,6 +77,12 @@ export const cellButtonRecipe = recipe({
     lineHeight: '140%',
     transition: 'background-color 0.15s',
     border: 'none',
+    '@media': {
+      [media.phone]: {
+        height: '36px',
+        minHeight: '36px',
+      },
+    },
   },
   variants: {
     variant: {

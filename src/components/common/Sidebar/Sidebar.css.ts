@@ -1,6 +1,7 @@
 import { style, styleVariants } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { media } from '@/styles/tokens/breakpoints'
 
 const sidebarBase = style({
   height: '100vh',
@@ -14,6 +15,11 @@ const sidebarBase = style({
   overflow: 'hidden',
   transition: 'width 0.2s ease',
   zIndex: 100,
+  '@media': {
+    [media.phone]: {
+      display: 'none',
+    },
+  },
 })
 
 export const sidebarStyle = styleVariants({

@@ -5,6 +5,7 @@ import AttendanceDetailModal from './AttendanceDetailModal'
 import AttendanceEndedModal from './AttendanceEndedModal'
 import ConfirmModal from '@/components/common/ConfirmModal'
 import { useAttendanceFloatingBar } from '@/hooks/attendance/useAttendanceFloatingBar'
+import { slotInnerStyle, slotStyle } from './AttendanceFloatingBarHost.css'
 
 export default function AttendanceFloatingBarHost() {
   const bar = useAttendanceFloatingBar()
@@ -12,17 +13,8 @@ export default function AttendanceFloatingBarHost() {
   return (
     <>
       {bar.active ? (
-        <div
-          style={{
-            position: 'fixed',
-            left: bar.barPosition.left,
-            right: bar.barPosition.right,
-            bottom: bar.barPosition.bottom,
-            zIndex: 110,
-            pointerEvents: 'none',
-          }}
-        >
-          <div style={{ pointerEvents: 'auto' }}>
+        <div className={slotStyle}>
+          <div className={slotInnerStyle}>
             <AttendanceFloatingBar
               classLabel={bar.active.className}
               code={bar.active.code}

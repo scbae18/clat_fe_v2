@@ -1,6 +1,7 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { media } from '@/styles/tokens/breakpoints'
 
 /** Figma node 732:2245 */
 export const barWrapStyle = style({
@@ -15,9 +16,12 @@ export const barWrapStyle = style({
   boxShadow: '0px 0px 30px 0px rgba(0,0,0,0.25)',
   boxSizing: 'border-box',
   '@media': {
-    '(max-width: 1024px)': {
+    [media.phone]: {
       flexWrap: 'wrap',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
+      gap: '12px',
+      padding: '16px',
+      borderRadius: '16px',
     },
   },
 })

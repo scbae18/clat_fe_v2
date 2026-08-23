@@ -1,5 +1,6 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
+import { media } from '@/styles/tokens/breakpoints'
 
 const kakaoHeaderYellow = '#FEE501'
 const previewPanelBg = '#C9DBEA'
@@ -80,6 +81,9 @@ export const comingSoonTooltip = style({
     [`${tabComingSoon}:focus-visible &`]: {
       opacity: 1,
     },
+    [`${tabComingSoon}:active &`]: {
+      opacity: 1,
+    },
   },
 })
 
@@ -103,6 +107,11 @@ export const columns = style({
   gap: '24px',
   alignItems: 'flex-start',
   flexWrap: 'wrap',
+  '@media': {
+    [media.phone]: {
+      flexDirection: 'column',
+    },
+  },
 })
 
 export const formColumn = style({
@@ -112,6 +121,14 @@ export const formColumn = style({
   borderRadius: '16px',
   padding: '32px',
   boxSizing: 'border-box',
+  '@media': {
+    [media.phone]: {
+      flex: '1 1 auto',
+      width: '100%',
+      minWidth: 0,
+      padding: '20px',
+    },
+  },
 })
 
 export const previewColumn = style({
@@ -121,6 +138,14 @@ export const previewColumn = style({
   borderRadius: '16px',
   padding: '32px',
   boxSizing: 'border-box',
+  '@media': {
+    [media.phone]: {
+      flex: '1 1 auto',
+      width: '100%',
+      minWidth: 0,
+      padding: '20px',
+    },
+  },
 })
 
 export const hintRow = style({
@@ -247,6 +272,11 @@ export const previewAppLabel = style({
   color: colors.gray600,
   marginLeft: '44px',
   marginBottom: '8px',
+  '@media': {
+    [media.phone]: {
+      marginLeft: 0,
+    },
+  },
 })
 
 export const previewHeaderBar = style({
@@ -255,6 +285,12 @@ export const previewHeaderBar = style({
   padding: '12px',
   marginLeft: '44px',
   maxWidth: '388px',
+  '@media': {
+    [media.phone]: {
+      marginLeft: 0,
+      maxWidth: '100%',
+    },
+  },
 })
 
 export const previewHeaderText = style({

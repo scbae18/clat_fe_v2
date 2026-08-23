@@ -1,6 +1,7 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { media } from '@/styles/tokens/breakpoints'
 
 export const tableStyle = style({
   width: '100%',
@@ -24,6 +25,11 @@ export const thStyle = style({
   selectors: {
     'tr:last-child &': {
       borderBottom: 'none',
+    },
+  },
+  '@media': {
+    [media.phone]: {
+      width: '96px',
     },
   },
 })
