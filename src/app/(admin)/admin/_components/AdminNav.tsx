@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -33,6 +34,11 @@ function isActive(pathname: string, href: string, exact?: boolean): boolean {
 export default function AdminNav() {
   const pathname = usePathname()
 
+  useEffect(() => {
+    const activeLink = document.querySelector<HTMLElement>('[data-admin-nav="active"]')
+    activeLink?.scrollIntoView({ inline: 'center', block: 'nearest' })
+  }, [pathname])
+
   return (
     <aside className={styles.sidebar}>
       <div className={styles.brandWrap}>
@@ -43,13 +49,22 @@ export default function AdminNav() {
             <p className={styles.brandSub}>관리자</p>
           </div>
         </Link>
+        <Link href="/home" className={styles.mobileAppLink}>
+          선생님 앱
+        </Link>
       </div>
       <nav className={styles.nav}>
         {NAV.map((item) => {
           const active = isActive(pathname, item.href, 'exact' in item ? item.exact : false)
           const Icon = item.icon
           return (
-            <Link key={item.href} href={item.href} className={styles.navLink[active ? 'active' : 'idle']}>
+            <Link
+              key={item.href}
+              href={item.href}
+              className={styles.navLink[active ? 'active' : 'idle']}
+              aria-current={active ? 'page' : undefined}
+              data-admin-nav={active ? 'active' : undefined}
+            >
               <Icon size={20} strokeWidth={active ? 2.25 : 2} />
               {item.label}
             </Link>

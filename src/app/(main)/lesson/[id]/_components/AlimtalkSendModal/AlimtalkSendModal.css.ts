@@ -1,6 +1,8 @@
 import { style, keyframes } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { media } from '@/styles/tokens/breakpoints'
+import { zIndex } from '@/styles/tokens/zIndex'
 import { phoneTextRules, truncateRules } from '@/styles/tokens/textOverflow'
 
 const slideIn = keyframes({
@@ -30,7 +32,7 @@ export const backdrop = style({
   backgroundColor: 'rgba(0, 0, 0, 0.4)',
   display: 'flex',
   justifyContent: 'flex-end',
-  zIndex: 100,
+  zIndex: zIndex.modal,
 })
 
 export const drawer = style({
@@ -50,12 +52,20 @@ export const drawerClosing = style({
 
 export const header = style({
   padding: '20px 24px',
+  paddingTop: 'calc(20px + env(safe-area-inset-top, 0px))',
   borderBottom: `1px solid ${colors.gray100}`,
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
   flexShrink: 0,
   gap: '16px',
+  '@media': {
+    [media.phone]: {
+      paddingLeft: '16px',
+      paddingRight: '16px',
+      paddingBottom: '16px',
+    },
+  },
 })
 
 export const headerActions = style({
@@ -73,12 +83,36 @@ export const body = style({
 })
 
 export const leftCol = style({
-  width: '340px',
+  width: '240px',
   flexShrink: 0,
+  minWidth: 0,
   borderRight: `1px solid ${colors.gray100}`,
   display: 'flex',
   flexDirection: 'column',
   backgroundColor: colors.white,
+  '@media': {
+    [media.phone]: {
+      width: '148px',
+    },
+  },
+})
+
+export const leftHeader = style({
+  padding: '16px 16px 8px',
+  '@media': {
+    [media.phone]: {
+      padding: '12px 10px 8px',
+    },
+  },
+})
+
+export const leftHint = style({
+  marginTop: '4px',
+  '@media': {
+    [media.phone]: {
+      display: 'none',
+    },
+  },
 })
 
 export const rightCol = style({
@@ -89,6 +123,11 @@ export const rightCol = style({
   padding: '24px',
   overflowY: 'auto',
   gap: '16px',
+  '@media': {
+    [media.phone]: {
+      padding: '16px 12px',
+    },
+  },
 })
 
 export const closeButton = style({
@@ -106,6 +145,12 @@ export const selectAllRow = style({
   display: 'flex',
   alignItems: 'center',
   gap: '10px',
+  '@media': {
+    [media.phone]: {
+      padding: '10px',
+      gap: '8px',
+    },
+  },
 })
 
 export const studentList = style({
@@ -123,6 +168,12 @@ export const studentRow = style({
   selectors: {
     '&:hover': {
       backgroundColor: colors.gray50,
+    },
+  },
+  '@media': {
+    [media.phone]: {
+      gap: '8px',
+      padding: '10px',
     },
   },
 })
@@ -190,12 +241,20 @@ export const previewBox = style({
 
 export const footer = style({
   padding: '16px 24px',
+  paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
   borderTop: `1px solid ${colors.gray100}`,
   display: 'flex',
   justifyContent: 'flex-end',
   gap: '12px',
   flexShrink: 0,
   backgroundColor: colors.white,
+  '@media': {
+    [media.phone]: {
+      paddingLeft: '16px',
+      paddingRight: '16px',
+      flexWrap: 'wrap',
+    },
+  },
 })
 
 export const sendingOverlay = style({

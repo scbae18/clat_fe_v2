@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Text from '@/components/common/Text'
 import Button from '@/components/common/Button'
 import CloseIcon from '@/assets/icons/icon-close.svg'
@@ -66,6 +67,11 @@ export default function AlimtalkSendModal({
   const [sending, setSending] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const loadPreview = useCallback(async () => {
     setLoading(true)
@@ -95,7 +101,7 @@ export default function AlimtalkSendModal({
     void loadPreview()
   }, [isOpen, loadPreview])
 
-  if (!isOpen && !isClosing) return null
+  if (!mounted || (!isOpen && !isClosing)) return null
 
   const allSelected = rows.length > 0 && rows.every((r) => selected.has(r.student_id))
 
@@ -188,7 +194,7 @@ export default function AlimtalkSendModal({
     }
   }
 
-  return (
+  return createPortal(
     <div className={styles.backdrop} onClick={handleClose}>
       <div
         className={`${styles.drawer}${isClosing ? ` ${styles.drawerClosing}` : ''}`}
@@ -222,9 +228,9 @@ export default function AlimtalkSendModal({
 
         <div className={styles.body}>
           <div className={styles.leftCol}>
-            <div style={{ padding: '16px 16px 8px' }}>
+            <div className={styles.leftHeader}>
               <Text variant="titleMd">{'\uBCF4\uB0BC \uD559\uC0DD'}</Text>
-              <div style={{ marginTop: '4px' }}>
+              <div className={styles.leftHint}>
                 <Text variant="bodyMd" color="gray500">
                   {
                     '\uCCB4\uD06C\uD55C \uD559\uC0DD\uC5D0\uAC8C \uD559\uC0DD\u00B7\uD559\uBD80\uBAA8 \uBC88\uD638\uB85C \uBC1C\uC1A1\uD574\uC694'
@@ -401,6 +407,7 @@ export default function AlimtalkSendModal({
           await loadPreview()
         }}
       />
-    </div>
+    </div>,
+    document.body,
   )
 }

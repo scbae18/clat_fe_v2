@@ -3,6 +3,7 @@ import { vars } from '@/styles/theme.css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
 import { media } from '@/styles/tokens/breakpoints'
+import { zIndex } from '@/styles/tokens/zIndex'
 
 const tracking = '-0.03em'
 
@@ -15,7 +16,7 @@ export const sidebar = style({
   position: 'fixed',
   left: 0,
   top: 0,
-  zIndex: 40,
+  zIndex: zIndex.footer,
   display: 'flex',
   height: '100vh',
   width: '240px',
@@ -24,12 +25,14 @@ export const sidebar = style({
   backgroundColor: vars.color.gray[900],
   '@media': {
     [media.phone]: {
-      position: 'relative',
+      position: 'sticky',
+      left: 'auto',
       width: '100%',
       height: 'auto',
-      flexDirection: 'row',
-      alignItems: 'center',
-      overflowX: 'auto',
+      flexDirection: 'column',
+      alignItems: 'stretch',
+      overflow: 'hidden',
+      paddingTop: 'env(safe-area-inset-top, 0px)',
     },
   },
 })
@@ -40,8 +43,10 @@ export const brandWrap = style({
   padding: '56px 36px 40px',
   '@media': {
     [media.phone]: {
-      padding: '12px 16px',
-      flexShrink: 0,
+      width: '100%',
+      justifyContent: 'space-between',
+      gap: '12px',
+      padding: '12px 16px 8px',
     },
   },
 })
@@ -50,6 +55,12 @@ export const brandLink = style({
   display: 'flex',
   alignItems: 'center',
   gap: '12px',
+  minWidth: 0,
+  '@media': {
+    [media.phone]: {
+      gap: '8px',
+    },
+  },
 })
 
 export const brandTitle = style({
@@ -76,9 +87,22 @@ export const nav = style({
   padding: '0 24px',
   '@media': {
     [media.phone]: {
+      flex: 'none',
       flexDirection: 'row',
-      padding: '8px 12px',
+      alignItems: 'center',
+      width: '100%',
+      minWidth: 0,
+      padding: '4px 12px 12px',
       gap: '4px',
+      overflowX: 'auto',
+      overflowY: 'hidden',
+      WebkitOverflowScrolling: 'touch',
+      scrollbarWidth: 'none',
+      selectors: {
+        '&::-webkit-scrollbar': {
+          display: 'none',
+        },
+      },
     },
   },
 })
@@ -93,7 +117,17 @@ const navLinkBase = style({
   fontSize: '16px',
   fontWeight: 600,
   letterSpacing: tracking,
-  transition: 'color 0.15s',
+  transition: 'color 0.15s, background-color 0.15s',
+  '@media': {
+    [media.phone]: {
+      flexShrink: 0,
+      height: '36px',
+      gap: '6px',
+      padding: '0 12px',
+      fontSize: '13px',
+      whiteSpace: 'nowrap',
+    },
+  },
 })
 
 export const navLink = styleVariants({
@@ -106,7 +140,21 @@ export const navLink = styleVariants({
       },
     },
   ],
-  active: [navLinkBase, { color: colors.white }],
+  active: [
+    navLinkBase,
+    {
+      color: colors.white,
+      '@media': {
+        [media.phone]: {
+          backgroundColor: 'rgba(255, 255, 255, 0.12)',
+        },
+      },
+    },
+  ],
+})
+
+globalStyle(`${nav} a svg`, {
+  flexShrink: 0,
 })
 
 export const sidebarFooter = style({
@@ -154,9 +202,30 @@ export const teacherAppLink = style({
   },
 })
 
+export const mobileAppLink = style({
+  display: 'none',
+  '@media': {
+    [media.phone]: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      flexShrink: 0,
+      padding: '6px 10px',
+      borderRadius: '8px',
+      border: '1px solid rgba(255, 255, 255, 0.14)',
+      fontSize: '12px',
+      fontWeight: 600,
+      letterSpacing: tracking,
+      color: vars.color.primary[300],
+      whiteSpace: 'nowrap',
+      textDecoration: 'none',
+    },
+  },
+})
+
 export const main = style({
   minHeight: '100vh',
   paddingLeft: '240px',
+  minWidth: 0,
   '@media': {
     [media.phone]: {
       paddingLeft: 0,
@@ -182,6 +251,11 @@ export const stack = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '32px',
+  '@media': {
+    [media.phone]: {
+      gap: '20px',
+    },
+  },
 })
 
 export const pageHeader = style({
@@ -202,6 +276,11 @@ export const pageTitle = style({
   fontWeight: 600,
   letterSpacing: tracking,
   color: vars.color.gray[900],
+  '@media': {
+    [media.phone]: {
+      fontSize: '20px',
+    },
+  },
 })
 
 export const pageSub = style({
@@ -235,6 +314,9 @@ export const kpiGrid = style({
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   gap: '16px',
   '@media': {
+    [media.phone]: {
+      gap: '12px',
+    },
     '(min-width: 1024px)': {
       gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
     },
@@ -245,6 +327,12 @@ export const kpiGrid3 = style({
   display: 'grid',
   gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
   gap: '16px',
+  '@media': {
+    [media.phone]: {
+      gridTemplateColumns: '1fr',
+      gap: '12px',
+    },
+  },
 })
 
 export const grid2 = style({
@@ -263,6 +351,12 @@ export const statCard = style({
   border: `1px solid ${vars.color.gray[100]}`,
   backgroundColor: colors.white,
   padding: '24px',
+  '@media': {
+    [media.phone]: {
+      padding: '16px',
+      borderRadius: '12px',
+    },
+  },
 })
 
 export const statCardAccent = styleVariants({
@@ -359,6 +453,11 @@ export const statValue = style({
   fontWeight: 700,
   lineHeight: 1.2,
   color: vars.color.gray[900],
+  '@media': {
+    [media.phone]: {
+      fontSize: '24px',
+    },
+  },
 })
 
 export const statValueSuccess = style([statValue, { color: vars.color.semantic.success[500] }])
@@ -415,6 +514,13 @@ export const cardHeader = style({
   justifyContent: 'space-between',
   borderBottom: `1px solid ${vars.color.gray[100]}`,
   padding: '16px 24px',
+  '@media': {
+    [media.phone]: {
+      flexWrap: 'wrap',
+      gap: '8px',
+      padding: '12px 16px',
+    },
+  },
 })
 
 export const cardTitle = style({
@@ -453,6 +559,12 @@ export const th = style({
   backgroundColor: vars.color.gray[50],
   borderBottom: `1px solid ${vars.color.gray[100]}`,
   whiteSpace: 'nowrap',
+  '@media': {
+    [media.phone]: {
+      padding: '10px 12px',
+      fontSize: '13px',
+    },
+  },
 })
 
 export const td = style({
@@ -465,6 +577,11 @@ export const td = style({
   selectors: {
     'tr:hover &': {
       backgroundColor: 'rgba(241, 244, 253, 0.4)',
+    },
+  },
+  '@media': {
+    [media.phone]: {
+      padding: '10px 12px',
     },
   },
 })
@@ -641,6 +758,12 @@ export const pager = style({
   justifyContent: 'flex-end',
   gap: '12px',
   padding: '12px 24px',
+  '@media': {
+    [media.phone]: {
+      justifyContent: 'space-between',
+      padding: '12px 16px',
+    },
+  },
 })
 
 export const loading = style({
@@ -692,6 +815,12 @@ export const headerRow = style({
   alignItems: 'flex-start',
   justifyContent: 'space-between',
   gap: '16px',
+  '@media': {
+    [media.phone]: {
+      flexDirection: 'column',
+      alignItems: 'stretch',
+    },
+  },
 })
 
 export const funnelHead = style({
@@ -699,6 +828,12 @@ export const funnelHead = style({
   alignItems: 'center',
   gap: '8px',
   marginBottom: '20px',
+  '@media': {
+    [media.phone]: {
+      flexWrap: 'wrap',
+      marginBottom: '16px',
+    },
+  },
 })
 
 export const funnelStepHead = style({
@@ -706,6 +841,12 @@ export const funnelStepHead = style({
   alignItems: 'center',
   justifyContent: 'space-between',
   marginBottom: '6px',
+  '@media': {
+    [media.phone]: {
+      flexWrap: 'wrap',
+      gap: '8px',
+    },
+  },
 })
 
 export const funnelLeft = style({
@@ -893,6 +1034,11 @@ export const formToggle = style({
   selectors: {
     '&:hover': { backgroundColor: vars.color.gray[50] },
   },
+  '@media': {
+    [media.phone]: {
+      padding: '14px 16px',
+    },
+  },
 })
 
 export const formToggleLeft = style({
@@ -927,6 +1073,11 @@ export const fieldLabel = style({
 export const formBody = style({
   borderTop: `1px solid ${vars.color.gray[75]}`,
   padding: '20px 24px 24px',
+  '@media': {
+    [media.phone]: {
+      padding: '16px',
+    },
+  },
 })
 
 export const formActions = style({
@@ -1037,6 +1188,11 @@ globalStyle(`${divideList} > *:not(:first-child)`, {
 
 export const padRow = style({
   padding: '16px 24px',
+  '@media': {
+    [media.phone]: {
+      padding: '12px 16px',
+    },
+  },
 })
 
 export const confirmList = style({
@@ -1138,6 +1294,12 @@ export const noticePreviewWrap = style({
   border: `1px solid ${vars.color.gray[100]}`,
   padding: '24px',
   backgroundColor: colors.white,
+  '@media': {
+    [media.phone]: {
+      padding: '16px',
+      borderRadius: '12px',
+    },
+  },
 })
 
 export const noticeImageField = style({
@@ -1150,6 +1312,11 @@ export const noticeImagePreviewWrap = style({
   display: 'flex',
   alignItems: 'flex-start',
   gap: '12px',
+  '@media': {
+    [media.phone]: {
+      flexWrap: 'wrap',
+    },
+  },
 })
 
 export const noticeImagePreview = style({
@@ -1160,6 +1327,13 @@ export const noticeImagePreview = style({
   borderRadius: '8px',
   border: `1px solid ${vars.color.gray[75]}`,
   backgroundColor: colors.white,
+  '@media': {
+    [media.phone]: {
+      width: '100%',
+      maxWidth: '240px',
+      height: '140px',
+    },
+  },
 })
 
 export const srOnly = style({
