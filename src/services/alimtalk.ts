@@ -27,6 +27,8 @@ export type AlimtalkBatchType = 'LESSON' | 'ATTENDANCE' | 'BROADCAST'
 
 export type BroadcastChannel = 'STUDENT' | 'PARENT' | 'BOTH'
 
+export type BroadcastNoticeType = 'MAKEUP' | 'SCHEDULE' | 'PREP' | 'PROGRESS'
+
 export interface AlimtalkBatchListItem {
   batch_id: number
   type: AlimtalkBatchType
@@ -38,6 +40,7 @@ export interface AlimtalkBatchListItem {
   lesson_record_id: number | null
   attendance_session_id: number | null
   body_text?: string | null
+  notice_type?: BroadcastNoticeType | null
   class_name: string | null
   template_name: string | null
 }
@@ -73,6 +76,7 @@ export interface AlimtalkBatchDetail {
   lesson_record_id: number | null
   attendance_session_id: number | null
   body_text?: string | null
+  notice_type?: BroadcastNoticeType | null
   messages: AlimtalkBatchMessage[]
 }
 
@@ -129,6 +133,7 @@ export const alimtalkService = {
   async sendBroadcast(dto: {
     student_ids: number[]
     channel: BroadcastChannel
+    notice_type: BroadcastNoticeType
     body: string
   }): Promise<BroadcastSendResult> {
     const { data } = await axiosInstance.post('/alimtalk/broadcast', dto)

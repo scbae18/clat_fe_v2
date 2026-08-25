@@ -64,6 +64,65 @@ export const searchWrap = style({
   width: '100%',
 })
 
+export const typeGrid = style({
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  gap: '8px',
+  '@media': {
+    [media.phone]: {
+      gridTemplateColumns: '1fr',
+    },
+  },
+})
+
+export const typeCard = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: '4px',
+  padding: '14px 16px',
+  borderRadius: '8px',
+  backgroundColor: colors.white,
+  border: `1px solid ${colors.gray100}`,
+  cursor: 'pointer',
+  textAlign: 'left',
+  selectors: {
+    '&:hover': {
+      backgroundColor: colors.primary50,
+    },
+  },
+})
+
+export const typeCardActive = style({
+  backgroundColor: colors.primary50,
+  borderColor: colors.primary200,
+  selectors: {
+    '&:hover': {
+      backgroundColor: colors.primary50,
+    },
+  },
+})
+
+export const typeCardTitle = style({
+  fontSize: fontStyles.titleSm.fontSize,
+  fontWeight: fontStyles.titleSm.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.gray900,
+})
+
+export const typeCardTitleActive = style({
+  color: colors.primary500,
+})
+
+export const typeCardHint = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.labelSm.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.gray500,
+})
+
 export const filterRow = style({
   display: 'flex',
   flexWrap: 'wrap',
@@ -103,41 +162,6 @@ export const filterChipCount = style({
   opacity: 0.85,
 })
 
-export const classBulkRow = style({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '8px',
-  maxHeight: '96px',
-  overflowY: 'auto',
-})
-
-export const classBulkItem = style({
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '8px 12px',
-  borderRadius: '8px',
-  backgroundColor: colors.white,
-  border: `1px solid ${colors.gray100}`,
-  cursor: 'pointer',
-  fontSize: fontStyles.labelSm.fontSize,
-  fontWeight: fontStyles.titleSm.fontWeight,
-  lineHeight: '140%',
-  letterSpacing: '-0.03em',
-  color: colors.gray700,
-  selectors: {
-    '&:hover': {
-      backgroundColor: colors.primary50,
-    },
-  },
-})
-
-export const classBulkItemActive = style({
-  backgroundColor: colors.primary50,
-  borderColor: colors.primary200,
-  color: colors.primary500,
-})
-
 export const toolbar = style({
   display: 'flex',
   alignItems: 'center',
@@ -172,20 +196,6 @@ export const studentRowButton = style({
   border: 'none',
   backgroundColor: 'transparent',
   textAlign: 'left',
-  selectors: {
-    '&:hover': {
-      backgroundColor: colors.gray50,
-    },
-  },
-})
-
-export const studentRowSelected = style({
-  backgroundColor: colors.primary100,
-  selectors: {
-    '&:hover': {
-      backgroundColor: colors.primary200,
-    },
-  },
 })
 
 export const studentRowDisabled = style({
@@ -209,6 +219,26 @@ export const studentName = style({
   lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray900,
+})
+
+export const checkBox = style({
+  width: '16px',
+  height: '16px',
+  flexShrink: 0,
+  borderRadius: '4px',
+  boxSizing: 'border-box',
+  border: `1.5px solid ${colors.gray200}`,
+  backgroundColor: colors.white,
+})
+
+export const checkBoxOn = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '16px',
+  height: '16px',
+  flexShrink: 0,
+  color: colors.primary500,
 })
 
 export const studentMeta = style({
@@ -271,7 +301,7 @@ export const bodyField = style({
 })
 
 export const bodyTextarea = style({
-  minHeight: '96px',
+  minHeight: '132px',
 })
 
 export const summaryBar = style({

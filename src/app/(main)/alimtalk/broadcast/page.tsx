@@ -6,7 +6,8 @@ import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import Text from '@/components/common/Text'
 import Textarea from '@/components/common/Textarea'
-import { listItemRowStyle } from '@/components/common/styles/listItem.css'
+import { listItemRowStyle, listItemRowSelectedStyle } from '@/components/common/styles/listItem.css'
+import CheckIcon from '@/assets/icons/icon-check.svg'
 import useToast from '@/hooks/useToast'
 import { useUserStore } from '@/stores/userStore'
 import { classService, type Class } from '@/services/class'
@@ -15,9 +16,16 @@ import type { Student } from '@/types/student'
 import {
   alimtalkService,
   type BroadcastChannel,
+  type BroadcastNoticeType,
   type AlimtalkDeliveryMode,
 } from '@/services/alimtalk'
 import { AlimtalkTabs } from '../_components/AlimtalkTabs'
+import {
+  BROADCAST_NOTICE_HINT,
+  BROADCAST_NOTICE_LABEL,
+  BROADCAST_NOTICE_TYPES,
+  renderBroadcastPreview,
+} from './_lib/broadcastNotice'
 import * as baseStyles from '../alimtalkSettings.css'
 import * as styles from './broadcast.css'
 
@@ -85,8 +93,8 @@ export default function AlimtalkBroadcastPage() {
   const [filterClassId, setFilterClassId] = useState<number | null>(null)
   const [sendToParent, setSendToParent] = useState(true)
   const [sendToStudent, setSendToStudent] = useState(false)
+  const [noticeType, setNoticeType] = useState<BroadcastNoticeType>('MAKEUP')
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
-  const [checkedClasses, setCheckedClasses] = useState<Set<number>>(new Set())
   const [body, setBody] = useState('')
   const [sending, setSending] = useState(false)
 
@@ -208,62 +216,28 @@ export default function AlimtalkBroadcastPage() {
 
   const clearAll = useCallback(() => {
     setSelectedIds(new Set())
-    setCheckedClasses(new Set())
   }, [])
 
-  const toggleClass = useCallback(
-    async (cls: Class) => {
-      let ids = classStudentIds[cls.id]
-      if (!ids) {
-        try {
-          const list = await classService.getClassStudents(cls.id)
-          ids = list.map((s) => s.id)
-          setClassStudentIds((prev) => ({ ...prev, [cls.id]: ids! }))
-        } catch {
-          error('반 학생을 불러오지 못했어요.')
-          return
-        }
-      }
+  const filterClassName = useMemo(() => {
+    if (filterClassId == null) return null
+    return classes.find((c) => c.id === filterClassId)?.name ?? null
+  }, [classes, filterClassId])
 
-      const selectableIds = ids.filter((id) => {
-        const st = students.find((s) => s.id === id)
-        return st && isSelectable(st, sendToParent, sendToStudent)
-      })
-
-      setCheckedClasses((prev) => {
-        const next = new Set(prev)
-        const turningOn = !next.has(cls.id)
-        if (turningOn) {
-          next.add(cls.id)
-          setSelectedIds((sel) => {
-            const n = new Set(sel)
-            for (const id of selectableIds) n.add(id)
-            return n
-          })
-        } else {
-          next.delete(cls.id)
-          const stillCovered = new Set<number>()
-          for (const otherId of next) {
-            for (const sid of classStudentIds[otherId] ?? []) stillCovered.add(sid)
-          }
-          setSelectedIds((sel) => {
-            const n = new Set<number>()
-            for (const id of sel) {
-              if (!ids!.includes(id) || stillCovered.has(id)) n.add(id)
-            }
-            return n
-          })
-        }
-        return next
-      })
-    },
-    [sendToParent, sendToStudent, classStudentIds, students, error],
-  )
+  const previewStudentName = useMemo(() => {
+    const firstId = [...selectedIds][0]
+    if (firstId == null) return '학생이름'
+    return students.find((s) => s.id === firstId)?.name ?? '학생이름'
+  }, [selectedIds, students])
 
   const previewText = useMemo(() => {
-    const content = body.trim() || '공지 내용을 입력하세요.'
-    return `안녕하세요. ${academyName} ${teacherName}입니다.\n${content}`
-  }, [academyName, teacherName, body])
+    return renderBroadcastPreview({
+      academyName,
+      teacherName,
+      studentName: previewStudentName,
+      noticeType,
+      body,
+    })
+  }, [academyName, teacherName, previewStudentName, noticeType, body])
 
   const expectedCount = estimateCount(selectedIds.size, sendToParent, sendToStudent)
 
@@ -278,7 +252,7 @@ export default function AlimtalkBroadcastPage() {
       return
     }
     if (!body.trim()) {
-      error('공지 내용을 입력해 주세요.')
+      error('안내사항을 입력해 주세요.')
       return
     }
 
@@ -287,6 +261,7 @@ export default function AlimtalkBroadcastPage() {
       const res = await alimtalkService.sendBroadcast({
         student_ids: [...selectedIds],
         channel,
+        notice_type: noticeType,
         body: body.trim(),
       })
       if (res.fail_count > 0) {
@@ -325,7 +300,7 @@ export default function AlimtalkBroadcastPage() {
                 수신자 선택
               </Text>
               <Text as="p" variant="labelSm" color="gray500">
-                반 필터 · 반 일괄 선택 · 개별 선택
+                반으로 목록을 좁힌 뒤, 보이는 학생을 선택하세요
               </Text>
             </div>
             <span className={styles.countBadge}>{selectedIds.size}명 선택</span>
@@ -342,7 +317,7 @@ export default function AlimtalkBroadcastPage() {
 
           <div className={styles.sectionBlock}>
             <Text as="h3" variant="titleSm" color="gray700">
-              목록 필터
+              반
             </Text>
             <div className={styles.filterRow}>
               <button
@@ -368,34 +343,6 @@ export default function AlimtalkBroadcastPage() {
             </div>
           </div>
 
-          <div className={styles.sectionBlock}>
-            <Text as="h3" variant="titleSm" color="gray700">
-              반 일괄 선택
-            </Text>
-            <div className={styles.classBulkRow}>
-              {classes.length === 0 ? (
-                <Text as="p" variant="labelSm" color="gray500">
-                  등록된 반이 없어요.
-                </Text>
-              ) : (
-                classes.map((c) => {
-                  const active = checkedClasses.has(c.id)
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      className={`${styles.classBulkItem}${active ? ` ${styles.classBulkItemActive}` : ''}`}
-                      aria-pressed={active}
-                      onClick={() => void toggleClass(c)}
-                    >
-                      {c.name}
-                    </button>
-                  )
-                })
-              )}
-            </div>
-          </div>
-
           <div className={styles.toolbar}>
             <div className={styles.toolbarActions}>
               <Button
@@ -404,14 +351,18 @@ export default function AlimtalkBroadcastPage() {
                 onClick={allFilteredSelected ? clearFiltered : selectAllFiltered}
                 disabled={selectableFiltered.length === 0}
               >
-                {allFilteredSelected ? '현재 목록 해제' : '현재 목록 전체 선택'}
+                {allFilteredSelected
+                  ? '이 목록 선택 해제'
+                  : filterClassName
+                    ? `${filterClassName} 전체 선택`
+                    : '표시된 학생 전체 선택'}
               </Button>
               <Button variant="ghost" size="sm" onClick={clearAll}>
-                전체 선택 해제
+                선택 모두 해제
               </Button>
             </div>
             <Text as="span" variant="labelSm" color="gray500">
-              표시 {filteredStudents.length}명
+              표시 {filteredStudents.length}명 · 선택 가능 {selectableFiltered.length}명
             </Text>
           </div>
 
@@ -430,11 +381,18 @@ export default function AlimtalkBroadcastPage() {
                   <button
                     key={s.id}
                     type="button"
-                    className={`${listItemRowStyle} ${styles.studentRowButton}${checked ? ` ${styles.studentRowSelected}` : ''}${ok ? '' : ` ${styles.studentRowDisabled}`}`}
+                    className={`${listItemRowStyle} ${styles.studentRowButton}${checked ? ` ${listItemRowSelectedStyle}` : ''}${ok ? '' : ` ${styles.studentRowDisabled}`}`}
                     aria-pressed={checked}
                     disabled={!ok}
                     onClick={() => toggleStudent(s)}
                   >
+                    {checked ? (
+                      <span className={styles.checkBoxOn} aria-hidden>
+                        <CheckIcon width={16} height={16} />
+                      </span>
+                    ) : (
+                      <span className={styles.checkBox} aria-hidden />
+                    )}
                     <span className={styles.studentName}>{s.name}</span>
                     <span className={styles.studentMeta}>
                       {ok
@@ -452,43 +410,76 @@ export default function AlimtalkBroadcastPage() {
           <div className={styles.panel}>
             <div className={styles.sectionHeaderText}>
               <Text as="h2" variant="headingSm">
-                공지 내용
+                공지 작성
               </Text>
               <Text as="p" variant="labelSm" color="gray500">
-                인사말은 고정 · 버튼 없음
+                종류를 고르면 알림톡 문안이 바뀌고, 입력은 안내사항만 들어갑니다
               </Text>
             </div>
 
-            <div className={styles.channelRow} role="group" aria-label="수신 대상">
-              <button
-                type="button"
-                className={`${styles.channelCheck}${sendToParent ? ` ${styles.channelCheckActive}` : ''}`}
-                aria-pressed={sendToParent}
-                onClick={() => setSendToParent((v) => !v)}
-              >
-                학부모에게 보내기
-              </button>
-              <button
-                type="button"
-                className={`${styles.channelCheck}${sendToStudent ? ` ${styles.channelCheckActive}` : ''}`}
-                aria-pressed={sendToStudent}
-                onClick={() => setSendToStudent((v) => !v)}
-              >
-                학생에게 보내기
-              </button>
+            <div className={styles.sectionBlock}>
+              <Text as="h3" variant="titleSm" color="gray700">
+                공지 종류
+              </Text>
+              <div className={styles.typeGrid} role="radiogroup" aria-label="공지 종류">
+                {BROADCAST_NOTICE_TYPES.map((type) => {
+                  const active = noticeType === type
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      className={`${styles.typeCard}${active ? ` ${styles.typeCardActive}` : ''}`}
+                      onClick={() => setNoticeType(type)}
+                    >
+                      <span
+                        className={`${styles.typeCardTitle}${active ? ` ${styles.typeCardTitleActive}` : ''}`}
+                      >
+                        {BROADCAST_NOTICE_LABEL[type]}
+                      </span>
+                      <span className={styles.typeCardHint}>{BROADCAST_NOTICE_HINT[type]}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className={styles.sectionBlock}>
+              <Text as="h3" variant="titleSm" color="gray700">
+                수신 대상
+              </Text>
+              <div className={styles.channelRow} role="group" aria-label="수신 대상">
+                <button
+                  type="button"
+                  className={`${styles.channelCheck}${sendToParent ? ` ${styles.channelCheckActive}` : ''}`}
+                  aria-pressed={sendToParent}
+                  onClick={() => setSendToParent((v) => !v)}
+                >
+                  학부모에게 보내기
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.channelCheck}${sendToStudent ? ` ${styles.channelCheckActive}` : ''}`}
+                  aria-pressed={sendToStudent}
+                  onClick={() => setSendToStudent((v) => !v)}
+                >
+                  학생에게 보내기
+                </button>
+              </div>
             </div>
 
             <div className={styles.bodyField}>
+              <Text as="label" variant="titleSm" color="gray700">
+                안내사항
+              </Text>
               <Textarea
                 className={styles.bodyTextarea}
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder="공지 내용을 입력하세요."
-                aria-label="공지 내용"
+                placeholder="예: 내일 오후 7시, 3층 강의실에서 보강합니다."
+                aria-label="안내사항"
               />
-              <Text as="p" variant="labelSm" color="gray500">
-                안녕하세요. {'{학원명}'} {'{강사명}'}입니다.
-              </Text>
             </div>
 
             <div className={styles.summaryBar}>
