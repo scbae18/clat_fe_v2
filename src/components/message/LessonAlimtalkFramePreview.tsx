@@ -6,14 +6,23 @@ import {
 } from '@/lib/lessonAlimtalkFrame'
 import * as styles from './LessonAlimtalkFramePreview.css'
 
-function FrameLine({ text, highlightVars }: { text: string; highlightVars: boolean }) {
+export function AlimtalkPreviewVarText({
+  text,
+  highlightVars = true,
+  className,
+}: {
+  text: string
+  highlightVars?: boolean
+  className?: string
+}) {
+  const textClass = className ?? styles.frameText
   if (!highlightVars) {
-    return <p className={styles.frameText}>{text}</p>
+    return <p className={textClass}>{text}</p>
   }
 
   const parts = text.split(/(\{[^}]+\})/g)
   return (
-    <p className={styles.frameText}>
+    <p className={textClass}>
       {parts.map((part, i) =>
         part.startsWith('{') && part.endsWith('}') ? (
           <span key={i} className={styles.frameVar}>
@@ -42,9 +51,9 @@ export default function LessonAlimtalkFramePreview({
 }: LessonAlimtalkFramePreviewProps) {
   return (
     <>
-      <FrameLine text={header} highlightVars={highlightVars} />
+      <AlimtalkPreviewVarText text={header} highlightVars={highlightVars} />
       <p className={styles.bodyText}>{body.trim() ? body : emptyBodyFallback}</p>
-      <FrameLine text={LESSON_ALIMTALK_FRAME_FOOTER} highlightVars={highlightVars} />
+      <AlimtalkPreviewVarText text={LESSON_ALIMTALK_FRAME_FOOTER} highlightVars={highlightVars} />
       <div className={styles.cta}>{LESSON_ALIMTALK_CTA_LABEL}</div>
     </>
   )

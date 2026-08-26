@@ -31,14 +31,7 @@ export const BROADCAST_NOTICE_HINT: Record<BroadcastNoticeType, string> = {
   PROGRESS: '예: 오늘은 3단원까지 나갔습니다.',
 }
 
-export function renderBroadcastPreview(params: {
-  academyName: string
-  teacherName: string
-  studentName: string
-  noticeType: BroadcastNoticeType
-  body: string
-}): string {
-  const middle = BROADCAST_NOTICE_MIDDLE[params.noticeType]
-  const body = params.body.trim() || '안내사항을 입력하세요.'
-  return `안녕하세요. ${params.academyName} ${params.teacherName}입니다.\n${params.studentName} 학생의 ${middle}입니다.\n\n${body}`
+export function renderBroadcastPreviewHeader(noticeType: BroadcastNoticeType): string {
+  const middle = BROADCAST_NOTICE_MIDDLE[noticeType]
+  return `안녕하세요. {학원명} {강사명}입니다.\n{학생이름} 학생의 ${middle}입니다.`
 }

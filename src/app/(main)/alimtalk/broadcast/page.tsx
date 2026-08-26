@@ -9,7 +9,6 @@ import Textarea from '@/components/common/Textarea'
 import { listItemRowStyle, listItemRowSelectedStyle } from '@/components/common/styles/listItem.css'
 import CheckIcon from '@/assets/icons/icon-check.svg'
 import useToast from '@/hooks/useToast'
-import { useUserStore } from '@/stores/userStore'
 import { classService, type Class } from '@/services/class'
 import { studentService } from '@/services/student'
 import type { Student } from '@/types/student'
@@ -24,8 +23,10 @@ import {
   BROADCAST_NOTICE_HINT,
   BROADCAST_NOTICE_LABEL,
   BROADCAST_NOTICE_TYPES,
-  renderBroadcastPreview,
+  renderBroadcastPreviewHeader,
 } from './_lib/broadcastNotice'
+import { AlimtalkPreviewVarText } from '@/components/message/LessonAlimtalkFramePreview'
+import * as frameStyles from '@/components/message/LessonAlimtalkFramePreview.css'
 import * as baseStyles from '../alimtalkSettings.css'
 import * as styles from './broadcast.css'
 
@@ -82,7 +83,6 @@ function estimateCount(
 export default function AlimtalkBroadcastPage() {
   const router = useRouter()
   const { success, error } = useToast()
-  const user = useUserStore((s) => s.user)
 
   const [deliveryMode, setDeliveryMode] = useState<AlimtalkDeliveryMode>('mock')
   const [classes, setClasses] = useState<Class[]>([])
@@ -98,10 +98,6 @@ export default function AlimtalkBroadcastPage() {
   const [body, setBody] = useState('')
   const [sending, setSending] = useState(false)
 
-  const academyName = useMemo(() => {
-    return classes[0]?.academy_name?.trim() || '학원명'
-  }, [classes])
-  const teacherName = user?.name?.trim() || '강사명'
   const channel = resolveChannel(sendToParent, sendToStudent)
 
   useEffect(() => {
@@ -223,21 +219,10 @@ export default function AlimtalkBroadcastPage() {
     return classes.find((c) => c.id === filterClassId)?.name ?? null
   }, [classes, filterClassId])
 
-  const previewStudentName = useMemo(() => {
-    const firstId = [...selectedIds][0]
-    if (firstId == null) return '학생이름'
-    return students.find((s) => s.id === firstId)?.name ?? '학생이름'
-  }, [selectedIds, students])
-
-  const previewText = useMemo(() => {
-    return renderBroadcastPreview({
-      academyName,
-      teacherName,
-      studentName: previewStudentName,
-      noticeType,
-      body,
-    })
-  }, [academyName, teacherName, previewStudentName, noticeType, body])
+  const previewHeader = useMemo(
+    () => renderBroadcastPreviewHeader(noticeType),
+    [noticeType],
+  )
 
   const expectedCount = estimateCount(selectedIds.size, sendToParent, sendToStudent)
 
@@ -508,7 +493,16 @@ export default function AlimtalkBroadcastPage() {
                 <p className={baseStyles.previewHeaderText}>알림톡 상세 도착</p>
               </div>
               <div className={baseStyles.previewBubble}>
-                <p className={baseStyles.previewBodyText}>{previewText}</p>
+                <AlimtalkPreviewVarText text={previewHeader} highlightVars />
+                {body.trim() ? (
+                  <p className={frameStyles.bodyText}>{body.trim()}</p>
+                ) : (
+                  <AlimtalkPreviewVarText
+                    text="{안내사항}"
+                    highlightVars
+                    className={frameStyles.bodyText}
+                  />
+                )}
               </div>
               <p className={baseStyles.previewTime}>오후 09:54</p>
             </div>
