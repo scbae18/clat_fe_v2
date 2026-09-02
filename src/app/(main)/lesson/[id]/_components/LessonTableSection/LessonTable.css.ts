@@ -62,6 +62,7 @@ export const tdShrinkStyle = style({ ...baseTdStyles, paddingRight: '16px', widt
 
 export const cellButtonGroupStyle = style({
   display: 'flex',
+  flexWrap: 'wrap',
   gap: '4px',
 })
 
@@ -110,11 +111,22 @@ export const cellButtonRecipe = recipe({
         backgroundColor: colors.error500,
         color: colors.white,
       },
+      extraOn: {
+        backgroundColor: colors.primary500,
+        color: colors.white,
+      },
     },
   },
   defaultVariants: {
     variant: 'default',
   },
+})
+
+export const extraCellButtonStyle = style({
+  width: 'auto',
+  minWidth: '44px',
+  paddingLeft: '8px',
+  paddingRight: '8px',
 })
 
 export const cellEditableStyle = style({
@@ -149,6 +161,90 @@ export const nameCellStyle = style({
   selectors: {
     '&:hover': {
       color: colors.primary500,
+    },
+  },
+})
+
+export const attendanceThStyle = style({
+  ...baseThStyles,
+  paddingRight: '16px',
+  width: '1%',
+  minWidth: '280px',
+  whiteSpace: 'normal',
+  verticalAlign: 'top',
+})
+
+export const attendanceThInnerStyle = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: '8px',
+  paddingTop: '8px',
+  paddingBottom: '8px',
+})
+
+export const attendanceExtraRowStyle = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: '6px',
+})
+
+export const attendanceExtraChipStyle = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '4px',
+  height: '24px',
+  padding: '0 6px 0 8px',
+  borderRadius: '4px',
+  backgroundColor: colors.primary50,
+  color: colors.primary500,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.labelSm.fontWeight,
+  letterSpacing: '-0.03em',
+  lineHeight: '140%',
+})
+
+export const attendanceExtraChipRemoveStyle = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '14px',
+  height: '14px',
+  padding: 0,
+  border: 'none',
+  borderRadius: '4px',
+  background: 'transparent',
+  color: colors.primary500,
+  cursor: 'pointer',
+  selectors: {
+    '&:hover': {
+      backgroundColor: colors.primary100,
+    },
+  },
+})
+
+export const attendanceExtraInputStyle = style({
+  width: '96px',
+  height: '24px',
+  padding: '0 8px',
+  margin: 0,
+  border: `1px solid ${colors.gray200}`,
+  borderRadius: '6px',
+  backgroundColor: colors.white,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.labelSm.fontWeight,
+  color: colors.gray700,
+  letterSpacing: '-0.03em',
+  outline: 'none',
+  boxSizing: 'border-box',
+  selectors: {
+    '&::placeholder': {
+      color: colors.gray300,
+    },
+    '&:focus': {
+      borderColor: colors.primary300,
+      boxShadow: `0 0 0 1px ${colors.primary200}`,
     },
   },
 })

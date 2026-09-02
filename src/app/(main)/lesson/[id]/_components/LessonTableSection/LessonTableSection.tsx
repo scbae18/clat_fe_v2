@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { useMemo, useRef, useState } from 'react'
-import CheckIcon from '@/assets/icons/icon-check.svg'
 import UsersIcon from '@/assets/icons/icon-users.svg'
 import StudentNameSearchBar, {
   emptyStateIconStyle,
@@ -23,9 +22,6 @@ import {
   tdStyle,
   thCompactStyle,
   tdCompactStyle,
-  thInnerStyle,
-  checkboxLabelStyle,
-  checkboxLabelActiveStyle,
   tdShrinkStyle,
   nameCellStyle,
   addColumnCellStyle,
@@ -40,6 +36,7 @@ import {
   TextInputCell,
 } from './LessonTableCells'
 import { DynamicColumnHeader } from './DynamicColumnHeader'
+import { AttendanceColumnHeader } from './AttendanceColumnHeader'
 import {
   getScoreColumnMax,
   getTdClassName,
@@ -50,23 +47,29 @@ import {
 interface LessonTableSectionProps {
   students: LessonStudent[]
   templateItems: LessonItemDetail[]
+  extraAttendanceOptions?: Array<{ id: number; label: string }>
   onChange: (students: LessonStudent[]) => void
   onCellBlur?: (studentId: number, source: ItemSource, itemId: number) => void
   onAddItem?: (body: CreateLessonAdhocItemBody) => void | Promise<void>
   onRemoveColumn?: (item: LessonItemDetail) => void
   onTogglePartial?: (item: LessonItemDetail, isPartial: boolean) => void
   onAddStudents?: (studentIds: number[]) => void | Promise<void>
+  onAddAttendanceOption?: (label: string) => void
+  onRemoveAttendanceOption?: (optionId: number, label: string) => void
 }
 
 export default function LessonTable({
   students,
   templateItems,
+  extraAttendanceOptions = [],
   onChange,
   onCellBlur,
   onAddItem,
   onRemoveColumn,
   onTogglePartial,
   onAddStudents,
+  onAddAttendanceOption,
+  onRemoveAttendanceOption,
 }: LessonTableSectionProps) {
   const tableRef = useRef<HTMLTableElement>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -161,18 +164,13 @@ export default function LessonTable({
             <thead>
               <tr>
                 <th className={thCompactStyle}>학생</th>
-                <th className={thCompactStyle}>
-                  <div className={thInnerStyle}>
-                    출결
-                    <div
-                      className={`${checkboxLabelStyle}${allAttend ? ` ${checkboxLabelActiveStyle}` : ''}`}
-                      onClick={() => handleAllAttend(!allAttend)}
-                    >
-                      <CheckIcon width={14} height={14} />
-                      전체 출석
-                    </div>
-                  </div>
-                </th>
+                <AttendanceColumnHeader
+                  extraOptions={extraAttendanceOptions}
+                  allAttend={allAttend}
+                  onToggleAllAttend={() => handleAllAttend(!allAttend)}
+                  onAddOption={onAddAttendanceOption}
+                  onRemoveOption={onRemoveAttendanceOption}
+                />
                 {dynamicItems.map((item) => (
                     <DynamicColumnHeader
                       key={lessonItemRef(item)}
@@ -215,6 +213,7 @@ export default function LessonTable({
                   >
                     <AttendanceCell
                       value={student.attendance}
+                      extraLabels={extraAttendanceOptions.map((opt) => opt.label)}
                       onChange={(v) => updateAttendance(student.id, v)}
                     />
                   </td>

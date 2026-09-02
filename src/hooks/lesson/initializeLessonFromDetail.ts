@@ -2,6 +2,7 @@ import type { LessonStudent } from '@/types/lessonStudent'
 import type { LessonDetail, LessonItemDetail } from '@/services/lesson'
 import type { Student } from '@/types/student'
 import { itemRef } from '@/lib/lessonItemRef'
+import { parseAttendanceValue } from '@/lib/attendanceLabels'
 
 export function buildCommonValuesFromDetail(data: LessonDetail): Record<string, string> {
   const commonValues: Record<string, string> = {}
@@ -54,10 +55,7 @@ export function buildStudentsFromDetail(
     const attendanceRaw = attendanceItem
       ? (sdItems.find((si) => si.template_item_id === attendanceItem.id)?.value ?? null)
       : null
-    const attendance: LessonStudent['attendance'] =
-      attendanceRaw === '출석' || attendanceRaw === '지각' || attendanceRaw === '결석'
-        ? attendanceRaw
-        : null
+    const attendance: LessonStudent['attendance'] = parseAttendanceValue(attendanceRaw)
 
     return {
       id: studentId,

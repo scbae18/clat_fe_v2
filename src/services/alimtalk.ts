@@ -88,6 +88,39 @@ export interface BroadcastSendResult {
   delivery_mode: AlimtalkDeliveryMode
 }
 
+function unwrapBatchList(res: { data?: unknown }): {
+  data: AlimtalkBatchListItem[]
+  meta: AlimtalkBatchesMeta
+} {
+  const empty: { data: AlimtalkBatchListItem[]; meta: AlimtalkBatchesMeta } = {
+    data: [],
+    meta: { total: 0, page: 1, limit: 20 },
+  }
+  const inner = res.data
+  if (Array.isArray(inner)) {
+    return { data: inner, meta: { total: inner.length, page: 1, limit: inner.length } }
+  }
+  if (!inner || typeof inner !== 'object') return empty
+
+  const obj = inner as { data?: unknown; meta?: AlimtalkBatchesMeta }
+  if (Array.isArray(obj.data)) {
+    return {
+      data: obj.data,
+      meta: obj.meta ?? { total: obj.data.length, page: 1, limit: obj.data.length },
+    }
+  }
+  if (obj.data && typeof obj.data === 'object' && 'data' in obj.data) {
+    const nested = obj.data as { data?: AlimtalkBatchListItem[]; meta?: AlimtalkBatchesMeta }
+    if (Array.isArray(nested.data)) {
+      return {
+        data: nested.data,
+        meta: nested.meta ?? { total: nested.data.length, page: 1, limit: nested.data.length },
+      }
+    }
+  }
+  return empty
+}
+
 function unwrapBatchDetail(res: { data?: unknown }): AlimtalkBatchDetail {
   const inner = res.data as AlimtalkBatchDetail | { data: AlimtalkBatchDetail } | undefined
   if (
@@ -120,9 +153,11 @@ export const alimtalkService = {
     limit?: number
     type?: AlimtalkBatchType
     class_id?: number
+    from?: string
+    to?: string
   }): Promise<{ data: AlimtalkBatchListItem[]; meta: AlimtalkBatchesMeta }> {
     const { data } = await axiosInstance.get('/alimtalk/batches', { params })
-    return data.data as { data: AlimtalkBatchListItem[]; meta: AlimtalkBatchesMeta }
+    return unwrapBatchList(data)
   },
 
   async getBatchDetail(batchId: number): Promise<AlimtalkBatchDetail> {

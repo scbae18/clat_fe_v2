@@ -8,6 +8,7 @@ import { useLessonDirtySave } from './lesson/useLessonDirtySave'
 import { useLessonAdhocItems } from './lesson/useLessonAdhocItems'
 import { useLessonProgress } from './lesson/useLessonProgress'
 import { useLessonAttendanceRefresh } from './lesson/useLessonAttendanceRefresh'
+import { useLessonAttendanceExtras } from './lesson/useLessonAttendanceExtras'
 import { createEmptyLessonStudent } from './lesson/initializeLessonFromDetail'
 
 export default function useLessonDetail(lessonId: number) {
@@ -74,6 +75,12 @@ export default function useLessonDetail(lessonId: number) {
     setCommonValues,
     setStudents,
     forgetDirtyItem,
+  })
+
+  const { addAttendanceOption, removeAttendanceOption } = useLessonAttendanceExtras({
+    lessonId,
+    setLesson,
+    setStudents,
   })
 
   const addStudentsToLesson = useCallback(
@@ -164,5 +171,7 @@ export default function useLessonDetail(lessonId: number) {
     updateLessonItemOrder,
     setItemPartial,
     addStudentsToLesson,
+    addAttendanceOption,
+    removeAttendanceOption,
   }
 }

@@ -5,6 +5,7 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { parentDashboardService, type ParentDashboardData } from '@/services/parentDashboard'
 import * as styles from './parentDashboard.css'
+import { isCoreAttendanceLabel } from '@/lib/attendanceLabels'
 
 function formatKoreanDate(dateStr: string) {
   const d = new Date(dateStr)
@@ -236,7 +237,13 @@ export default function ParentDashboardPage({ params }: { params: Promise<{ toke
                       <div className={styles.recentRow}>
                         <span className={styles.recentClass}>{r.class_name}</span>
                         {r.attendance ? (
-                          <span className={`${styles.recentBadge} ${styles.recentAttend}`}>
+                          <span
+                            className={`${styles.recentBadge} ${
+                              isCoreAttendanceLabel(r.attendance)
+                                ? styles.recentAttend
+                                : styles.recentScore
+                            }`}
+                          >
                             {r.attendance}
                           </span>
                         ) : null}

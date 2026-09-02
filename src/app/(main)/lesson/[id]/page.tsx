@@ -69,6 +69,8 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     updateLessonItemOrder,
     setItemPartial,
     addStudentsToLesson,
+    addAttendanceOption,
+    removeAttendanceOption,
   } = useLessonDetail(lessonId)
 
   const templateModal = useDisclosure()
@@ -285,12 +287,17 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
         <LessonTable
           students={students}
           templateItems={lesson.items}
+          extraAttendanceOptions={lesson.attendance_extra_options ?? []}
           onChange={updateStudents}
           onCellBlur={flushPendingStudentCellSave}
           onAddItem={addAdhocItem}
           onRemoveColumn={handleRemoveItem}
           onTogglePartial={(item, isPartial) => void setItemPartial(item, isPartial)}
           onAddStudents={addStudentsToLesson}
+          onAddAttendanceOption={(label) => void addAttendanceOption(label)}
+          onRemoveAttendanceOption={(optionId, label) =>
+            void removeAttendanceOption(optionId, label)
+          }
         />
       </div>
 

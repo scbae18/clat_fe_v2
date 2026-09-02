@@ -43,6 +43,7 @@ export interface LessonDetail {
   status: 'DRAFT' | 'SAVED'
   is_adhoc: boolean
   attendance_locked?: boolean
+  attendance_extra_options?: Array<{ id: number; label: string; sort_order: number }>
   common_data: CommonDataItem[]
   student_data: StudentData[]
   guest_students?: Array<{ student_id: number; student_name: string }>
@@ -264,5 +265,25 @@ export const lessonService = {
       added_count: payload?.added_count ?? 0,
       students: payload?.students ?? [],
     }
+  },
+
+  async addAttendanceOption(
+    lessonId: number,
+    label: string,
+  ): Promise<{ id: number; label: string; sort_order: number }> {
+    const { data } = await axiosInstance.post(`/lessons/${lessonId}/attendance-options`, {
+      label,
+    })
+    return data.data ?? data
+  },
+
+  async removeAttendanceOption(
+    lessonId: number,
+    optionId: number,
+  ): Promise<{ success: boolean; cleared_count: number }> {
+    const { data } = await axiosInstance.delete(
+      `/lessons/${lessonId}/attendance-options/${optionId}`,
+    )
+    return data.data ?? data
   },
 }

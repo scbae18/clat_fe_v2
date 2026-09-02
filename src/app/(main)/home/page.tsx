@@ -8,6 +8,7 @@ import envelope from '@/assets/images/envelope.png'
 import BookOpen from '@/assets/icons/icon-book-open.svg'
 import ChevronRight from '@/assets/icons/icon-chevron-right.svg'
 import HomeUpdateSection from './_components/HomeUpdateSection/HomeUpdateSection'
+import HomeQuickMenu from './_components/HomeQuickMenu/HomeQuickMenu'
 import * as styles from './home.css'
 
 const GUIDE_MANUALS = [
@@ -48,6 +49,8 @@ export default function HomePage() {
           />
         </div>
       </div>
+
+      <HomeQuickMenu />
 
       <HomeUpdateSection />
 

@@ -1,6 +1,6 @@
 import type { ItemSource } from '@/lib/lessonItemRef'
 
-export type Attendance = '출석' | '지각' | '결석' | null
+export type Attendance = string | null
 export type CompletionStatus = '완료' | '미완료' | null
 
 export interface LessonStudentItem {

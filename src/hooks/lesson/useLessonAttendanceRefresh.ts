@@ -2,6 +2,7 @@ import { useCallback, type Dispatch, type SetStateAction } from 'react'
 
 import type { LessonStudent } from '@/types/lessonStudent'
 import { lessonService, type LessonDetail } from '@/services/lesson'
+import { parseAttendanceValue } from '@/lib/attendanceLabels'
 
 type SetState<T> = Dispatch<SetStateAction<T>>
 
@@ -50,13 +51,8 @@ export function useLessonAttendanceRefresh({
                 return src === 'template' && si.template_item_id === attendanceItemId
               })?.value ?? '',
             )
-            if (
-              attendanceValue === '출석' ||
-              attendanceValue === '지각' ||
-              attendanceValue === '결석'
-            ) {
-              attendance = attendanceValue
-            }
+            const parsed = parseAttendanceValue(attendanceValue)
+            if (parsed) attendance = parsed
           }
 
           const mergedItems = student.items.map((item) => {

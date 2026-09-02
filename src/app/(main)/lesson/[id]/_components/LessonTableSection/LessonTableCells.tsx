@@ -2,40 +2,62 @@
 
 import type { Attendance, CompletionStatus } from '@/types/lessonStudent'
 import { joinScoreStorage, splitScoreStorage } from '@/lib/lessonScore'
+import { isCoreAttendanceLabel } from '@/lib/attendanceLabels'
 import {
   cellButtonGroupStyle,
   cellButtonRecipe,
+  extraCellButtonStyle,
   cellTextInputStyle,
   scoreInputStyle,
 } from './LessonTable.css'
 
 export function AttendanceCell({
   value,
+  extraLabels = [],
   onChange,
 }: {
   value: Attendance
+  extraLabels?: string[]
   onChange: (v: Attendance) => void
 }) {
+  const extras = extraLabels.filter((label) => label && !isCoreAttendanceLabel(label))
+  const orphan =
+    value && !isCoreAttendanceLabel(value) && !extras.includes(value) ? value : null
+  const extraButtons = orphan ? [...extras, orphan] : extras
+
   return (
     <div className={cellButtonGroupStyle}>
       <button
+        type="button"
         className={cellButtonRecipe({ variant: value === '출석' ? 'attend' : 'default' })}
         onClick={() => onChange(value === '출석' ? null : '출석')}
       >
         출석
       </button>
       <button
+        type="button"
         className={cellButtonRecipe({ variant: value === '지각' ? 'late' : 'default' })}
         onClick={() => onChange(value === '지각' ? null : '지각')}
       >
         지각
       </button>
       <button
+        type="button"
         className={cellButtonRecipe({ variant: value === '결석' ? 'absent' : 'default' })}
         onClick={() => onChange(value === '결석' ? null : '결석')}
       >
         결석
       </button>
+      {extraButtons.map((label) => (
+        <button
+          type="button"
+          key={label}
+          className={`${cellButtonRecipe({ variant: value === label ? 'extraOn' : 'default' })} ${extraCellButtonStyle}`}
+          onClick={() => onChange(value === label ? null : label)}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   )
 }
