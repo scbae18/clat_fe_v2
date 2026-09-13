@@ -22,6 +22,7 @@ import {
   weekLabelStyle,
 } from './lesson.css'
 import { useLessonList } from '@/hooks/lesson/useLessonList'
+import { formatCompletionRatePercent } from '@/lib/completionRate'
 
 const DAYS_KO = ['월', '화', '수', '목', '금', '토', '일']
 type DateStatus = 'done' | 'inProgress' | 'none'
@@ -121,7 +122,7 @@ function LessonPageContent() {
               academyName={lesson.academy_name}
               templateName={lesson.template_name ?? ''}
               className={lesson.class_name}
-              progress={lesson.progress_rate * 100}
+              progress={formatCompletionRatePercent(lesson.progress_rate)}
               totalStudents={lesson.total_students}
               inputCount={
                 lesson.input_count ?? Math.round(lesson.total_students * lesson.progress_rate)

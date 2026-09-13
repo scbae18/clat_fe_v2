@@ -193,7 +193,7 @@ export default function ParentDashboardPage({ params }: { params: Promise<{ toke
                   <span className={styles.cardHeadIcon}>
                     <CheckCircleIcon />
                   </span>
-                  <span className={styles.cardHeadText}>{'\uD574\uC57C \uD560 \uAC83'}</span>
+                  <span className={styles.cardHeadText}>{'\uBBF8\uC644\uB8CC \uD56D\uBAA9'}</span>
                 </div>
                 <div className={styles.todoList}>
                   {(data.incomplete_items ?? []).slice(0, 4).map((it, idx) => (

@@ -109,6 +109,8 @@ export interface LessonPreviewResult {
   data: LessonPreviewRow[]
 }
 
+export type LessonSendChannel = 'STUDENT' | 'PARENT' | 'BOTH'
+
 export interface SendLessonResult {
   batch_id: number
   total_count: number
@@ -189,10 +191,14 @@ export const lessonService = {
     return data.data as LessonPreviewResult
   },
 
-  async sendLesson(lessonId: number, studentIds: number[]): Promise<SendLessonResult> {
+  async sendLesson(
+    lessonId: number,
+    studentIds: number[],
+    channel: LessonSendChannel = 'BOTH',
+  ): Promise<SendLessonResult> {
     const { data } = await axiosInstance.post(
       `/lessons/${lessonId}/send`,
-      { student_ids: studentIds },
+      { student_ids: studentIds, channel },
       { timeout: 60_000 },
     )
     return unwrapSendLessonResult(data)

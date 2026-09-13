@@ -73,7 +73,7 @@ export default function LessonCard({
               진행률
             </Text>
             <Text variant="titleSm" color="primary500">
-              {progress}%
+              {Math.round(progress)}%
             </Text>
           </div>
           <Text variant="titleSm" color="gray500">

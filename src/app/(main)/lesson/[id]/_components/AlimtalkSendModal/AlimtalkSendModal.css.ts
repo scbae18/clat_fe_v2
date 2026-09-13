@@ -153,6 +153,70 @@ export const selectAllRow = style({
   },
 })
 
+export const channelBlock = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+  padding: '0 16px 12px',
+  borderBottom: `1px solid ${colors.gray100}`,
+  '@media': {
+    [media.phone]: {
+      padding: '0 10px 10px',
+    },
+  },
+})
+
+export const channelRow = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '8px',
+})
+
+export const channelCheck = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '10px 12px',
+  borderRadius: '8px',
+  backgroundColor: colors.white,
+  border: `1px solid ${colors.gray100}`,
+  cursor: 'pointer',
+  fontSize: fontStyles.titleSm.fontSize,
+  fontWeight: fontStyles.titleSm.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.gray700,
+  selectors: {
+    '&:hover': {
+      backgroundColor: colors.primary50,
+    },
+    '&:disabled': {
+      cursor: 'not-allowed',
+      opacity: 0.5,
+    },
+  },
+})
+
+export const channelCheckActive = style({
+  borderColor: colors.primary200,
+  backgroundColor: colors.primary50,
+  color: colors.primary500,
+})
+
+export const listMessage = style({
+  padding: '24px 16px',
+})
+
+export const studentRowDisabled = style({
+  opacity: 0.45,
+  cursor: 'default',
+  selectors: {
+    '&:hover': {
+      backgroundColor: 'transparent',
+    },
+  },
+})
+
 export const studentList = style({
   flex: 1,
   overflowY: 'auto',

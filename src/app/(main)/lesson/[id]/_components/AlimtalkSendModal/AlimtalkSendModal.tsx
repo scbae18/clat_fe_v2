@@ -11,7 +11,7 @@ import useDisclosure from '@/hooks/useDisclosure'
 import type { LessonItemDetail } from '@/services/lesson'
 import type { LessonStudent } from '@/types/lessonStudent'
 import { isAxiosError } from '@/lib/api/http'
-import { lessonService, type LessonPreviewRow } from '@/services/lesson'
+import { lessonService, type LessonPreviewRow, type LessonSendChannel } from '@/services/lesson'
 import { useQueryClient } from '@tanstack/react-query'
 import { invalidateLessonLists } from '@/lib/queryKeys'
 import { useToastStore } from '@/stores/toastStore'
@@ -28,6 +28,37 @@ function maskPhone(phone: string): string {
   if (d.length < 10) return phone || '\u2014'
   const tail = d.slice(-4)
   return `${d.slice(0, 3)}-****-${tail}`
+}
+
+function hasPhone(value: string | null | undefined) {
+  return Boolean(value && String(value).replace(/\D/g, '').length >= 8)
+}
+
+function resolveSendChannel(
+  sendToParent: boolean,
+  sendToStudent: boolean,
+): LessonSendChannel | null {
+  if (sendToParent && sendToStudent) return 'BOTH'
+  if (sendToParent) return 'PARENT'
+  if (sendToStudent) return 'STUDENT'
+  return null
+}
+
+function isRowSelectable(
+  row: LessonPreviewRow,
+  sendToParent: boolean,
+  sendToStudent: boolean,
+) {
+  if (sendToParent && hasPhone(row.parent_phone)) return true
+  if (sendToStudent && hasPhone(row.phone)) return true
+  return false
+}
+
+function channelAudienceLabel(sendToParent: boolean, sendToStudent: boolean) {
+  if (sendToParent && sendToStudent) return '학생·학부모 번호'
+  if (sendToParent) return '학부모 번호'
+  if (sendToStudent) return '학생 번호'
+  return '수신 대상'
 }
 
 interface AlimtalkSendModalProps {
@@ -68,6 +99,8 @@ export default function AlimtalkSendModal({
   const [isClosing, setIsClosing] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [sendToParent, setSendToParent] = useState(true)
+  const [sendToStudent, setSendToStudent] = useState(true)
 
   useEffect(() => {
     setMounted(true)
@@ -97,25 +130,46 @@ export default function AlimtalkSendModal({
   }, [lessonId, addToast])
 
   useEffect(() => {
+    setSelected((prev) => {
+      const next = new Set<number>()
+      for (const id of prev) {
+        const row = rows.find((r) => r.student_id === id)
+        if (row && isRowSelectable(row, sendToParent, sendToStudent)) next.add(id)
+      }
+      return next
+    })
+  }, [rows, sendToParent, sendToStudent])
+
+  useEffect(() => {
     if (!isOpen) return
+    setSendToParent(true)
+    setSendToStudent(true)
     void loadPreview()
   }, [isOpen, loadPreview])
 
   if (!mounted || (!isOpen && !isClosing)) return null
 
-  const allSelected = rows.length > 0 && rows.every((r) => selected.has(r.student_id))
+  const sendChannel = resolveSendChannel(sendToParent, sendToStudent)
+  const selectableRows = rows.filter((r) =>
+    isRowSelectable(r, sendToParent, sendToStudent),
+  )
+  const allSelected =
+    selectableRows.length > 0 &&
+    selectableRows.every((r) => selected.has(r.student_id))
 
   const toggleAll = () => {
     if (allSelected) {
       setSelected(new Set())
       setFocusId(null)
     } else {
-      setSelected(new Set(rows.map((r) => r.student_id)))
-      setFocusId(rows[0]?.student_id ?? null)
+      setSelected(new Set(selectableRows.map((r) => r.student_id)))
+      setFocusId(selectableRows[0]?.student_id ?? null)
     }
   }
 
   const toggleOne = (id: number) => {
+    const row = rows.find((r) => r.student_id === id)
+    if (!row || !isRowSelectable(row, sendToParent, sendToStudent)) return
     setSelected((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
@@ -147,6 +201,13 @@ export default function AlimtalkSendModal({
   }
 
   const requestSend = () => {
+    if (!sendChannel) {
+      addToast({
+        variant: 'warning',
+        message: '학부모 또는 학생 중 받을 대상을 골라 주세요.',
+      })
+      return
+    }
     if (selected.size === 0) {
       addToast({
         variant: 'warning',
@@ -161,10 +222,10 @@ export default function AlimtalkSendModal({
   const handleSend = async () => {
     setConfirmOpen(false)
     const ids = Array.from(selected)
-    if (ids.length === 0) return
+    if (ids.length === 0 || !sendChannel) return
     setSending(true)
     try {
-      const result = await lessonService.sendLesson(lessonId, ids)
+      const result = await lessonService.sendLesson(lessonId, ids, sendChannel)
       const mode = result.delivery_mode === 'mock' ? '\uBAA8\uC758 \uC804\uC1A1' : '\uC2E4\uC81C \uBC1C\uC1A1'
       addToast({
         variant: 'success',
@@ -232,10 +293,33 @@ export default function AlimtalkSendModal({
               <Text variant="titleMd">{'\uBCF4\uB0BC \uD559\uC0DD'}</Text>
               <div className={styles.leftHint}>
                 <Text variant="bodyMd" color="gray500">
-                  {
-                    '\uCCB4\uD06C\uD55C \uD559\uC0DD\uC5D0\uAC8C \uD559\uC0DD\u00B7\uD559\uBD80\uBAA8 \uBC88\uD638\uB85C \uBC1C\uC1A1\uD574\uC694'
-                  }
+                  {`체크한 학생에게 ${channelAudienceLabel(sendToParent, sendToStudent)}로 발송해요`}
                 </Text>
+              </div>
+            </div>
+            <div className={styles.channelBlock}>
+              <Text variant="titleSm" color="gray700">
+                수신 대상
+              </Text>
+              <div className={styles.channelRow} role="group" aria-label="수신 대상">
+                <button
+                  type="button"
+                  className={`${styles.channelCheck}${sendToParent ? ` ${styles.channelCheckActive}` : ''}`}
+                  aria-pressed={sendToParent}
+                  onClick={() => setSendToParent((v) => !v)}
+                  disabled={sending}
+                >
+                  학부모에게 보내기
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.channelCheck}${sendToStudent ? ` ${styles.channelCheckActive}` : ''}`}
+                  aria-pressed={sendToStudent}
+                  onClick={() => setSendToStudent((v) => !v)}
+                  disabled={sending}
+                >
+                  학생에게 보내기
+                </button>
               </div>
             </div>
             <label className={styles.selectAllRow}>
@@ -250,14 +334,14 @@ export default function AlimtalkSendModal({
             </label>
             <div className={styles.studentList}>
               {loading && (
-                <div style={{ padding: '24px 16px' }}>
+                <div className={styles.listMessage}>
                   <Text variant="bodyMd" color="gray500">
                     {'\uBD88\uB7EC\uC624\uB294 \uC911\u2026'}
                   </Text>
                 </div>
               )}
               {!loading && rows.length === 0 && (
-                <div style={{ padding: '24px 16px' }}>
+                <div className={styles.listMessage}>
                   <Text variant="bodyMd" color="gray500">
                     {
                       '\uBBF8\uB9AC\uBCF4\uAE30\uD560 \uD559\uC0DD\uC774 \uC5C6\uC5B4\uC694. \uC218\uC5C5\uC744 \uC800\uC7A5\uD588\uB294\uC9C0 \uD655\uC778\uD574 \uC8FC\uC138\uC694.'
@@ -267,6 +351,7 @@ export default function AlimtalkSendModal({
               )}
               {!loading &&
                 rows.map((r) => {
+                  const selectable = isRowSelectable(r, sendToParent, sendToStudent)
                   const checked = selected.has(r.student_id)
                   const isFocus = focusId === r.student_id
                   return (
@@ -274,7 +359,9 @@ export default function AlimtalkSendModal({
                       key={r.student_id}
                       role="button"
                       tabIndex={0}
-                      className={`${styles.studentRow}${isFocus ? ` ${styles.studentRowFocused}` : ''}`}
+                      className={`${styles.studentRow}${isFocus ? ` ${styles.studentRowFocused}` : ''}${
+                        selectable ? '' : ` ${styles.studentRowDisabled}`
+                      }`}
                       onClick={() => setFocusId(r.student_id)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
@@ -287,6 +374,7 @@ export default function AlimtalkSendModal({
                         type="checkbox"
                         className={styles.checkbox}
                         checked={checked}
+                        disabled={!selectable}
                         onChange={() => toggleOne(r.student_id)}
                         onClick={(e) => e.stopPropagation()}
                       />
@@ -318,28 +406,41 @@ export default function AlimtalkSendModal({
             <Text variant="titleMd">{'\uBA54\uC2DC\uC9C0 \uBBF8\uB9AC\uBCF4\uAE30'}</Text>
             {focused ? (
               <>
-                <div>
-                  <div className={styles.previewSectionLabel}>{'\uD559\uC0DD\uC6A9'}</div>
-                  <div className={styles.previewBox}>
-                    <LessonAlimtalkFramePreview
-                      header={frameHeader}
-                      body={focused.message || ''}
-                    />
+                {sendToStudent ? (
+                  <div>
+                    <div className={styles.previewSectionLabel}>{'\uD559\uC0DD\uC6A9'}</div>
+                    <div className={styles.previewBox}>
+                      {hasPhone(focused.phone) ? (
+                        <LessonAlimtalkFramePreview
+                          header={frameHeader}
+                          body={focused.message || ''}
+                        />
+                      ) : (
+                        '학생 연락처가 없어 이 채널로는 발송되지 않아요.'
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div className={styles.previewSectionLabel}>{'\uD559\uBD80\uBAA8\uC6A9'}</div>
-                  <div className={styles.previewBox}>
-                    {focused.parent_phone?.trim() ? (
-                      <LessonAlimtalkFramePreview
-                        header={frameHeader}
-                        body={stripParentDashboardPreviewLine(focused.message_for_parent || '')}
-                      />
-                    ) : (
-                      '\uD559\uBD80\uBAA8 \uC5F0\uB77D\uCC98\uAC00 \uC5C6\uC5B4 \uC774 \uCC44\uB110\uB85C\uB294 \uBC1C\uC1A1\uB418\uC9C0 \uC54A\uC544\uC694.'
-                    )}
+                ) : null}
+                {sendToParent ? (
+                  <div>
+                    <div className={styles.previewSectionLabel}>{'\uD559\uBD80\uBAA8\uC6A9'}</div>
+                    <div className={styles.previewBox}>
+                      {hasPhone(focused.parent_phone) ? (
+                        <LessonAlimtalkFramePreview
+                          header={frameHeader}
+                          body={stripParentDashboardPreviewLine(focused.message_for_parent || '')}
+                        />
+                      ) : (
+                        '\uD559\uBD80\uBAA8 \uC5F0\uB77D\uCC98\uAC00 \uC5C6\uC5B4 \uC774 \uCC44\uB110\uB85C\uB294 \uBC1C\uC1A1\uB418\uC9C0 \uC54A\uC544\uC694.'
+                      )}
+                    </div>
                   </div>
-                </div>
+                ) : null}
+                {!sendToParent && !sendToStudent ? (
+                  <Text variant="bodyMd" color="gray500">
+                    학부모 또는 학생 중 받을 대상을 골라 주세요.
+                  </Text>
+                ) : null}
               </>
             ) : (
               <Text variant="bodyMd" color="gray500">
@@ -359,7 +460,7 @@ export default function AlimtalkSendModal({
             variant="primary"
             size="md"
             onClick={requestSend}
-            disabled={sending || loading || selected.size === 0}
+            disabled={sending || loading || selected.size === 0 || !sendChannel}
           >
             {sending
               ? '\uBCF4\uB0B4\uB294 \uC911\u2026'
@@ -390,7 +491,7 @@ export default function AlimtalkSendModal({
         onConfirm={() => void handleSend()}
         title={'\uC54C\uB9BC\uD1A1\uC744 \uBCF4\uB0B4\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?'}
         descriptions={[
-          `${selected.size}\uBA85\uC758 \uD559\uC0DD\u00B7\uD559\uBD80\uBAA8 \uBC88\uD638\uB85C \uC54C\uB9BC\uD1A1\uC774 \uBC1C\uC1A1\uB429\uB2C8\uB2E4.`,
+          `${selected.size}명의 ${channelAudienceLabel(sendToParent, sendToStudent)}로 알림톡이 발송됩니다.`,
         ]}
         confirmLabel={'\uBC1C\uC1A1'}
         cancelLabel={'\uCDE8\uC18C'}
