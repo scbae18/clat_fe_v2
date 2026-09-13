@@ -141,6 +141,20 @@ export const todoList = style({
   gap: '4px',
 })
 
+export const moreButton = style({
+  marginTop: '8px',
+  width: '100%',
+  border: 'none',
+  background: 'none',
+  cursor: 'pointer',
+  padding: '8px 0 0',
+  fontSize: fontStyles.titleSm.fontSize,
+  fontWeight: 600,
+  color: colors.primary500,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+})
+
 export const todoItem = style({
   backgroundColor: colors.gray50,
   borderRadius: '8px',

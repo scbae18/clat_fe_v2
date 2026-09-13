@@ -71,12 +71,14 @@ export default function ParentDashboardPage({ params }: { params: Promise<{ toke
   const [data, setData] = useState<ParentDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [showAllIncomplete, setShowAllIncomplete] = useState(false)
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     setErrorMsg(null)
 
+    setShowAllIncomplete(false)
     parentDashboardService
       .getByToken(token)
       .then((res) => {
@@ -106,6 +108,13 @@ export default function ParentDashboardPage({ params }: { params: Promise<{ toke
     if (!first) return '-'
     return `${first.value || '-'}`
   }, [data])
+
+  const incompleteItems = data?.incomplete_items ?? []
+  const incompletePreviewLimit = 4
+  const visibleIncomplete = showAllIncomplete
+    ? incompleteItems
+    : incompleteItems.slice(0, incompletePreviewLimit)
+  const hasMoreIncomplete = incompleteItems.length > incompletePreviewLimit
 
   const summaryRows = useMemo(() => {
     if (!data) return []
@@ -196,7 +205,7 @@ export default function ParentDashboardPage({ params }: { params: Promise<{ toke
                   <span className={styles.cardHeadText}>{'\uBBF8\uC644\uB8CC \uD56D\uBAA9'}</span>
                 </div>
                 <div className={styles.todoList}>
-                  {(data.incomplete_items ?? []).slice(0, 4).map((it, idx) => (
+                  {visibleIncomplete.map((it, idx) => (
                     <div
                       key={`${it.lesson_date}-${it.class_name}-${it.item_name}-${idx}`}
                       className={styles.todoItem}
@@ -214,10 +223,19 @@ export default function ParentDashboardPage({ params }: { params: Promise<{ toke
                       </div>
                     </div>
                   ))}
-                  {data.incomplete_items.length === 0 ? (
+                  {incompleteItems.length === 0 ? (
                     <div className={styles.todoItem}>
                       <span className={styles.todoName}>{'\uBBF8\uC644\uB8CC \uD56D\uBAA9\uC774 \uC5C6\uC5B4\uC694.'}</span>
                     </div>
+                  ) : null}
+                  {hasMoreIncomplete ? (
+                    <button
+                      type="button"
+                      className={styles.moreButton}
+                      onClick={() => setShowAllIncomplete((v) => !v)}
+                    >
+                      {showAllIncomplete ? '\uC811\uAE30' : '\uB354\uBCF4\uAE30'}
+                    </button>
                   ) : null}
                 </div>
               </section>
