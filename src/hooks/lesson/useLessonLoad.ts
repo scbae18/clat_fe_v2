@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 
 import type { LessonStudent } from '@/types/lessonStudent'
-import { lessonService, type LessonDetail } from '@/services/lesson'
+import { lessonService, type LessonDetail, type LessonPollUnchanged } from '@/services/lesson'
 import { classService } from '@/services/class'
 
 import {
@@ -24,8 +24,8 @@ type UseLessonLoadOptions = {
 }
 
 function isUnchangedPoll(
-  data: LessonDetail | { unchanged: true; updated_at: string },
-): data is { unchanged: true; updated_at: string } {
+  data: LessonDetail | LessonPollUnchanged,
+): data is LessonPollUnchanged {
   return 'unchanged' in data && data.unchanged === true
 }
 
@@ -108,7 +108,7 @@ export function useLessonLoad(lessonId: number, options: UseLessonLoadOptions) {
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return
       if (isBusy?.()) return
       const current = lessonRef.current
-      if (!current) return
+      if (!current?.updated_at) return
       try {
         const data = await lessonService.getLesson(lessonId, {
           updatedAfter: current.updated_at,

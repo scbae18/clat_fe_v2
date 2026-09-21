@@ -209,21 +209,30 @@ function unwrapLessonListResponse(res: { data?: unknown }): LessonListResponse {
   return { data: [], meta: { total: 0 } }
 }
 
+export type LessonPollUnchanged = { unchanged: true; updated_at: string }
+
+async function getLesson(id: number): Promise<LessonDetail>
+async function getLesson(
+  id: number,
+  opts: { updatedAfter: string },
+): Promise<LessonDetail | LessonPollUnchanged>
+async function getLesson(
+  id: number,
+  opts?: { updatedAfter?: string },
+): Promise<LessonDetail | LessonPollUnchanged> {
+  const { data } = await axiosInstance.get(`/lessons/${id}`, {
+    params: opts?.updatedAfter ? { updated_after: opts.updatedAfter } : undefined,
+  })
+  return data.data
+}
+
 export const lessonService = {
   async getLessons(date: string): Promise<LessonListResponse> {
     const { data } = await axiosInstance.get('/lessons', { params: { date } })
     return unwrapLessonListResponse(data)
   },
 
-  async getLesson(
-    id: number,
-    opts?: { updatedAfter?: string },
-  ): Promise<LessonDetail | { unchanged: true; updated_at: string }> {
-    const { data } = await axiosInstance.get(`/lessons/${id}`, {
-      params: opts?.updatedAfter ? { updated_after: opts.updatedAfter } : undefined,
-    })
-    return data.data
-  },
+  getLesson,
 
   async createLesson(dto: CreateLessonBody): Promise<LessonDetail> {
     const { data } = await axiosInstance.post('/lessons', dto)
