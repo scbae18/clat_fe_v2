@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { auth } from '@/services/auth'
 import { useUserStore } from '@/stores/userStore'
+import { ACCOUNT_PENDING_MESSAGE } from '@/components/auth/PendingApprovalModal'
 import {
   containerStyle,
   loginBoxStyle,
@@ -46,7 +47,13 @@ function LoginContent() {
         redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/'
       router.push(safeRedirect)
     } catch (err: any) {
-      const message = err.response?.data?.message ?? '이메일 또는 비밀번호를 확인해주세요.'
+      const code = err.response?.data?.error?.code
+      const message =
+        code === 'ACCOUNT_PENDING'
+          ? ACCOUNT_PENDING_MESSAGE
+          : (err.response?.data?.error?.message ??
+            err.response?.data?.message ??
+            '이메일 또는 비밀번호를 확인해주세요.')
       setError(message)
       passwordRef.current?.focus()
     } finally {
@@ -97,9 +104,11 @@ function LoginContent() {
           </Button>
 
           {error && (
-            <Text variant="bodyMd" color="error500">
-              {error}
-            </Text>
+            <div style={{ whiteSpace: 'pre-line' }}>
+              <Text variant="bodyMd" color="error500">
+                {error}
+              </Text>
+            </div>
           )}
         </form>
 

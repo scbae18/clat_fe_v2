@@ -42,3 +42,11 @@ export function joinScoreStorage(earned: string, max: string): string {
   if (m) return e === '' ? `/${m}` : `${e}/${m}`
   return e
 }
+
+/** 만점만 있거나 비어 있으면 미입력(문자 미응시와 동일) */
+export function isScoreUnanswered(raw: string | null | undefined): boolean {
+  const s = String(raw ?? '').trim()
+  if (!s) return true
+  const { earned } = splitScoreStorage(s)
+  return earned === ''
+}

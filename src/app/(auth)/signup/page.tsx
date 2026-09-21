@@ -1,10 +1,10 @@
 'use client'
 
-import { useRef, useState, Suspense } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { auth } from '@/services/auth'
-import { useUserStore } from '@/stores/userStore'
+import { PendingApprovalModal } from '@/components/auth/PendingApprovalModal'
 import {
   containerStyle,
   loginBoxStyle,
@@ -29,11 +29,10 @@ function SignupContent() {
   const [passwordConfirm, setPasswordConfirm] = useState('')
 
   const router = useRouter()
-  const searchParams = useSearchParams()
   const passwordConfirmRef = useRef<HTMLInputElement>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const setUser = useUserStore((s) => s.setUser)
+  const [pendingOpen, setPendingOpen] = useState(false)
 
   const passwordsMismatch =
     passwordConfirm.length > 0 && password !== passwordConfirm
@@ -62,13 +61,8 @@ function SignupContent() {
 
     setIsLoading(true)
     try {
-      const user = await auth.signup({ email: email.trim(), password, name: name.trim() })
-      setUser(user)
-
-      const redirect = searchParams.get('redirect')
-      const safeRedirect =
-        redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/'
-      router.push(safeRedirect)
+      await auth.signup({ email: email.trim(), password, name: name.trim() })
+      setPendingOpen(true)
     } catch (err: unknown) {
       const ax = err as { response?: { data?: { error?: { message?: string }; message?: string } } }
       const message =
@@ -167,14 +161,17 @@ function SignupContent() {
           </Text>
         </div>
       </div>
+      <PendingApprovalModal
+        isOpen={pendingOpen}
+        onClose={() => {
+          setPendingOpen(false)
+          router.push('/login')
+        }}
+      />
     </div>
   )
 }
 
 export default function SignupPage() {
-  return (
-    <Suspense>
-      <SignupContent />
-    </Suspense>
-  )
+  return <SignupContent />
 }

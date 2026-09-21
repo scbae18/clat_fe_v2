@@ -9,6 +9,7 @@ import * as styles from './studentDashboard.css'
 import { MSG } from './_lib/studentDashboardShared'
 import { useStudentDashboard } from './_hooks/useStudentDashboard'
 import { StudentProfileCard } from './_components/StudentProfileCard'
+import { StudentMemoCard } from './_components/StudentMemoCard'
 import { StudentStatsRow } from './_components/StudentStatsRow'
 import { StudentIncompleteList } from './_components/StudentIncompleteList'
 import { StudentDashboardTabs } from './_components/StudentDashboardTabs'
@@ -52,6 +53,7 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
             classLabel={dash.classLabel}
             onEdit={dash.editStudent.open}
           />
+          <StudentMemoCard memo={detail.memo ?? ''} onSave={dash.saveMemo} />
           <StudentStatsRow
             monthlyCompletionPct={dash.monthlyCompletionPct}
             monthlyAttendancePct={dash.monthlyAttendancePct}
@@ -104,8 +106,9 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
           name: detail.name,
           phone: detail.phone,
           parent_phone: detail.parent_phone,
-          school_name: detail.school_name,
-          class_ids: detail.classes.map((c) => c.id),
+            school_name: detail.school_name,
+            grade: detail.grade ?? '',
+            class_ids: detail.classes.map((c) => c.id),
         }}
         onConfirm={dash.updateStudent}
       />

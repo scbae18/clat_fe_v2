@@ -107,6 +107,15 @@ export default function AddStudentFormModal({
           />
         </div>
         <div className={fieldStyle}>
+          <span className={labelStyle}>학년</span>
+          <Input
+            variant="gray"
+            value={form.grade}
+            placeholder="예: 중1, 고2"
+            onChange={(e) => form.setGrade(e.target.value)}
+          />
+        </div>
+        <div className={fieldStyle}>
           <span className={labelStyle}>소속 반</span>
           <div className={classChipGroupStyle}>
             {form.classes.map((cls) => (

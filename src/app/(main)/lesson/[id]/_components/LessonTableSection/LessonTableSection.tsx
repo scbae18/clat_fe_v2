@@ -198,7 +198,11 @@ export default function LessonTable({
             </thead>
             <tbody>
               {filteredStudents.map((student) => {
-                const isComplete = isLessonStudentInputComplete(student, partialItemRefs)
+                const isComplete = isLessonStudentInputComplete(
+                  student,
+                  partialItemRefs,
+                  templateItems,
+                )
                 return (
                 <tr key={student.id}>
                   <td className={getTdClassName(tdCompactStyle, student.id, focusedStudentId, isComplete)}>

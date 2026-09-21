@@ -48,6 +48,7 @@ export interface LessonDetail {
   student_data: StudentData[]
   guest_students?: Array<{ student_id: number; student_name: string }>
   items: LessonItemDetail[]
+  updated_at?: string
 }
 
 export interface LessonListResponse {
@@ -167,8 +168,13 @@ export const lessonService = {
     return unwrapLessonListResponse(data)
   },
 
-  async getLesson(id: number): Promise<LessonDetail> {
-    const { data } = await axiosInstance.get(`/lessons/${id}`)
+  async getLesson(
+    id: number,
+    opts?: { updatedAfter?: string },
+  ): Promise<LessonDetail | { unchanged: true; updated_at: string }> {
+    const { data } = await axiosInstance.get(`/lessons/${id}`, {
+      params: opts?.updatedAfter ? { updated_after: opts.updatedAfter } : undefined,
+    })
     return data.data
   },
 

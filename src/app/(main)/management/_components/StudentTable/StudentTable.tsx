@@ -112,7 +112,7 @@ export default function StudentTable({
                 {col.header}
               </th>
             ))}
-            <th className={thStyle}>학교</th>
+            <th className={thStyle}>학교/학년</th>
             <th className={thStyle}>완료율</th>
           </tr>
         </thead>
@@ -121,6 +121,8 @@ export default function StudentTable({
             const completionPct = formatCompletionRatePercent(student.completion_rate)
             const color = getProgressColor(student.completion_rate, student.total_incomplete_items)
             const school = student.school_name?.trim() || '-'
+            const grade = student.grade?.trim()
+            const schoolLabel = grade ? `${school} · ${grade}` : school
             const isSelected = selectionMode && selectedIds.includes(student.id)
             const handleRowClick = () => {
               if (selectionMode) {
@@ -154,8 +156,8 @@ export default function StudentTable({
                     </td>
                   )
                 })}
-                <td className={tdStyle} title={school}>
-                  {school}
+                <td className={tdStyle} title={schoolLabel}>
+                  {schoolLabel}
                 </td>
                 <td style={{ padding: 0 }}>
                   <div className={completionCellStyle}>

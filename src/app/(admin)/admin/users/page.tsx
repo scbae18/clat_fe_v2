@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useQuery } from '@tanstack/react-query'
-import { Users, Activity, UserX, AlertTriangle, ChevronRight } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Users, Activity, UserX, AlertTriangle, ChevronRight, Clock } from 'lucide-react'
 import { admin, adminErrorMessage } from '@/services/admin'
+import { useToastStore } from '@/stores/toastStore'
 import { AdminHeader, AdminPager, StatCard } from '../_components/AdminUi'
 import CreateTeacherForm from '../_components/CreateTeacherForm'
 import DeleteTeacherDialog from '../_components/DeleteTeacherDialog'
@@ -13,16 +14,34 @@ import * as styles from '../admin.css'
 
 export default function AdminUsersPage() {
   const [page, setPage] = useState(1)
+  const queryClient = useQueryClient()
+  const addToast = useToastStore((s) => s.addToast)
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['admin', 'users', 'list', page],
     queryFn: () => admin.listUsers(page, 50),
     refetchOnWindowFocus: false,
+  })
+  const pendingQuery = useQuery({
+    queryKey: ['admin', 'users', 'pending'],
+    queryFn: () => admin.listUsers(1, 50, 'PENDING'),
+    refetchOnWindowFocus: false,
+  })
+  const approve = useMutation({
+    mutationFn: (id: number) => admin.setUserApproval(id, 'APPROVED'),
+    onSuccess: () => {
+      addToast({ variant: 'success', message: '가입을 승인했습니다.' })
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+    },
+    onError: (err) => {
+      addToast({ variant: 'error', message: adminErrorMessage(err) })
+    },
   })
 
   if (isLoading) return <p className={styles.loading}>선생님 목록을 불러오는 중…</p>
   if (isError || !data) return <p className={styles.loading}>{adminErrorMessage(error)}</p>
 
   const withdrawing = data.items.filter((u) => u.withdrawal_requested_at)
+  const pendingUsers = pendingQuery.data?.items ?? []
 
   return (
     <div className={styles.stack}>
@@ -31,10 +50,39 @@ export default function AdminUsersPage() {
         subtitle="CLAT 서비스에 가입한 선생님 목록입니다. 삭제 시 해당 계정의 반·학생·템플릿·수업 기록이 모두 제거되며 동일 이메일로는 로그인할 수 없습니다."
       />
       <CreateTeacherForm />
+      {pendingUsers.length > 0 ? (
+        <div className={styles.errorBox}>
+          <h2 className={styles.healthTitle.error}>
+            <Clock size={16} /> 승인 대기 ({data.summary.pending ?? pendingUsers.length}명)
+          </h2>
+          <div className={styles.stack}>
+            {pendingUsers.map((u) => (
+              <div key={u.id} className={styles.statCard}>
+                <div className={styles.headerRow}>
+                  <div>
+                    <strong>{u.name}</strong>
+                    <span className={styles.mutedInline}> {u.email}</span>
+                    <p className={styles.statHint}>가입일: {formatYmd(u.created_at)}</p>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.ghostBtn}
+                    disabled={approve.isPending}
+                    onClick={() => approve.mutate(u.id)}
+                  >
+                    승인
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <div className={styles.kpiGrid}>
         <StatCard label="전체 가입" value={data.summary.total} icon={Users} iconTone="primary50" />
         <StatCard label="7일 활성" value={data.summary.active_7d} icon={Activity} iconTone="success" />
         <StatCard label="14일 비활성" value={data.summary.inactive_14d} icon={UserX} iconTone="warning" />
+        <StatCard label="승인 대기" value={data.summary.pending ?? 0} icon={Clock} iconTone="warning" />
         <StatCard label="탈퇴 요청" value={data.summary.withdrawal} icon={AlertTriangle} iconTone="error" />
       </div>
       <section className={styles.card}>
@@ -89,6 +137,10 @@ export default function AdminUsersPage() {
                   <td className={styles.td}>
                     {u.withdrawal_requested_at ? (
                       <span className={styles.badge.red}>탈퇴 요청</span>
+                    ) : u.approval_status === 'PENDING' ? (
+                      <span className={styles.badge.yellow}>승인 대기</span>
+                    ) : u.approval_status === 'REJECTED' ? (
+                      <span className={styles.badge.red}>거절</span>
                     ) : u.is_active_7d ? (
                       <span className={styles.badge.green}>활성</span>
                     ) : u.is_inactive_14d ? (
@@ -98,6 +150,18 @@ export default function AdminUsersPage() {
                     )}
                   </td>
                   <td className={styles.tdRight}>
+                    {u.approval_status === 'PENDING' ? (
+                      <>
+                        <button
+                          type="button"
+                          className={styles.ghostBtn}
+                          disabled={approve.isPending}
+                          onClick={() => approve.mutate(u.id)}
+                        >
+                          승인
+                        </button>{' '}
+                      </>
+                    ) : null}
                     <Link href={`/admin/users/${u.id}`} className={styles.ghostBtn}>
                       상세
                     </Link>{' '}

@@ -499,6 +499,43 @@ export const cellTextInputStyle = style({
   },
 })
 
+export const textCellWrapStyle = style({
+  position: 'relative',
+  display: 'block',
+  width: '100%',
+  minWidth: 0,
+  minHeight: '24px',
+  maxWidth: '100%',
+})
+
+export const textCellAreaStyle = style({
+  display: 'block',
+  width: '100%',
+  minHeight: '24px',
+  padding: 0,
+  margin: 0,
+  border: 'none',
+  background: 'transparent',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  color: colors.gray700,
+  letterSpacing: '-0.03em',
+  lineHeight: 1.45,
+  whiteSpace: 'pre-wrap',
+  overflowWrap: 'anywhere',
+  wordBreak: 'break-word',
+  resize: 'none',
+  overflow: 'hidden',
+  outline: 'none',
+  boxSizing: 'border-box',
+  fieldSizing: 'content',
+  selectors: {
+    '&::placeholder': {
+      color: colors.gray300,
+    },
+  },
+})
+
 export const scoreInputNarrowStyle = style([
   scoreInputStyle,
   {

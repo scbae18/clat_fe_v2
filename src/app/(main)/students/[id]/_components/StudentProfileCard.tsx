@@ -65,6 +65,14 @@ export function StudentProfileCard({
         </div>
 
         <div className={styles.infoLabelCell}>
+          <IconSchool />
+          {MSG.grade}
+        </div>
+        <div className={styles.infoValueCell} title={detail.grade?.trim() || '-'}>
+          {detail.grade?.trim() || '-'}
+        </div>
+
+        <div className={styles.infoLabelCell}>
           <IconPhone />
           {MSG.phone}
         </div>

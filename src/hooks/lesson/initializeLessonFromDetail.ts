@@ -1,7 +1,7 @@
 import type { LessonStudent } from '@/types/lessonStudent'
 import type { LessonDetail, LessonItemDetail } from '@/services/lesson'
 import type { Student } from '@/types/student'
-import { itemRef } from '@/lib/lessonItemRef'
+import { itemRef, studentCellKey } from '@/lib/lessonItemRef'
 import { parseAttendanceValue } from '@/lib/attendanceLabels'
 
 export function buildCommonValuesFromDetail(data: LessonDetail): Record<string, string> {
@@ -80,6 +80,72 @@ export function buildStudentsFromDetail(
 
   students.sort((a, b) => a.name.localeCompare(b.name, 'ko'))
   return students
+}
+
+type DirtySnapshot = {
+  cells: Set<string>
+  common: Set<string>
+}
+
+export function mergePolledLessonState(args: {
+  prevLesson: LessonDetail
+  prevCommon: Record<string, string>
+  prevStudents: LessonStudent[]
+  nextDetail: LessonDetail
+  dirty: DirtySnapshot
+}): {
+  lesson: LessonDetail
+  commonValues: Record<string, string>
+  students: LessonStudent[]
+} {
+  const { prevLesson, prevCommon, prevStudents, nextDetail, dirty } = args
+  const attendanceItem = nextDetail.items.find((i) => i.item_type === 'ATTENDANCE')
+  const nameSource: Student[] = prevStudents.map((s) => ({
+    id: s.id,
+    name: s.name,
+    phone: '',
+    parent_phone: '',
+    classes: [],
+    completion_rate: 0,
+    total_incomplete_items: 0,
+  }))
+  const nextStudents = buildStudentsFromDetail(nextDetail, nameSource)
+  const prevById = new Map(prevStudents.map((s) => [s.id, s]))
+
+  const students = nextStudents.map((student) => {
+    const prev = prevById.get(student.id)
+    if (!prev) return student
+    const attKey =
+      attendanceItem != null
+        ? studentCellKey(student.id, attendanceItem.source ?? 'template', attendanceItem.id)
+        : null
+    const attendance =
+      attKey && dirty.cells.has(attKey) ? prev.attendance : student.attendance
+    return {
+      ...student,
+      attendance,
+      items: student.items.map((item) => {
+        const key = studentCellKey(student.id, item.source, item.item_id)
+        if (!dirty.cells.has(key)) return item
+        const prevItem = prev.items.find(
+          (p) => p.source === item.source && p.item_id === item.item_id,
+        )
+        return prevItem ?? item
+      }),
+    }
+  })
+
+  const nextCommon = buildCommonValuesFromDetail(nextDetail)
+  const commonValues = { ...nextCommon }
+  for (const ref of dirty.common) {
+    if (ref in prevCommon) commonValues[ref] = prevCommon[ref]
+  }
+
+  return {
+    lesson: { ...nextDetail, items: nextDetail.items.length ? nextDetail.items : prevLesson.items },
+    commonValues,
+    students,
+  }
 }
 
 export function createEmptyLessonStudent(

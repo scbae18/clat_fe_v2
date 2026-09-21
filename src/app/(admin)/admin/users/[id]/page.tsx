@@ -2,7 +2,7 @@
 
 import { use } from 'react'
 import Link from 'next/link'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
   Mail,
@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { isAxiosError } from '@/lib/api/http'
 import { admin, adminErrorMessage } from '@/services/admin'
+import { useToastStore } from '@/stores/toastStore'
 import { StatCard } from '../../_components/AdminUi'
 import { BarChart, TrendChart } from '../../_components/AdminCharts'
 import DeleteTeacherDialog from '../../_components/DeleteTeacherDialog'
@@ -30,12 +31,27 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
   const id = Number.parseInt(rawId, 10)
   const enabled = Number.isInteger(id) && id > 0
 
+  const queryClient = useQueryClient()
+  const addToast = useToastStore((s) => s.addToast)
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['admin', 'users', 'detail', id],
     queryFn: () => admin.getUser(id),
     enabled,
     retry: false,
     refetchOnWindowFocus: false,
+  })
+  const setApproval = useMutation({
+    mutationFn: (status: 'APPROVED' | 'REJECTED') => admin.setUserApproval(id, status),
+    onSuccess: (res) => {
+      addToast({
+        variant: 'success',
+        message: res.approval_status === 'APPROVED' ? '가입을 승인했습니다.' : '가입을 거절했습니다.',
+      })
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+    },
+    onError: (err) => {
+      addToast({ variant: 'error', message: adminErrorMessage(err) })
+    },
   })
 
   if (!enabled || (isError && isAxiosError(error) && error.response?.status === 404)) {
@@ -78,13 +94,39 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
               </span>
             </div>
           </div>
-          {data.withdrawal_requested_at ? (
-            <span className={styles.badge.red}>탈퇴 요청 중</span>
-          ) : data.is_active_7d ? (
-            <span className={styles.badge.green}>활성</span>
-          ) : (
-            <span className={styles.badge.yellow}>비활성</span>
-          )}
+          <div className={styles.funnelLeft}>
+            {data.withdrawal_requested_at ? (
+              <span className={styles.badge.red}>탈퇴 요청 중</span>
+            ) : data.approval_status === 'PENDING' ? (
+              <span className={styles.badge.yellow}>승인 대기</span>
+            ) : data.approval_status === 'REJECTED' ? (
+              <span className={styles.badge.red}>거절</span>
+            ) : data.is_active_7d ? (
+              <span className={styles.badge.green}>활성</span>
+            ) : (
+              <span className={styles.badge.yellow}>비활성</span>
+            )}
+            {data.approval_status === 'PENDING' ? (
+              <>
+                <button
+                  type="button"
+                  className={styles.ghostBtn}
+                  disabled={setApproval.isPending}
+                  onClick={() => setApproval.mutate('APPROVED')}
+                >
+                  승인
+                </button>
+                <button
+                  type="button"
+                  className={styles.dangerBtn}
+                  disabled={setApproval.isPending}
+                  onClick={() => setApproval.mutate('REJECTED')}
+                >
+                  거절
+                </button>
+              </>
+            ) : null}
+          </div>
         </div>
       </div>
 

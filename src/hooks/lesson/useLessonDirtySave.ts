@@ -74,6 +74,10 @@ export function useLessonDirtySave(lessonId: number) {
   const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
   const dirtyStudentCellsRef = useRef(dirtyStudentCells)
   dirtyStudentCellsRef.current = dirtyStudentCells
+  const dirtyCommonIdsRef = useRef(dirtyCommonIds)
+  dirtyCommonIdsRef.current = dirtyCommonIds
+  const autoSavingCountRef = useRef(autoSavingCount)
+  autoSavingCountRef.current = autoSavingCount
 
   const lessonRef = useRef<LessonDetail | null>(null)
   const commonValuesRef = useRef<Record<string, string>>({})
@@ -385,6 +389,16 @@ export function useLessonDirtySave(lessonId: number) {
 
   const hasUnsavedChanges = dirtyCommonIds.size > 0 || dirtyStudentCells.size > 0
 
+  const getDirtySnapshot = useCallback(
+    () => ({
+      cells: dirtyStudentCellsRef.current,
+      common: dirtyCommonIdsRef.current,
+    }),
+    [],
+  )
+
+  const isBusy = useCallback(() => autoSavingCountRef.current > 0, [])
+
   return {
     bindFormState,
     clearDirty,
@@ -397,5 +411,7 @@ export function useLessonDirtySave(lessonId: number) {
     ensureSavedForAlimtalk,
     hasUnsavedChanges,
     isAutoSaving: autoSavingCount > 0,
+    getDirtySnapshot,
+    isBusy,
   }
 }

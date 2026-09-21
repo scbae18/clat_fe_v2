@@ -713,3 +713,42 @@ export const infoIconBtn = style({
   cursor: 'default',
   verticalAlign: 'middle',
 })
+
+export const memoCard = style({
+  background: colors.white,
+  border: `1px solid ${colors.gray50}`,
+  borderRadius: '20px',
+  padding: '20px 24px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
+})
+
+export const memoTitle = style({
+  fontSize: '16px',
+  fontWeight: 700,
+  color: colors.gray900,
+  letterSpacing: '-0.03em',
+})
+
+export const memoHint = style({
+  fontSize: '12px',
+  color: colors.gray400,
+})
+
+export const memoTextarea = style({
+  width: '100%',
+  minHeight: '120px',
+  resize: 'vertical',
+  border: `1px solid ${colors.gray100}`,
+  borderRadius: '12px',
+  padding: '12px 14px',
+  fontSize: '14px',
+  lineHeight: 1.5,
+  color: colors.gray800,
+  outline: 'none',
+  fontFamily: 'inherit',
+  ':focus': {
+    borderColor: colors.primary300,
+  },
+})

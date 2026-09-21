@@ -46,9 +46,9 @@ export const admin = {
     return unwrap(data)
   },
 
-  async listUsers(page = 1, limit = 50) {
+  async listUsers(page = 1, limit = 50, approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED') {
     const { data } = await axiosInstance.get<Envelope<AdminUserList>>('/admin/users', {
-      params: { page, limit },
+      params: { page, limit, approval_status: approvalStatus },
     })
     return unwrap(data)
   },
@@ -68,6 +68,19 @@ export const admin = {
       `/admin/users/${id}`,
       { data: { confirm_email: confirmEmail } },
     )
+    return unwrap(data)
+  },
+
+  async setUserApproval(id: number, status: 'APPROVED' | 'REJECTED') {
+    const { data } = await axiosInstance.patch<
+      Envelope<{
+        id: number
+        email: string
+        name: string
+        approval_status: 'PENDING' | 'APPROVED' | 'REJECTED'
+        approved_at: string | null
+      }>
+    >(`/admin/users/${id}/approval`, { status })
     return unwrap(data)
   },
 

@@ -1,5 +1,7 @@
 'use client'
 
+import { useLayoutEffect, useRef } from 'react'
+
 import type { Attendance, CompletionStatus } from '@/types/lessonStudent'
 import { joinScoreStorage, splitScoreStorage } from '@/lib/lessonScore'
 import { isCoreAttendanceLabel } from '@/lib/attendanceLabels'
@@ -7,8 +9,9 @@ import {
   cellButtonGroupStyle,
   cellButtonRecipe,
   extraCellButtonStyle,
-  cellTextInputStyle,
   scoreInputStyle,
+  textCellAreaStyle,
+  textCellWrapStyle,
 } from './LessonTable.css'
 
 export function AttendanceCell({
@@ -149,15 +152,38 @@ export function TextInputCell({
   onChange: (v: string) => void
   onBlur?: () => void
 }) {
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const areaRef = useRef<HTMLTextAreaElement>(null)
+
+  useLayoutEffect(() => {
+    const wrap = wrapRef.current
+    const area = areaRef.current
+    if (!wrap || !area) return
+
+    const fit = () => {
+      const left = wrap.getBoundingClientRect().left
+      const maxW = Math.max(96, Math.floor(window.innerWidth - Math.max(0, left) - 16))
+      wrap.style.maxWidth = `${maxW}px`
+      area.style.height = 'auto'
+      area.style.height = `${Math.max(24, area.scrollHeight)}px`
+    }
+
+    fit()
+    window.addEventListener('resize', fit)
+    return () => window.removeEventListener('resize', fit)
+  }, [value])
+
   return (
-    <input
-      className={cellTextInputStyle}
-      type="text"
-      autoComplete="off"
-      value={value}
-      onChange={(ev) => onChange(ev.target.value)}
-      onBlur={() => onBlur?.()}
-      placeholder="—"
-    />
+    <div ref={wrapRef} className={textCellWrapStyle}>
+      <textarea
+        ref={areaRef}
+        className={textCellAreaStyle}
+        rows={1}
+        value={value}
+        placeholder="—"
+        onChange={(ev) => onChange(ev.target.value)}
+        onBlur={() => onBlur?.()}
+      />
+    </div>
   )
 }

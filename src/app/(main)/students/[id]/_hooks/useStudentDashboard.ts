@@ -168,6 +168,12 @@ export function useStudentDashboard(studentId: number) {
     }
   }
 
+  const saveMemo = async (memo: string) => {
+    if (!detail) return
+    const updated = await studentService.updateStudent(detail.id, { memo })
+    setDetail((prev) => (prev ? { ...prev, memo: updated.memo ?? memo } : prev))
+  }
+
   const aiSections = useMemo(() => parseAiAnalysis(aiText), [aiText])
 
   const overdueLabel = (lessonDate: string) => {
@@ -200,6 +206,7 @@ export function useStudentDashboard(studentId: number) {
     runCompletePending,
     editStudent,
     updateStudent,
+    saveMemo,
     academyName,
     classLabel,
     monthlyCompletionPct,

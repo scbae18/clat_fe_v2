@@ -27,6 +27,8 @@ export default function useLessonDetail(lessonId: number) {
     ensureSavedForAlimtalk,
     hasUnsavedChanges,
     isAutoSaving,
+    getDirtySnapshot,
+    isBusy,
   } = useLessonDirtySave(lessonId)
 
   const {
@@ -43,6 +45,8 @@ export default function useLessonDetail(lessonId: number) {
   } = useLessonLoad(lessonId, {
     clearDirty,
     clearAllDebounceTimers,
+    getDirtySnapshot,
+    isBusy,
   })
 
   bindFormState({

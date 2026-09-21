@@ -10,6 +10,7 @@ export type StudentFormData = {
   phone: string
   parent_phone: string
   school_name: string
+  grade: string
   class_ids: number[]
 }
 
@@ -34,6 +35,7 @@ export function useStudentFormModal({
   const [phone, setPhone] = useState('')
   const [parentPhone, setParentPhone] = useState('')
   const [schoolName, setSchoolName] = useState('')
+  const [grade, setGrade] = useState('')
   const [classes, setClasses] = useState<Class[]>([])
   const [isBulkLoading, setIsBulkLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -57,6 +59,7 @@ export function useStudentFormModal({
           setPhone(defaultValues.phone ?? '')
           setParentPhone(defaultValues.parent_phone ?? '')
           setSchoolName(defaultValues.school_name ?? '')
+          setGrade(defaultValues.grade ?? '')
           setSelectedClassIds(defaultValues.class_ids ?? [])
         }
       })
@@ -68,6 +71,7 @@ export function useStudentFormModal({
     setPhone('')
     setParentPhone('')
     setSchoolName('')
+    setGrade('')
     resetClasses()
     onClose()
   }
@@ -79,6 +83,7 @@ export function useStudentFormModal({
       phone,
       parent_phone: parentPhone,
       school_name: schoolName,
+      grade,
       class_ids: selectedClassIds,
     })
     handleClose()
@@ -124,6 +129,8 @@ export function useStudentFormModal({
     setParentPhone: (v: string) => setParentPhone(formatPhone(v)),
     schoolName,
     setSchoolName,
+    grade,
+    setGrade,
     classes,
     selectedClassIds,
     toggleClass,

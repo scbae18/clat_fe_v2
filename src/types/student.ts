@@ -19,6 +19,7 @@ export interface Student {
   phone: string
   parent_phone: string
   school_name?: string
+  grade?: string
   memo?: string
   classes: StudentClass[]
   completion_rate: number
@@ -42,6 +43,8 @@ export interface StudentDetail {
   phone: string
   parent_phone: string
   school_name: string
+  grade?: string
+  memo?: string
   classes: StudentClass[]
   stats: StudentStats
   incomplete_items: IncompleteItem[]

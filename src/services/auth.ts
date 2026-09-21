@@ -25,6 +25,13 @@ interface LoginResponse {
   }
 }
 
+interface SignupResponse {
+  success: boolean
+  data: {
+    user: User
+  }
+}
+
 interface RefreshResponse {
   success: boolean
   data: AuthTokens
@@ -76,12 +83,11 @@ export const auth = {
   },
 
   async signup({ email, password, name }: SignupRequest) {
-    const { data } = await axiosInstance.post<LoginResponse>('/auth/signup', {
+    const { data } = await axiosInstance.post<SignupResponse>('/auth/signup', {
       email,
       password,
       name,
     })
-    setTokens(data.data.access_token, data.data.refresh_token)
     return data.data.user
   },
 

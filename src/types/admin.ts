@@ -54,6 +54,8 @@ export type AdminUserListItem = {
   name: string
   created_at: string
   withdrawal_requested_at: string | null
+  approval_status?: 'PENDING' | 'APPROVED' | 'REJECTED'
+  approved_at?: string | null
   class_count: number
   student_count: number
   template_count: number
@@ -68,6 +70,7 @@ export type AdminUserList = {
     active_7d: number
     inactive_14d: number
     withdrawal: number
+    pending?: number
   }
   items: AdminUserListItem[]
   meta: AdminMeta
@@ -79,6 +82,8 @@ export type AdminUserDetail = {
   name: string
   created_at: string
   withdrawal_requested_at: string | null
+  approval_status?: 'PENDING' | 'APPROVED' | 'REJECTED'
+  approved_at?: string | null
   is_active_7d: boolean
   last_lesson_at: string | null
   stats: {

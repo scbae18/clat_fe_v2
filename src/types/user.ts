@@ -3,4 +3,5 @@ export interface User {
   email: string
   name: string
   created_at: string
+  approval_status?: 'PENDING' | 'APPROVED' | 'REJECTED'
 }

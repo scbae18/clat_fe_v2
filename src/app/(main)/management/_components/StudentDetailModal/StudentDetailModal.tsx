@@ -171,6 +171,12 @@ export default function StudentDetailModal({
                     {detail.school_name || '-'}
                   </span>
                 </div>
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <span className={infoLabelStyle}>학년</span>
+                  <span className={infoValueStyle} title={detail.grade || '-'}>
+                    {detail.grade || '-'}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -248,6 +254,7 @@ export default function StudentDetailModal({
             phone: detail.phone,
             parent_phone: detail.parent_phone,
             school_name: detail.school_name,
+            grade: detail.grade ?? '',
             class_ids: detail.classes.map((c) => c.id),
           }}
           onConfirm={async (data) => {
