@@ -111,7 +111,7 @@ export default function AddStudentFormModal({
           <Input
             variant="gray"
             value={form.grade}
-            placeholder="예: 중1, 고2"
+            placeholder="예: 2학년, 3학년"
             onChange={(e) => form.setGrade(e.target.value)}
           />
         </div>

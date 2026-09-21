@@ -7,7 +7,7 @@ fs.mkdirSync(outDir, { recursive: true })
 
 const rows = [
   ['학생명', '학생 전화', '학부모 전화', '학교', '학년'],
-  ['홍길동', '010-1234-5678', '010-9876-5432', 'OO중학교', '중1'],
+  ['홍길동', '010-1234-5678', '010-9876-5432', 'OO중학교', '2학년'],
 ]
 const ws = XLSX.utils.aoa_to_sheet(rows)
 ws['!cols'] = [{ wch: 12 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 10 }]
