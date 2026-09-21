@@ -733,7 +733,7 @@ export const memoTitle = style({
 
 export const memoHint = style({
   fontSize: '12px',
-  color: colors.gray400,
+  color: colors.gray500,
 })
 
 export const memoTextarea = style({
