@@ -120,6 +120,53 @@ export interface SendLessonResult {
   delivery_mode: 'mock' | 'live'
 }
 
+export type ParentPreviewStatusValue = 'pending' | 'ready' | 'failed'
+
+export interface ParentPreviewStatusItem {
+  student_id: number
+  status: ParentPreviewStatusValue
+  stale: boolean
+}
+
+export interface ParentPreviewStatusResult {
+  lesson_updated_at: string
+  ready_count: number
+  total_count: number
+  items: ParentPreviewStatusItem[]
+}
+
+export interface ParentPreviewLessonSummary {
+  attendance: string | null
+  scores: Array<{ name: string; value: string }>
+  extra_items: Array<{ name: string; value: string }>
+}
+
+export interface ParentPreviewResult {
+  student_id: number
+  student_name: string
+  class_name: string
+  academy_name: string
+  lesson_date: string
+  lesson_summary: ParentPreviewLessonSummary
+  ai_feedback: string | null
+  ai_feedback_status: ParentPreviewStatusValue
+  stale: boolean
+  incomplete_items: Array<{
+    item_name: string
+    note?: string | null
+    lesson_date: string
+    class_name: string
+    template_name: string
+  }>
+  recent_lessons: Array<{
+    lesson_date: string
+    class_name: string
+    template_name: string
+    attendance: string | null
+    scores: Array<{ item_name: string; value: string }>
+  }>
+}
+
 export interface CreateLessonAdhocItemBody {
   name: string
   is_common: boolean
@@ -208,6 +255,35 @@ export const lessonService = {
       { timeout: 60_000 },
     )
     return unwrapSendLessonResult(data)
+  },
+
+  async enqueueParentPreview(
+    lessonId: number,
+    studentIds: number[],
+    force = false,
+  ): Promise<{ queued_count: number; skipped_count: number }> {
+    const { data } = await axiosInstance.post(`/lessons/${lessonId}/parent-preview`, {
+      student_ids: studentIds,
+      force,
+    })
+    return (data.data ?? data) as { queued_count: number; skipped_count: number }
+  },
+
+  async getParentPreviewStatus(
+    lessonId: number,
+    studentIds: number[],
+  ): Promise<ParentPreviewStatusResult> {
+    const { data } = await axiosInstance.get(`/lessons/${lessonId}/parent-preview/status`, {
+      params: studentIds.length ? { student_ids: studentIds.join(',') } : undefined,
+    })
+    return (data.data ?? data) as ParentPreviewStatusResult
+  },
+
+  async getParentPreview(lessonId: number, studentId: number): Promise<ParentPreviewResult> {
+    const { data } = await axiosInstance.get(`/lessons/${lessonId}/parent-preview`, {
+      params: { student_id: studentId },
+    })
+    return (data.data ?? data) as ParentPreviewResult
   },
 
   async exportLesson(id: number): Promise<Blob> {

@@ -4,23 +4,28 @@ import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Text from '@/components/common/Text'
 import Button from '@/components/common/Button'
+import Chip from '@/components/common/Chip'
 import CloseIcon from '@/assets/icons/icon-close.svg'
 import ConfirmModal from '@/components/common/ConfirmModal'
 import LessonMessageOrderModal from '../LessonMessageOrderModal/LessonMessageOrderModal'
+import ParentDashboardPreviewPanel from './ParentDashboardPreviewPanel'
+import AlimtalkMessagePreview from './AlimtalkMessagePreview'
 import useDisclosure from '@/hooks/useDisclosure'
 import type { LessonItemDetail } from '@/services/lesson'
 import type { LessonStudent } from '@/types/lessonStudent'
 import { isAxiosError } from '@/lib/api/http'
-import { lessonService, type LessonPreviewRow, type LessonSendChannel } from '@/services/lesson'
+import {
+  lessonService,
+  type LessonPreviewRow,
+  type LessonSendChannel,
+  type ParentPreviewResult,
+  type ParentPreviewStatusItem,
+} from '@/services/lesson'
 import { useQueryClient } from '@tanstack/react-query'
 import { invalidateLessonLists } from '@/lib/queryKeys'
 import { useToastStore } from '@/stores/toastStore'
 import { useUserStore } from '@/stores/userStore'
-import LessonAlimtalkFramePreview from '@/components/message/LessonAlimtalkFramePreview'
-import {
-  fillLessonAlimtalkFrameHeader,
-  stripParentDashboardPreviewLine,
-} from '@/lib/lessonAlimtalkFrame'
+import { fillLessonAlimtalkFrameHeader } from '@/lib/lessonAlimtalkFrame'
 import * as styles from './AlimtalkSendModal.css'
 
 function maskPhone(phone: string): string {
@@ -59,6 +64,18 @@ function channelAudienceLabel(sendToParent: boolean, sendToStudent: boolean) {
   if (sendToParent) return '학부모 번호'
   if (sendToStudent) return '학생 번호'
   return '수신 대상'
+}
+
+function aiChip(item?: Pick<ParentPreviewStatusItem, 'status' | 'stale'>) {
+  if (!item) return { variant: 'inProgress' as const, label: '대기' }
+  if (item.stale) return { variant: 'inProgress' as const, label: '다시 만들기' }
+  if (item.status === 'ready') return { variant: 'done' as const, label: '완료' }
+  if (item.status === 'failed') return { variant: 'ended' as const, label: '실패' }
+  return { variant: 'inProgress' as const, label: '작성 중' }
+}
+
+function isAiReady(item?: Pick<ParentPreviewStatusItem, 'status' | 'stale'>) {
+  return Boolean(item && item.status === 'ready' && !item.stale)
 }
 
 interface AlimtalkSendModalProps {
@@ -101,6 +118,11 @@ export default function AlimtalkSendModal({
   const [mounted, setMounted] = useState(false)
   const [sendToParent, setSendToParent] = useState(true)
   const [sendToStudent, setSendToStudent] = useState(true)
+  const [previewTab, setPreviewTab] = useState<'message' | 'dashboard'>('message')
+  const [aiStatusById, setAiStatusById] = useState<Record<number, ParentPreviewStatusItem>>({})
+  const [dashboardPreview, setDashboardPreview] = useState<ParentPreviewResult | null>(null)
+  const [dashboardLoading, setDashboardLoading] = useState(false)
+  const [regenerating, setRegenerating] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -144,8 +166,78 @@ export default function AlimtalkSendModal({
     if (!isOpen) return
     setSendToParent(true)
     setSendToStudent(true)
+    setPreviewTab('message')
+    setAiStatusById({})
+    setDashboardPreview(null)
     void loadPreview()
   }, [isOpen, loadPreview])
+
+  const selectedKey = Array.from(selected).sort((a, b) => a - b).join(',')
+
+  useEffect(() => {
+    if (!isOpen || selected.size === 0) return
+    const ids = Array.from(selected)
+    void lessonService.enqueueParentPreview(lessonId, ids).catch(() => {
+      addToast({
+        variant: 'error',
+        message: '학부모 피드백 미리보기를 시작하지 못했어요.',
+      })
+    })
+  }, [isOpen, lessonId, selectedKey, addToast, selected.size])
+
+  useEffect(() => {
+    if (!isOpen || selected.size === 0) return
+    const ids = Array.from(selected)
+    let cancelled = false
+
+    const tick = async () => {
+      try {
+        const res = await lessonService.getParentPreviewStatus(lessonId, ids)
+        if (cancelled) return
+        const next: Record<number, ParentPreviewStatusItem> = {}
+        for (const item of res.items) next[item.student_id] = item
+        setAiStatusById(next)
+      } catch {
+        /* 폴링 실패는 다음 주기에 재시도 */
+      }
+    }
+
+    void tick()
+    const timer = window.setInterval(() => {
+      void tick()
+    }, 3000)
+    return () => {
+      cancelled = true
+      window.clearInterval(timer)
+    }
+  }, [isOpen, lessonId, selectedKey, selected.size])
+
+  useEffect(() => {
+    if (!isOpen || previewTab !== 'dashboard' || focusId == null) return
+    let cancelled = false
+    setDashboardLoading(true)
+    lessonService
+      .getParentPreview(lessonId, focusId)
+      .then((res) => {
+        if (!cancelled) setDashboardPreview(res)
+      })
+      .catch(() => {
+        if (!cancelled) setDashboardPreview(null)
+      })
+      .finally(() => {
+        if (!cancelled) setDashboardLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [
+    isOpen,
+    previewTab,
+    focusId,
+    lessonId,
+    aiStatusById[focusId ?? -1]?.status,
+    aiStatusById[focusId ?? -1]?.stale,
+  ])
 
   if (!mounted || (!isOpen && !isClosing)) return null
 
@@ -156,6 +248,10 @@ export default function AlimtalkSendModal({
   const allSelected =
     selectableRows.length > 0 &&
     selectableRows.every((r) => selected.has(r.student_id))
+  const selectedAiReadyCount = Array.from(selected).filter((id) =>
+    isAiReady(aiStatusById[id]),
+  ).length
+  const selectedAiReady = selected.size > 0 && selectedAiReadyCount === selected.size
 
   const toggleAll = () => {
     if (allSelected) {
@@ -216,7 +312,39 @@ export default function AlimtalkSendModal({
       })
       return
     }
+    const notReady = Array.from(selected).some((id) => !isAiReady(aiStatusById[id]))
+    if (notReady) {
+      addToast({
+        variant: 'warning',
+        message: '선택한 학생의 학부모 피드백이 모두 완료된 뒤에 보낼 수 있어요.',
+      })
+      setPreviewTab('dashboard')
+      return
+    }
     setConfirmOpen(true)
+  }
+
+  const handleRegenerate = async () => {
+    if (focusId == null) return
+    setRegenerating(true)
+    try {
+      await lessonService.enqueueParentPreview(lessonId, [focusId], true)
+      setAiStatusById((prev) => ({
+        ...prev,
+        [focusId]: {
+          student_id: focusId,
+          status: 'pending',
+          stale: false,
+        },
+      }))
+    } catch {
+      addToast({
+        variant: 'error',
+        message: '피드백을 다시 만들지 못했어요.',
+      })
+    } finally {
+      setRegenerating(false)
+    }
   }
 
   const handleSend = async () => {
@@ -379,8 +507,11 @@ export default function AlimtalkSendModal({
                         onClick={(e) => e.stopPropagation()}
                       />
                       <div className={styles.studentMeta}>
-                        <div className={styles.studentName} title={r.student_name}>
-                          {r.student_name}
+                        <div className={styles.studentNameRow}>
+                          <div className={styles.studentName} title={r.student_name}>
+                            {r.student_name}
+                          </div>
+                          <Chip {...aiChip(aiStatusById[r.student_id])} />
                         </div>
                         <div
                           className={styles.phoneMuted}
@@ -403,56 +534,64 @@ export default function AlimtalkSendModal({
           </div>
 
           <div className={styles.rightCol}>
-            <Text variant="titleMd">{'\uBA54\uC2DC\uC9C0 \uBBF8\uB9AC\uBCF4\uAE30'}</Text>
-            {focused ? (
-              <>
-                {sendToStudent ? (
-                  <div>
-                    <div className={styles.previewSectionLabel}>{'\uD559\uC0DD\uC6A9'}</div>
-                    <div className={styles.previewBox}>
-                      {hasPhone(focused.phone) ? (
-                        <LessonAlimtalkFramePreview
-                          header={frameHeader}
-                          body={focused.message || ''}
-                        />
-                      ) : (
-                        '학생 연락처가 없어 이 채널로는 발송되지 않아요.'
-                      )}
-                    </div>
-                  </div>
-                ) : null}
-                {sendToParent ? (
-                  <div>
-                    <div className={styles.previewSectionLabel}>{'\uD559\uBD80\uBAA8\uC6A9'}</div>
-                    <div className={styles.previewBox}>
-                      {hasPhone(focused.parent_phone) ? (
-                        <LessonAlimtalkFramePreview
-                          header={frameHeader}
-                          body={stripParentDashboardPreviewLine(focused.message_for_parent || '')}
-                        />
-                      ) : (
-                        '\uD559\uBD80\uBAA8 \uC5F0\uB77D\uCC98\uAC00 \uC5C6\uC5B4 \uC774 \uCC44\uB110\uB85C\uB294 \uBC1C\uC1A1\uB418\uC9C0 \uC54A\uC544\uC694.'
-                      )}
-                    </div>
-                  </div>
-                ) : null}
-                {!sendToParent && !sendToStudent ? (
-                  <Text variant="bodyMd" color="gray500">
-                    학부모 또는 학생 중 받을 대상을 골라 주세요.
-                  </Text>
-                ) : null}
-              </>
+            <div className={styles.tabRow} role="tablist" aria-label="미리보기">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={previewTab === 'message'}
+                className={`${styles.tabButton}${previewTab === 'message' ? ` ${styles.tabButtonActive}` : ''}`}
+                onClick={() => setPreviewTab('message')}
+              >
+                <Text variant="headingSm" color={previewTab === 'message' ? 'gray900' : 'gray500'}>
+                  문자
+                </Text>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={previewTab === 'dashboard'}
+                className={`${styles.tabButton}${previewTab === 'dashboard' ? ` ${styles.tabButtonActive}` : ''}`}
+                onClick={() => setPreviewTab('dashboard')}
+              >
+                <Text variant="headingSm" color={previewTab === 'dashboard' ? 'gray900' : 'gray500'}>
+                  대시보드
+                </Text>
+              </button>
+            </div>
+            {previewTab === 'dashboard' ? (
+              focused ? (
+                <ParentDashboardPreviewPanel
+                  preview={dashboardPreview}
+                  loading={dashboardLoading}
+                  regenerating={regenerating}
+                  onRegenerate={() => void handleRegenerate()}
+                />
+              ) : (
+                <Text variant="bodyMd" color="gray500">
+                  왼쪽에서 학생을 선택하면 학부모가 볼 화면이 나와요.
+                </Text>
+              )
             ) : (
-              <Text variant="bodyMd" color="gray500">
-                {
-                  '\uC67C\uCABD\uC5D0\uC11C \uD559\uC0DD\uC744 \uC120\uD0DD\uD558\uBA74 \uBBF8\uB9AC\uBCF4\uAE30\uAC00 \uD45C\uC2DC\uB3FC\uC694.'
-                }
-              </Text>
+              <AlimtalkMessagePreview
+                focused={focused}
+                frameHeader={frameHeader}
+                sendToParent={sendToParent}
+                sendToStudent={sendToStudent}
+              />
             )}
           </div>
         </div>
 
         <div className={styles.footer}>
+          <div className={styles.footerHint}>
+            <Text variant="bodyMd" color="gray500">
+              {selected.size === 0
+                ? '보낼 학생을 선택해 주세요.'
+                : selectedAiReady
+                  ? `AI 피드백 ${selectedAiReadyCount}/${selected.size}명 완료. 보내도 좋아요.`
+                  : `AI 피드백 ${selectedAiReadyCount}/${selected.size}명 완료. 모두 끝나면 보낼 수 있어요.`}
+            </Text>
+          </div>
           <Button variant="ghost" size="md" onClick={handleClose} disabled={sending}>
             {'\uCDE8\uC18C'}
           </Button>
@@ -460,11 +599,19 @@ export default function AlimtalkSendModal({
             variant="primary"
             size="md"
             onClick={requestSend}
-            disabled={sending || loading || selected.size === 0 || !sendChannel}
+            disabled={
+              sending ||
+              loading ||
+              selected.size === 0 ||
+              !sendChannel ||
+              !selectedAiReady
+            }
           >
             {sending
               ? '\uBCF4\uB0B4\uB294 \uC911\u2026'
-              : `${selected.size}\uBA85\uC5D0\uAC8C \uC54C\uB9BC\uD1A1 \uBCF4\uB0B4\uAE30`}
+              : selectedAiReady
+                ? `${selected.size}명에게 알림톡 보내기`
+                : 'AI 완료 후 보내기'}
           </Button>
         </div>
 
@@ -492,6 +639,7 @@ export default function AlimtalkSendModal({
         title={'\uC54C\uB9BC\uD1A1\uC744 \uBCF4\uB0B4\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?'}
         descriptions={[
           `${selected.size}명의 ${channelAudienceLabel(sendToParent, sendToStudent)}로 알림톡이 발송됩니다.`,
+          '미리 만든 학부모 피드백이 대시보드에 바로 보여요.',
         ]}
         confirmLabel={'\uBC1C\uC1A1'}
         cancelLabel={'\uCDE8\uC18C'}

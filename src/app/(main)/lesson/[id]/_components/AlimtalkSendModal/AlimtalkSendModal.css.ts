@@ -83,7 +83,7 @@ export const body = style({
 })
 
 export const leftCol = style({
-  width: '240px',
+  width: '280px',
   flexShrink: 0,
   minWidth: 0,
   borderRight: `1px solid ${colors.gray100}`,
@@ -92,7 +92,7 @@ export const leftCol = style({
   backgroundColor: colors.white,
   '@media': {
     [media.phone]: {
-      width: '148px',
+      width: '156px',
     },
   },
 })
@@ -271,6 +271,8 @@ export const studentName = style([
     color: colors.gray900,
     lineHeight: '140%',
     letterSpacing: '-0.03em',
+    flex: 1,
+    minWidth: 0,
   },
   truncateRules,
 ])
@@ -284,6 +286,13 @@ export const phoneMuted = style([
   },
   phoneTextRules,
 ])
+
+export const studentNameRow = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  minWidth: 0,
+})
 
 export const previewSectionLabel = style({
   fontSize: fontStyles.titleSm.fontSize,
@@ -319,6 +328,12 @@ export const footer = style({
       flexWrap: 'wrap',
     },
   },
+})
+
+export const footerHint = style({
+  marginRight: 'auto',
+  minWidth: 0,
+  paddingRight: '12px',
 })
 
 export const sendingOverlay = style({
@@ -369,3 +384,88 @@ export const loadingDotDelay1 = style({
 export const loadingDotDelay2 = style({
   animationDelay: '0.3s',
 })
+
+export const tabRow = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '24px',
+  borderBottom: `1px solid ${colors.gray100}`,
+  paddingBottom: '12px',
+})
+
+export const tabButton = style({
+  background: 'none',
+  border: 'none',
+  padding: '0 0 10px',
+  marginBottom: '-13px',
+  cursor: 'pointer',
+  borderBottom: '2px solid transparent',
+  color: colors.gray500,
+  selectors: {
+    '&:hover': {
+      color: colors.gray700,
+    },
+  },
+})
+
+export const tabButtonActive = style({
+  color: colors.gray900,
+  borderBottomColor: colors.primary500,
+})
+
+export const dashboardFrame = style({
+  width: '100%',
+  maxWidth: '390px',
+  margin: '0 auto',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
+})
+
+export const dashboardHeader = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: '8px',
+  textAlign: 'center',
+})
+
+export const dashboardCard = style({
+  backgroundColor: colors.white,
+  border: `1px solid ${colors.gray50}`,
+  borderRadius: '16px',
+  padding: '20px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
+})
+
+export const dashboardCardHead = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '8px',
+})
+
+export const summaryRow = style({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'baseline',
+  gap: '12px',
+})
+
+export const feedbackBody = style({
+  whiteSpace: 'pre-wrap',
+  wordBreak: 'break-word',
+})
+
+export const staleBanner = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+  padding: '12px 16px',
+  borderRadius: '8px',
+  backgroundColor: colors.warning50,
+  border: `1px solid ${colors.warning200}`,
+})
+

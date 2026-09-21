@@ -135,6 +135,18 @@ export const feedbackText = style({
   fontWeight: 500,
 })
 
+export const aiHint = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  marginTop: '10px',
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 500,
+  color: colors.gray500,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+})
+
 export const todoList = style({
   display: 'flex',
   flexDirection: 'column',
@@ -331,5 +343,42 @@ export const stateBox = style({
   textAlign: 'center',
   color: colors.gray600,
   fontSize: fontStyles.bodyMd.fontSize,
+})
+
+export const frameEmbed = style({
+  width: '390px',
+  maxWidth: '100%',
+  padding: '12px 8px 24px',
+  boxSizing: 'border-box',
+  position: 'relative',
+  isolation: 'isolate',
+  margin: '0 auto',
+})
+
+export const topHaloEmbed = style({
+  position: 'absolute',
+  top: '0',
+  left: '50%',
+  width: '260px',
+  height: '260px',
+  transform: 'translateX(-50%)',
+  borderRadius: '50%',
+  background: 'radial-gradient(circle, rgba(224,231,249,0.52) 0%, rgba(250,250,250,0) 68%)',
+  pointerEvents: 'none',
+  zIndex: -1,
+})
+
+export const cardHeadInline = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+})
+
+export const feedbackHead = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '8px',
+  marginBottom: '12px',
 })
 
