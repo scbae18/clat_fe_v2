@@ -745,7 +745,7 @@ export const memoTextarea = style({
   padding: '12px 14px',
   fontSize: '14px',
   lineHeight: 1.5,
-  color: colors.gray800,
+  color: colors.gray900,
   outline: 'none',
   fontFamily: 'inherit',
   ':focus': {
