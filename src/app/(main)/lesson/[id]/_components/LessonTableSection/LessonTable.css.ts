@@ -528,7 +528,6 @@ export const textCellAreaStyle = style({
   overflow: 'hidden',
   outline: 'none',
   boxSizing: 'border-box',
-  fieldSizing: 'content',
   selectors: {
     '&::placeholder': {
       color: colors.gray300,
