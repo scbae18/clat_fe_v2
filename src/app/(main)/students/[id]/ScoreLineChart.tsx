@@ -34,7 +34,6 @@ export interface ScoreSeries {
 
 function buildSeries(rows: ScoreHistoryPoint[]): {
   xKeys: string[]
-  xLabels: string[]
   series: ScoreSeries[]
   yMin: number
   yMax: number
@@ -56,16 +55,6 @@ function buildSeries(rows: ScoreHistoryPoint[]): {
       xKeys.push(k)
     }
   }
-
-  const labelByKey = new Map<string, string>()
-  for (const r of sorted) {
-    const k = String(r.lesson_record_id ?? `${r.lesson_date}-${r.class_name}`)
-    if (!labelByKey.has(k)) {
-      const md = r.lesson_date.slice(5).replace('-', '/')
-      labelByKey.set(k, `${md} · ${r.class_name}`)
-    }
-  }
-  const xLabels = xKeys.map((k) => labelByKey.get(k) ?? k)
 
   const byItem = new Map<string, ScoreHistoryPoint[]>()
   for (const r of sorted) {
@@ -102,7 +91,7 @@ function buildSeries(rows: ScoreHistoryPoint[]): {
     series.push({ itemName, color, points: pts })
   }
 
-  return { xKeys, xLabels, series, yMin, yMax }
+  return { xKeys, series, yMin, yMax }
 }
 
 function buildPath(
@@ -161,7 +150,7 @@ export default function ScoreLineChart({
     meta: ChartPointMeta
   } | null>(null)
 
-  const { xKeys, xLabels, series, yMin, yMax } = useMemo(() => buildSeries(rows), [rows])
+  const { xKeys, series, yMin, yMax } = useMemo(() => buildSeries(rows), [rows])
 
   const w = 564
   const h = 260
@@ -283,22 +272,6 @@ export default function ScoreLineChart({
                 {`${Math.round(val)}${yAxisUnit}`}
               </text>
             </g>
-          )
-        })}
-        {xLabels.map((label, i) => {
-          const innerW = w - padX * 2
-          const x = padX + (innerW * i) / Math.max(1, xCount - 1)
-          return (
-            <text
-              key={`${label}-${i}`}
-              x={x}
-              y={h - 6}
-              textAnchor={xCount <= 1 ? 'middle' : i === 0 ? 'start' : i === xCount - 1 ? 'end' : 'middle'}
-              fill={colors.gray500}
-              fontSize="10"
-            >
-              {label.length > 14 ? `${label.slice(0, 12)}…` : label}
-            </text>
           )
         })}
         {series.map((s) => (
