@@ -179,6 +179,7 @@ export function useLessonDirtySave(lessonId: number) {
         commonValues: commonValuesRef.current,
         students: studentsRef.current,
         lessonItems: currentLesson.items,
+        status: 'SAVED',
       })
 
       if (!body) return false
@@ -187,6 +188,7 @@ export function useLessonDirtySave(lessonId: number) {
       try {
         await lessonService.updateLesson(lessonId, body)
         clearDirtyFromBody(body, removeDirtyCommon, removeDirtyCells)
+        setLessonRef.current((prev) => (prev ? { ...prev, status: 'SAVED' } : prev))
         return true
       } catch {
         if (!options.silent) {
