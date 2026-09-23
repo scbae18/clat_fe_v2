@@ -205,7 +205,7 @@ export const todoMain = style({
   flexDirection: 'column',
   gap: '2px',
   minWidth: 0,
-  flex: 1,
+  flex: '1 1 auto',
 })
 
 export const todoNote = style({
@@ -217,12 +217,15 @@ export const todoNote = style({
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
+  minWidth: 0,
 })
 
 export const todoClassBlue = style({
   display: 'inline-flex',
   alignItems: 'center',
-  maxWidth: '100%',
+  flexShrink: 1,
+  minWidth: 0,
+  maxWidth: '9rem',
   backgroundColor: colors.primary100,
   color: colors.primary500,
   fontSize: '10px',
@@ -239,7 +242,7 @@ export const todoClassBlue = style({
 export const todoTemplateGreen = style({
   display: 'inline-flex',
   alignItems: 'center',
-  maxWidth: '100%',
+  flexShrink: 0,
   backgroundColor: colors.success50,
   color: colors.success500,
   fontSize: '10px',
@@ -248,8 +251,6 @@ export const todoTemplateGreen = style({
   letterSpacing: '-0.03em',
   padding: '4px 8px',
   borderRadius: '6px',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
 })
 
@@ -257,10 +258,9 @@ export const todoTags = style({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'flex-end',
-  flexWrap: 'wrap',
+  flexWrap: 'nowrap',
   gap: '4px',
-  flexShrink: 1,
-  minWidth: 0,
+  flexShrink: 0,
 })
 
 export const tagLate = style({

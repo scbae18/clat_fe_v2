@@ -120,6 +120,7 @@ export default function AlimtalkSendModal({
   const [sendToStudent, setSendToStudent] = useState(true)
   const [previewTab, setPreviewTab] = useState<'message' | 'dashboard'>('message')
   const [aiStatusById, setAiStatusById] = useState<Record<number, ParentPreviewStatusItem>>({})
+  const [trackedAiIds, setTrackedAiIds] = useState<Set<number>>(new Set())
   const [dashboardPreview, setDashboardPreview] = useState<ParentPreviewResult | null>(null)
   const [dashboardLoading, setDashboardLoading] = useState(false)
   const [regenerating, setRegenerating] = useState(false)
@@ -168,26 +169,34 @@ export default function AlimtalkSendModal({
     setSendToStudent(true)
     setPreviewTab('message')
     setAiStatusById({})
+    setTrackedAiIds(new Set())
     setDashboardPreview(null)
     void loadPreview()
   }, [isOpen, loadPreview])
 
-  const selectedKey = Array.from(selected).sort((a, b) => a - b).join(',')
+  const trackedAiKey = Array.from(trackedAiIds).sort((a, b) => a - b).join(',')
 
   useEffect(() => {
-    if (!isOpen || selected.size === 0) return
-    const ids = Array.from(selected)
-    void lessonService.enqueueParentPreview(lessonId, ids).catch(() => {
+    if (!isOpen || previewTab !== 'dashboard' || focusId == null) return
+
+    setTrackedAiIds((prev) => {
+      if (prev.has(focusId)) return prev
+      const next = new Set(prev)
+      next.add(focusId)
+      return next
+    })
+
+    void lessonService.enqueueParentPreview(lessonId, [focusId]).catch(() => {
       addToast({
         variant: 'error',
         message: '학부모 피드백 미리보기를 시작하지 못했어요.',
       })
     })
-  }, [isOpen, lessonId, selectedKey, addToast, selected.size])
+  }, [isOpen, previewTab, focusId, lessonId, addToast])
 
   useEffect(() => {
-    if (!isOpen || selected.size === 0) return
-    const ids = Array.from(selected)
+    if (!isOpen || trackedAiIds.size === 0) return
+    const ids = Array.from(trackedAiIds)
     let cancelled = false
 
     const tick = async () => {
@@ -196,7 +205,7 @@ export default function AlimtalkSendModal({
         if (cancelled) return
         const next: Record<number, ParentPreviewStatusItem> = {}
         for (const item of res.items) next[item.student_id] = item
-        setAiStatusById(next)
+        setAiStatusById((prev) => ({ ...prev, ...next }))
       } catch {
         /* 폴링 실패는 다음 주기에 재시도 */
       }
@@ -210,7 +219,7 @@ export default function AlimtalkSendModal({
       cancelled = true
       window.clearInterval(timer)
     }
-  }, [isOpen, lessonId, selectedKey, selected.size])
+  }, [isOpen, lessonId, trackedAiKey, trackedAiIds.size])
 
   useEffect(() => {
     if (!isOpen || previewTab !== 'dashboard' || focusId == null) return
@@ -251,7 +260,9 @@ export default function AlimtalkSendModal({
   const selectedAiReadyCount = Array.from(selected).filter((id) =>
     isAiReady(aiStatusById[id]),
   ).length
-  const selectedAiReady = selected.size > 0 && selectedAiReadyCount === selected.size
+  const viewedAiReadyCount = Array.from(trackedAiIds).filter((id) =>
+    isAiReady(aiStatusById[id]),
+  ).length
 
   const toggleAll = () => {
     if (allSelected) {
@@ -312,15 +323,6 @@ export default function AlimtalkSendModal({
       })
       return
     }
-    const notReady = Array.from(selected).some((id) => !isAiReady(aiStatusById[id]))
-    if (notReady) {
-      addToast({
-        variant: 'warning',
-        message: '선택한 학생의 학부모 피드백이 모두 완료된 뒤에 보낼 수 있어요.',
-      })
-      setPreviewTab('dashboard')
-      return
-    }
     setConfirmOpen(true)
   }
 
@@ -328,6 +330,12 @@ export default function AlimtalkSendModal({
     if (focusId == null) return
     setRegenerating(true)
     try {
+      setTrackedAiIds((prev) => {
+        if (prev.has(focusId)) return prev
+        const next = new Set(prev)
+        next.add(focusId)
+        return next
+      })
       await lessonService.enqueueParentPreview(lessonId, [focusId], true)
       setAiStatusById((prev) => ({
         ...prev,
@@ -511,7 +519,9 @@ export default function AlimtalkSendModal({
                           <div className={styles.studentName} title={r.student_name}>
                             {r.student_name}
                           </div>
-                          <Chip {...aiChip(aiStatusById[r.student_id])} />
+                          {trackedAiIds.has(r.student_id) ? (
+                            <Chip {...aiChip(aiStatusById[r.student_id])} />
+                          ) : null}
                         </div>
                         <div
                           className={styles.phoneMuted}
@@ -587,9 +597,9 @@ export default function AlimtalkSendModal({
             <Text variant="bodyMd" color="gray500">
               {selected.size === 0
                 ? '보낼 학생을 선택해 주세요.'
-                : selectedAiReady
-                  ? `AI 피드백 ${selectedAiReadyCount}/${selected.size}명 완료. 보내도 좋아요.`
-                  : `AI 피드백 ${selectedAiReadyCount}/${selected.size}명 완료. 모두 끝나면 보낼 수 있어요.`}
+                : viewedAiReadyCount > 0
+                  ? `조회한 학생 중 AI ${viewedAiReadyCount}명은 바로 보여요. 나머지는 보낸 뒤 만들어져요.`
+                  : `선택한 ${selected.size}명에게 바로 보낼 수 있어요. 대시보드에서 조회한 학생만 AI를 미리 만들어요.`}
             </Text>
           </div>
           <Button variant="ghost" size="md" onClick={handleClose} disabled={sending}>
@@ -599,19 +609,9 @@ export default function AlimtalkSendModal({
             variant="primary"
             size="md"
             onClick={requestSend}
-            disabled={
-              sending ||
-              loading ||
-              selected.size === 0 ||
-              !sendChannel ||
-              !selectedAiReady
-            }
+            disabled={sending || loading || selected.size === 0 || !sendChannel}
           >
-            {sending
-              ? '\uBCF4\uB0B4\uB294 \uC911\u2026'
-              : selectedAiReady
-                ? `${selected.size}명에게 알림톡 보내기`
-                : 'AI 완료 후 보내기'}
+            {sending ? '\uBCF4\uB0B4\uB294 \uC911\u2026' : `${selected.size}명에게 알림톡 보내기`}
           </Button>
         </div>
 
@@ -639,7 +639,9 @@ export default function AlimtalkSendModal({
         title={'\uC54C\uB9BC\uD1A1\uC744 \uBCF4\uB0B4\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?'}
         descriptions={[
           `${selected.size}명의 ${channelAudienceLabel(sendToParent, sendToStudent)}로 알림톡이 발송됩니다.`,
-          '미리 만든 학부모 피드백이 대시보드에 바로 보여요.',
+          selectedAiReadyCount > 0
+            ? `미리 만든 피드백 ${selectedAiReadyCount}명은 바로 보여요. 나머지는 보낸 뒤 만들어져요.`
+            : '학부모 피드백은 보낸 뒤 대시보드에 만들어져요.',
         ]}
         confirmLabel={'\uBC1C\uC1A1'}
         cancelLabel={'\uCDE8\uC18C'}

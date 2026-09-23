@@ -13,14 +13,6 @@ function formatKoreanDate(dateStr: string) {
   return format(d, 'M월 d일 (E)', { locale: ko })
 }
 
-function daysAgo(dateStr: string) {
-  const d = new Date(dateStr)
-  if (Number.isNaN(d.getTime())) return 0
-  const now = new Date()
-  const diff = Math.max(0, now.getTime() - d.getTime())
-  return Math.floor(diff / (1000 * 60 * 60 * 24))
-}
-
 function BookIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -212,8 +204,9 @@ export default function ParentDashboardView({
                 </span>
                 <div className={styles.todoTags}>
                   <span className={styles.todoClassBlue}>{it.class_name}</span>
-                  <span className={styles.todoTemplateGreen}>{formatKoreanDate(it.lesson_date)}</span>
-                  <span className={styles.tagLate}>{`${daysAgo(it.lesson_date)}일 지남`}</span>
+                  <span className={styles.todoTemplateGreen}>
+                    {formatKoreanDate(it.lesson_date)}
+                  </span>
                 </div>
               </div>
             ))}

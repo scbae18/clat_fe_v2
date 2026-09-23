@@ -62,7 +62,7 @@ export default function ParentDashboardPreviewPanel({
             수업 입력이 바뀌었어요
           </Text>
           <Text variant="bodyMd" color="gray700">
-            학부모가 볼 피드백을 다시 만든 뒤에 보낼 수 있어요.
+            학부모가 볼 피드백을 다시 만들 수 있어요. 그대로 보내면 보낸 뒤 새로 만들어져요.
           </Text>
         </div>
       ) : null}
