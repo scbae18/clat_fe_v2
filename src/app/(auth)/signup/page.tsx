@@ -19,11 +19,13 @@ import Button from '@/components/common/Button/Button'
 import Text from '@/components/common/Text/Text'
 import Logo from '@/assets/logo/logo-full.svg'
 import { colors } from '@/styles/tokens/colors'
+import { formatPhoneInput, normalizeKoreanMobile } from '@/lib/phone'
 
 const MIN_PASSWORD_LEN = 8
 
 function SignupContent() {
   const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
@@ -38,8 +40,10 @@ function SignupContent() {
     passwordConfirm.length > 0 && password !== passwordConfirm
   const passwordTooShort = password.length > 0 && password.length < MIN_PASSWORD_LEN
 
+  const normalizedPhone = normalizeKoreanMobile(phone)
   const canSubmit =
     name.trim().length > 0 &&
+    normalizedPhone != null &&
     email.length > 0 &&
     password.length >= MIN_PASSWORD_LEN &&
     password === passwordConfirm &&
@@ -58,10 +62,19 @@ function SignupContent() {
       setError(`비밀번호는 ${MIN_PASSWORD_LEN}자 이상이어야 합니다.`)
       return
     }
+    if (!normalizedPhone) {
+      setError('전화번호는 010으로 시작하는 휴대폰 번호여야 합니다.')
+      return
+    }
 
     setIsLoading(true)
     try {
-      await auth.signup({ email: email.trim(), password, name: name.trim() })
+      await auth.signup({
+        email: email.trim(),
+        password,
+        name: name.trim(),
+        phone: normalizedPhone ?? '',
+      })
       setPendingOpen(true)
     } catch (err: unknown) {
       const ax = err as { response?: { data?: { error?: { message?: string }; message?: string } } }
@@ -92,6 +105,15 @@ function SignupContent() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoComplete="name"
+          />
+          <Input
+            placeholder="전화번호 (010-0000-0000)"
+            shape="capsule"
+            value={phone}
+            onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
           />
           <Input
             placeholder="이메일"

@@ -11,6 +11,7 @@ interface SignupRequest {
   email: string
   password: string
   name: string
+  phone: string
 }
 
 interface AuthTokens {
@@ -45,6 +46,7 @@ interface MeResponse {
 interface UpdateMeRequest {
   name?: string
   email?: string
+  phone?: string
   current_password?: string
 }
 
@@ -82,11 +84,12 @@ export const auth = {
     return data.data.user
   },
 
-  async signup({ email, password, name }: SignupRequest) {
+  async signup({ email, password, name, phone }: SignupRequest) {
     const { data } = await axiosInstance.post<SignupResponse>('/auth/signup', {
       email,
       password,
       name,
+      phone,
     })
     return data.data.user
   },

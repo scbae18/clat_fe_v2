@@ -32,14 +32,18 @@ export function buildStudentsFromDetail(
     (data.guest_students ?? []).map((g) => [g.student_id, g.student_name]),
   )
 
+  const excluded = new Set(data.excluded_student_ids ?? [])
   const seen = new Set<number>()
   const baseStudentIds: number[] = []
-  for (const id of [
-    ...classStudents.map((s) => s.id),
-    ...(data.guest_students ?? []).map((g) => g.student_id),
-    ...data.student_data.map((sd) => sd.student_id),
-  ]) {
-    if (seen.has(id)) continue
+  const membershipIds =
+    data.roster_student_ids ??
+    [
+      ...classStudents.map((s) => s.id),
+      ...(data.guest_students ?? []).map((g) => g.student_id),
+      ...data.student_data.map((sd) => sd.student_id),
+    ]
+  for (const id of membershipIds) {
+    if (seen.has(id) || excluded.has(id)) continue
     seen.add(id)
     baseStudentIds.push(id)
   }

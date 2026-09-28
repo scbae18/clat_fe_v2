@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import useToggleArray from '@/hooks/useToggleArray'
 import { classService, type Class } from '@/services/class'
 import { studentService } from '@/services/student'
+import { formatPhoneInput } from '@/lib/phone'
 import { useToastStore } from '@/stores/toastStore'
 
 export type StudentFormData = {
@@ -89,13 +90,6 @@ export function useStudentFormModal({
     handleClose()
   }
 
-  const formatPhone = (value: string) => {
-    const digits = value.replace(/\D/g, '').slice(0, 11)
-    if (digits.length < 4) return digits
-    if (digits.length < 8) return `${digits.slice(0, 3)}-${digits.slice(3)}`
-    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
-  }
-
   const handleExcelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (mode !== 'add') return
     const file = e.target.files?.[0]
@@ -124,9 +118,9 @@ export function useStudentFormModal({
     name,
     setName,
     phone,
-    setPhone: (v: string) => setPhone(formatPhone(v)),
+    setPhone: (v: string) => setPhone(formatPhoneInput(v)),
     parentPhone,
-    setParentPhone: (v: string) => setParentPhone(formatPhone(v)),
+    setParentPhone: (v: string) => setParentPhone(formatPhoneInput(v)),
     schoolName,
     setSchoolName,
     grade,

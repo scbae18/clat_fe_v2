@@ -143,6 +143,23 @@ export function useLessonDirtySave(lessonId: number) {
     })
   }, [])
 
+  const forgetDirtyStudent = useCallback(
+    (studentId: number) => {
+      const prefix = `cell:${studentId}:`
+      for (const key of [...debounceTimersRef.current.keys()]) {
+        if (key.startsWith(prefix)) clearDebounceTimer(key)
+      }
+      setDirtyStudentCells((prev) => {
+        const next = new Set(prev)
+        for (const key of prev) {
+          if (parseStudentCellKey(key).studentId === studentId) next.delete(key)
+        }
+        return next
+      })
+    },
+    [clearDebounceTimer],
+  )
+
   const forgetDirtyItem = useCallback((source: 'template' | 'adhoc', itemId: number) => {
     const ref = itemRef(source, itemId)
     setDirtyCommonIds((prev) => {
@@ -406,6 +423,7 @@ export function useLessonDirtySave(lessonId: number) {
     clearDirty,
     clearAllDebounceTimers,
     forgetDirtyItem,
+    forgetDirtyStudent,
     updateCommonValue,
     updateStudents,
     flushPendingStudentCellSave,

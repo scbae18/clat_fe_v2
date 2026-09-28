@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useMemo, useRef, useState } from 'react'
 import UsersIcon from '@/assets/icons/icon-users.svg'
+import TrashIcon from '@/assets/icons/icon-trash.svg'
 import StudentNameSearchBar, {
   emptyStateIconStyle,
   emptyStateStyle,
@@ -11,6 +12,7 @@ import type { LessonStudent, Attendance, CompletionStatus } from '@/types/lesson
 import type { LessonItemDetail, CreateLessonAdhocItemBody } from '@/services/lesson'
 import AddItemForm from '@/app/(main)/template/_components/AddItemForm/AddItemForm'
 import Modal from '@/components/common/Modal'
+import ConfirmModal from '@/components/common/ConfirmModal'
 import EnrollStudentsModal from '@/components/student/EnrollStudentsModal/EnrollStudentsModal'
 import useDisclosure from '@/hooks/useDisclosure'
 import { lessonItemRef, matchesLessonItem } from '@/lib/lessonItemRef'
@@ -24,6 +26,9 @@ import {
   tdCompactStyle,
   tdShrinkStyle,
   nameCellStyle,
+  nameCellRowStyle,
+  removeStudentButtonStyle,
+  studentRowStyle,
   addColumnCellStyle,
   addColumnButtonStyle,
   completeRowTdStyle,
@@ -54,6 +59,7 @@ interface LessonTableSectionProps {
   onRemoveColumn?: (item: LessonItemDetail) => void
   onTogglePartial?: (item: LessonItemDetail, isPartial: boolean) => void
   onAddStudents?: (studentIds: number[]) => void | Promise<void>
+  onRemoveStudent?: (studentId: number) => void | Promise<void>
   onAddAttendanceOption?: (label: string) => void
   onRemoveAttendanceOption?: (optionId: number, label: string) => void
 }
@@ -68,6 +74,7 @@ export default function LessonTable({
   onRemoveColumn,
   onTogglePartial,
   onAddStudents,
+  onRemoveStudent,
   onAddAttendanceOption,
   onRemoveAttendanceOption,
 }: LessonTableSectionProps) {
@@ -76,6 +83,7 @@ export default function LessonTable({
   const [focusedStudentId, setFocusedStudentId] = useState<number | null>(null)
   const [isAddFormOpen, setIsAddFormOpen] = useState(false)
   const addStudentsModal = useDisclosure()
+  const [removeTarget, setRemoveTarget] = useState<LessonStudent | null>(null)
 
   const dynamicItems = useMemo(
     () => templateItems.filter((i) => !i.is_common && i.item_type !== 'ATTENDANCE'),
@@ -204,11 +212,23 @@ export default function LessonTable({
                   templateItems,
                 )
                 return (
-                <tr key={student.id}>
+                <tr key={student.id} className={studentRowStyle}>
                   <td className={getTdClassName(tdCompactStyle, student.id, focusedStudentId, isComplete)}>
-                    <Link href={`/students/${student.id}`} className={nameCellStyle}>
-                      {student.name}
-                    </Link>
+                    <div className={nameCellRowStyle}>
+                      <Link href={`/students/${student.id}`} className={nameCellStyle}>
+                        {student.name}
+                      </Link>
+                      {onRemoveStudent ? (
+                        <button
+                          type="button"
+                          className={removeStudentButtonStyle}
+                          aria-label={`${student.name} 학생을 이 수업에서 빼기`}
+                          onClick={() => setRemoveTarget(student)}
+                        >
+                          <TrashIcon width={20} height={20} />
+                        </button>
+                      ) : null}
+                    </div>
                   </td>
                   <td
                     className={getTdClassName(tdCompactStyle, student.id, focusedStudentId, isComplete)}
@@ -330,6 +350,21 @@ export default function LessonTable({
           />
         </Modal>
       ) : null}
+
+      <ConfirmModal
+        isOpen={removeTarget != null}
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={() => {
+          if (!removeTarget || !onRemoveStudent) return
+          const studentId = removeTarget.id
+          setRemoveTarget(null)
+          void onRemoveStudent(studentId)
+        }}
+        title={removeTarget ? `'${removeTarget.name}' 학생을 이 수업에서 뺄까요?` : ''}
+        descriptions={['반 소속과 학생 정보는 그대로예요.']}
+        confirmLabel="빼기"
+        confirmVariant="danger"
+      />
 
       {onAddStudents ? (
         <EnrollStudentsModal

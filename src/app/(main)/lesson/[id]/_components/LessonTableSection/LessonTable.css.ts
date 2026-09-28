@@ -148,6 +148,40 @@ export const cellEditableStyle = style({
   },
 })
 
+export const studentRowStyle = style({})
+
+export const nameCellRowStyle = style({
+  position: 'relative',
+  display: 'inline-flex',
+  alignItems: 'center',
+})
+
+export const removeStudentButtonStyle = style({
+  position: 'absolute',
+  left: '100%',
+  marginLeft: '8px',
+  top: '50%',
+  transform: 'translateY(-50%)',
+  display: 'flex',
+  alignItems: 'center',
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  cursor: 'pointer',
+  color: colors.gray300,
+  opacity: 0,
+  pointerEvents: 'none',
+  selectors: {
+    [`${studentRowStyle}:hover &`]: {
+      opacity: 1,
+      pointerEvents: 'auto',
+    },
+    '&:hover': {
+      color: colors.gray500,
+    },
+  },
+})
+
 export const nameCellStyle = style({
   display: 'inline-block',
   fontSize: fontStyles.bodyMd.fontSize,

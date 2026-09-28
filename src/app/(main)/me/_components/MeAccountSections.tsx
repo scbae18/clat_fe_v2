@@ -1,6 +1,7 @@
 'use client'
 
 import Button from '@/components/common/Button'
+import { formatPhoneInput } from '@/lib/phone'
 import type { User } from '@/types/user'
 import * as styles from '../me.css'
 import { MSG, initialFrom } from '../_lib/meShared'
@@ -11,6 +12,9 @@ type MeAccountSectionsProps = {
   editingName: boolean
   name: string
   onNameChange: (value: string) => void
+  phone: string
+  onPhoneChange: (value: string) => void
+  phoneError: string | null
   nameError: string | null
   nameSaving: boolean
   canSaveName: boolean
@@ -28,6 +32,9 @@ export function MeAccountSections({
   editingName,
   name,
   onNameChange,
+  phone,
+  onPhoneChange,
+  phoneError,
   nameError,
   nameSaving,
   canSaveName,
@@ -81,7 +88,26 @@ export function MeAccountSections({
           )}
         </div>
 
-        {nameError ? <p className={styles.errorText}>{nameError}</p> : null}
+        <div className={styles.fieldGrid}>
+          <span className={styles.fieldLabel}>{MSG.phoneLabel}</span>
+          {editingName ? (
+            <input
+              className={styles.input}
+              value={phone}
+              onChange={(e) => onPhoneChange(formatPhoneInput(e.target.value))}
+              maxLength={13}
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="010-0000-0000"
+            />
+          ) : (
+            <span className={styles.fieldValue}>{user.phone || MSG.phoneEmpty}</span>
+          )}
+        </div>
+
+        {nameError || phoneError ? (
+          <p className={styles.errorText}>{nameError || phoneError}</p>
+        ) : null}
 
         {editingName ? (
           <div className={styles.actionsRow}>

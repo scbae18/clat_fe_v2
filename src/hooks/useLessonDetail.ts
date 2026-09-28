@@ -20,6 +20,7 @@ export default function useLessonDetail(lessonId: number) {
     clearDirty,
     clearAllDebounceTimers,
     forgetDirtyItem,
+    forgetDirtyStudent,
     updateCommonValue,
     updateStudents,
     flushPendingStudentCellSave,
@@ -105,10 +106,17 @@ export default function useLessonDetail(lessonId: number) {
         })
         setLesson((prev) => {
           if (!prev) return prev
+          const addedIds = new Set(result.students.map((s) => s.student_id))
           const existingGuest = new Set((prev.guest_students ?? []).map((g) => g.student_id))
           const newGuests = result.students.filter((s) => !existingGuest.has(s.student_id))
           return {
             ...prev,
+            excluded_student_ids: (prev.excluded_student_ids ?? []).filter(
+              (id) => !addedIds.has(id),
+            ),
+            roster_student_ids: [
+              ...new Set([...(prev.roster_student_ids ?? []), ...addedIds]),
+            ],
             guest_students: [...(prev.guest_students ?? []), ...newGuests],
           }
         })
@@ -124,6 +132,34 @@ export default function useLessonDetail(lessonId: number) {
       }
     },
     [addToast, lesson, lessonId, setLesson, setStudents],
+  )
+
+  const removeStudentFromLesson = useCallback(
+    async (studentId: number) => {
+      forgetDirtyStudent(studentId)
+      try {
+        const result = await lessonService.removeLessonStudent(lessonId, studentId)
+        setStudents((prev) => prev.filter((s) => s.id !== studentId))
+        setLesson((prev) => {
+          if (!prev) return prev
+          const excluded = new Set(prev.excluded_student_ids ?? [])
+          excluded.add(studentId)
+          return {
+            ...prev,
+            excluded_student_ids: [...excluded],
+            roster_student_ids: (prev.roster_student_ids ?? []).filter((id) => id !== studentId),
+            guest_students: (prev.guest_students ?? []).filter((g) => g.student_id !== studentId),
+          }
+        })
+        addToast({
+          variant: 'success',
+          message: `'${result.student_name}' 학생을 이 수업에서만 뺐어요.`,
+        })
+      } catch {
+        addToast({ variant: 'error', message: '학생을 빼지 못했어요.' })
+      }
+    },
+    [addToast, forgetDirtyStudent, lessonId, setLesson, setStudents],
   )
 
   const handleExcelDownload = async () => {
@@ -175,6 +211,7 @@ export default function useLessonDetail(lessonId: number) {
     updateLessonItemOrder,
     setItemPartial,
     addStudentsToLesson,
+    removeStudentFromLesson,
     addAttendanceOption,
     removeAttendanceOption,
   }

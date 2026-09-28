@@ -47,6 +47,8 @@ export interface LessonDetail {
   common_data: CommonDataItem[]
   student_data: StudentData[]
   guest_students?: Array<{ student_id: number; student_name: string }>
+  excluded_student_ids?: number[]
+  roster_student_ids?: number[]
   items: LessonItemDetail[]
   updated_at?: string
 }
@@ -361,6 +363,18 @@ export const lessonService = {
     return {
       added_count: payload?.added_count ?? 0,
       students: payload?.students ?? [],
+    }
+  },
+
+  async removeLessonStudent(
+    lessonId: number,
+    studentId: number,
+  ): Promise<{ student_id: number; student_name: string }> {
+    const { data } = await axiosInstance.delete(`/lessons/${lessonId}/students/${studentId}`)
+    const payload = data.data as { student_id: number; student_name: string } | undefined
+    return {
+      student_id: payload?.student_id ?? studentId,
+      student_name: payload?.student_name ?? '',
     }
   },
 

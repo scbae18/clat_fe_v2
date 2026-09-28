@@ -62,6 +62,7 @@ export default function AdminUsersPage() {
                   <div>
                     <strong>{u.name}</strong>
                     <span className={styles.mutedInline}> {u.email}</span>
+                    {u.phone ? <span className={styles.mutedInline}> · {u.phone}</span> : null}
                     <p className={styles.statHint}>가입일: {formatYmd(u.created_at)}</p>
                   </div>
                   <button
@@ -113,6 +114,7 @@ export default function AdminUsersPage() {
                         <ChevronRight size={14} />
                       </Link>
                       <span className={styles.muted}>{u.email}</span>
+                      {u.phone ? <span className={styles.muted}>{u.phone}</span> : null}
                     </div>
                   </td>
                   <td className={styles.td}>

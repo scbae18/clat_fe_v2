@@ -28,6 +28,9 @@ export default function MyProfilePage() {
         editingName={profile.editingName}
         name={profile.name}
         onNameChange={profile.setName}
+        phone={profile.phone}
+        onPhoneChange={profile.setPhone}
+        phoneError={profile.phoneError}
         nameError={profile.nameError}
         nameSaving={profile.nameSaving}
         canSaveName={profile.canSaveName}

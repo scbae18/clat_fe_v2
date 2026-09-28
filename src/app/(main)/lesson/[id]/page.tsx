@@ -69,6 +69,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     updateLessonItemOrder,
     setItemPartial,
     addStudentsToLesson,
+    removeStudentFromLesson,
     addAttendanceOption,
     removeAttendanceOption,
   } = useLessonDetail(lessonId)
@@ -294,6 +295,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           onRemoveColumn={handleRemoveItem}
           onTogglePartial={(item, isPartial) => void setItemPartial(item, isPartial)}
           onAddStudents={addStudentsToLesson}
+          onRemoveStudent={removeStudentFromLesson}
           onAddAttendanceOption={(label) => void addAttendanceOption(label)}
           onRemoveAttendanceOption={(optionId, label) =>
             void removeAttendanceOption(optionId, label)

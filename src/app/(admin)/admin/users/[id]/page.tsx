@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
   Mail,
+  Phone,
   Calendar,
   Clock,
   GraduationCap,
@@ -85,6 +86,9 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
             <div className={styles.metaRow}>
               <span>
                 <Mail size={14} /> {data.email}
+              </span>
+              <span>
+                <Phone size={14} /> {data.phone ?? '전화번호 없음'}
               </span>
               <span>
                 <Calendar size={14} /> 가입 {formatYmd(data.created_at)}

@@ -7,6 +7,8 @@ import useToast from '@/hooks/useToast'
 import { auth, clearTokens } from '@/services/auth'
 import { useUserStore } from '@/stores/userStore'
 
+import { normalizeKoreanMobile } from '@/lib/phone'
+
 import {
   MSG,
   type WithdrawStep,
@@ -24,6 +26,7 @@ export function useMyProfile() {
 
   const [editingName, setEditingName] = useState(false)
   const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
   const [nameSaving, setNameSaving] = useState(false)
   const [nameError, setNameError] = useState<string | null>(null)
 
@@ -49,8 +52,8 @@ export function useMyProfile() {
     let cancelled = false
     if (user) {
       setName(user.name)
+      setPhone(user.phone ?? '')
       setLoading(false)
-      return
     }
     auth
       .me()
@@ -58,9 +61,10 @@ export function useMyProfile() {
         if (cancelled) return
         setUser(u)
         setName(u.name)
+        setPhone(u.phone ?? '')
       })
       .catch(() => {
-        if (!cancelled) router.push('/login')
+        if (!cancelled && !useUserStore.getState().user) router.push('/login')
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -80,12 +84,17 @@ export function useMyProfile() {
     }
   }, [user?.created_at])
 
+  const trimmedPhone = phone.trim()
+  const normalizedPhone = trimmedPhone ? normalizeKoreanMobile(trimmedPhone) : ''
+  const phoneInvalid = trimmedPhone.length > 0 && !normalizedPhone
   const nameChanged = !!user && name.trim() !== user.name.trim()
-  const canSaveName = !!user && nameChanged && !nameSaving
+  const phoneChanged = !!user && normalizedPhone !== (user.phone ?? '')
+  const canSaveName = !!user && (nameChanged || phoneChanged) && !phoneInvalid && !nameSaving
 
   const startEditName = () => {
     if (!user) return
     setName(user.name)
+    setPhone(user.phone ?? '')
     setNameError(null)
     setEditingName(true)
   }
@@ -93,6 +102,7 @@ export function useMyProfile() {
   const cancelEditName = () => {
     if (!user) return
     setName(user.name)
+    setPhone(user.phone ?? '')
     setNameError(null)
     setEditingName(false)
   }
@@ -104,14 +114,22 @@ export function useMyProfile() {
       setNameError(MSG.nameTooShort)
       return
     }
+    if (phoneInvalid) {
+      setNameError(MSG.invalidPhone)
+      return
+    }
     setNameError(null)
     setNameSaving(true)
     try {
-      const updated = await auth.updateMe({ name: trimmedName })
+      const updated = await auth.updateMe({
+        name: trimmedName,
+        phone: normalizedPhone ?? '',
+      })
       setUser(updated)
       setName(updated.name)
+      setPhone(updated.phone ?? '')
       setEditingName(false)
-      toast.success(MSG.saveOk)
+      toast.success(phoneChanged ? MSG.saveBasicOk : MSG.saveOk)
     } catch (e) {
       setNameError(extractErrorMessage(e, MSG.genericFail))
     } finally {
@@ -264,6 +282,9 @@ export function useMyProfile() {
     editingName,
     name,
     setName,
+    phone,
+    setPhone,
+    phoneError: editingName && phoneInvalid ? MSG.invalidPhone : null,
     nameSaving,
     nameError,
     canSaveName,
