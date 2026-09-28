@@ -29,6 +29,7 @@ import {
   nameCellRowStyle,
   removeStudentButtonStyle,
   studentRowStyle,
+  nameStickyCellStyle,
   addColumnCellStyle,
   addColumnButtonStyle,
   completeRowTdStyle,
@@ -171,7 +172,7 @@ export default function LessonTable({
           <table ref={tableRef} className={tableStyle} onBlur={handleTableBlur}>
             <thead>
               <tr>
-                <th className={thCompactStyle}>학생</th>
+                <th className={`${thCompactStyle} ${nameStickyCellStyle}`}>학생</th>
                 <AttendanceColumnHeader
                   extraOptions={extraAttendanceOptions}
                   allAttend={allAttend}
@@ -213,7 +214,7 @@ export default function LessonTable({
                 )
                 return (
                 <tr key={student.id} className={studentRowStyle}>
-                  <td className={getTdClassName(tdCompactStyle, student.id, focusedStudentId, isComplete)}>
+                  <td className={`${getTdClassName(tdCompactStyle, student.id, focusedStudentId, isComplete)} ${nameStickyCellStyle}`}>
                     <div className={nameCellRowStyle}>
                       <Link href={`/students/${student.id}`} className={nameCellStyle}>
                         {student.name}

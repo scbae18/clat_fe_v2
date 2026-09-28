@@ -10,6 +10,8 @@ export const tableWrapStyle = style({
   border: `1px solid ${colors.gray100}`,
   borderRadius: '8px',
   backgroundColor: colors.white,
+  WebkitOverflowScrolling: 'touch',
+  overscrollBehaviorX: 'contain',
 })
 
 export const tableStyle = style({
@@ -154,6 +156,13 @@ export const nameCellRowStyle = style({
   position: 'relative',
   display: 'inline-flex',
   alignItems: 'center',
+  '@media': {
+    [media.phone]: {
+      display: 'flex',
+      width: '100%',
+      gap: '4px',
+    },
+  },
 })
 
 export const removeStudentButtonStyle = style({
@@ -178,6 +187,21 @@ export const removeStudentButtonStyle = style({
     },
     '&:hover': {
       color: colors.gray500,
+    },
+  },
+  '@media': {
+    [media.phone]: {
+      position: 'static',
+      left: 'auto',
+      top: 'auto',
+      marginLeft: 'auto',
+      transform: 'none',
+      flexShrink: 0,
+      width: '32px',
+      height: '32px',
+      justifyContent: 'center',
+      opacity: 1,
+      pointerEvents: 'auto',
     },
   },
 })
@@ -317,6 +341,32 @@ export const completeRowTdStyle = style({
   selectors: {
     'td&': {
       backgroundColor: colors.primary50,
+    },
+  },
+})
+
+export const nameStickyCellStyle = style({
+  '@media': {
+    [media.phone]: {
+      position: 'sticky',
+      left: 0,
+      zIndex: 2,
+      width: 'auto',
+      minWidth: '112px',
+      backgroundColor: colors.white,
+      boxShadow: `4px 0 8px -6px ${colors.gray200}`,
+      selectors: {
+        'th&': {
+          zIndex: 3,
+          backgroundColor: colors.gray50,
+        },
+        [`&.${activeRowTdStyle}`]: {
+          backgroundColor: colors.success50,
+        },
+        [`&.${completeRowTdStyle}`]: {
+          backgroundColor: colors.primary50,
+        },
+      },
     },
   },
 })
@@ -710,6 +760,13 @@ export const itemControlButtonStyle = style({
   cursor: 'pointer',
   opacity: 0.45,
   transition: 'opacity 0.15s ease, color 0.15s ease',
+  '@media': {
+    [media.phone]: {
+      opacity: 1,
+      width: '32px',
+      height: '32px',
+    },
+  },
   selectors: {
     [`${colHeaderWrapStyle}:hover &`]: {
       opacity: 1,

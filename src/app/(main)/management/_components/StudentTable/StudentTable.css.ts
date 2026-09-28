@@ -2,12 +2,15 @@ import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
 import { phoneTextRules, truncateRules } from '@/styles/tokens/textOverflow'
+import { media } from '@/styles/tokens/breakpoints'
 
 export const tableWrapStyle = style({
   overflowX: 'auto',
   border: `1px solid ${colors.gray100}`,
   borderRadius: '8px',
   backgroundColor: colors.white,
+  WebkitOverflowScrolling: 'touch',
+  overscrollBehaviorX: 'contain',
 })
 
 export const tableStyle = style({
@@ -86,6 +89,35 @@ const tdBase = {
 
 export const tdStyle = style([tdBase, truncateRules])
 
+export const stickyNameCellStyle = style({
+  '@media': {
+    [media.phone]: {
+      position: 'sticky',
+      left: 0,
+      zIndex: 2,
+      maxWidth: '140px',
+      minWidth: '88px',
+      backgroundColor: colors.white,
+      boxShadow: `4px 0 8px -6px ${colors.gray200}`,
+      selectors: {
+        'th&': {
+          zIndex: 3,
+          backgroundColor: colors.gray50,
+        },
+        [`${trStyle}:hover &`]: {
+          backgroundColor: colors.gray50,
+        },
+        [`${trSelectedStyle} &`]: {
+          backgroundColor: colors.primary50,
+        },
+        [`${trSelectedStyle}:hover &`]: {
+          backgroundColor: colors.primary100,
+        },
+      },
+    },
+  },
+})
+
 export const tdPhoneStyle = style([tdBase, phoneTextRules])
 
 export const completionCellStyle = style({
@@ -141,6 +173,13 @@ export const deleteButtonStyle = style({
   color: colors.gray300,
   marginLeft: 'auto',
   flexShrink: 0,
+  '@media': {
+    [media.phone]: {
+      width: '32px',
+      height: '32px',
+      justifyContent: 'center',
+    },
+  },
   selectors: {
     '&:hover': {
       color: colors.gray500,

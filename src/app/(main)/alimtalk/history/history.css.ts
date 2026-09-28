@@ -1,5 +1,6 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
+import { media } from '@/styles/tokens/breakpoints'
 
 export const chipRow = style({
   display: 'flex',
@@ -18,6 +19,11 @@ export const chip = style({
   borderRadius: '999px',
   padding: '4px 12px',
   cursor: 'pointer',
+  '@media': {
+    [media.phone]: {
+      minHeight: '36px',
+    },
+  },
   display: 'inline-flex',
   alignItems: 'center',
   gap: '8px',
@@ -38,6 +44,8 @@ export const tableWrap = style({
   border: `1px solid ${colors.gray100}`,
   borderRadius: '8px',
   backgroundColor: colors.white,
+  WebkitOverflowScrolling: 'touch',
+  overscrollBehaviorX: 'contain',
 })
 
 export const table = style({
@@ -85,6 +93,31 @@ export const trClickable = style({
 
 export const trExpanded = style({
   backgroundColor: colors.primary50,
+})
+
+export const stickyFirstCell = style({
+  '@media': {
+    [media.phone]: {
+      position: 'sticky',
+      left: 0,
+      zIndex: 2,
+      minWidth: '128px',
+      backgroundColor: colors.white,
+      boxShadow: `4px 0 8px -6px ${colors.gray200}`,
+      selectors: {
+        'th&': {
+          zIndex: 3,
+          backgroundColor: colors.gray50,
+        },
+        [`${trClickable}:hover &`]: {
+          backgroundColor: colors.gray50,
+        },
+        [`${trExpanded} &`]: {
+          backgroundColor: colors.primary50,
+        },
+      },
+    },
+  },
 })
 
 export const dateCell = style({
@@ -181,6 +214,12 @@ export const resendBtn = style({
   borderRadius: '6px',
   padding: '2px 8px',
   cursor: 'not-allowed',
+  '@media': {
+    [media.phone]: {
+      minHeight: '36px',
+      padding: '6px 10px',
+    },
+  },
   opacity: 0.85,
 })
 

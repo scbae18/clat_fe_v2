@@ -109,7 +109,15 @@ export const buttonRecipe = recipe({
       },
     },
     size: {
-      sm: { padding: '8px 12px', fontSize: '14px', fontWeight: '600', borderRadius: '8px' },
+      sm: {
+        padding: '8px 12px',
+        fontSize: '14px',
+        fontWeight: '600',
+        borderRadius: '8px',
+        '@media': {
+          [media.phone]: { minHeight: '44px' },
+        },
+      },
       md: {
         padding: '12px 24px',
         fontSize: '14px',

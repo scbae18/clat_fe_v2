@@ -22,6 +22,15 @@ export const navButtonStyle = style({
       backgroundColor: colors.gray75,
     },
   },
+  '@media': {
+    [media.phone]: {
+      width: '44px',
+      height: '44px',
+      justifyContent: 'center',
+      borderRadius: '12px',
+      flexShrink: 0,
+    },
+  },
 })
 
 export const dateGridStyle = style({
@@ -79,4 +88,15 @@ export const weekLabelStyle = style({
   textAlign: 'center',
   minWidth: 0,
   whiteSpace: 'nowrap',
+})
+
+globalStyle(`${weekLabelStyle} > *`, {
+  '@media': {
+    [media.phone]: {
+      display: 'block',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      fontSize: '16px',
+    },
+  },
 })

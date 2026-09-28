@@ -1,6 +1,7 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { media } from '@/styles/tokens/breakpoints'
 
 export const toolbarStyle = style({
   display: 'flex',
@@ -8,6 +9,13 @@ export const toolbarStyle = style({
   justifyContent: 'space-between',
   gap: '16px',
   marginBottom: '16px',
+  '@media': {
+    [media.phone]: {
+      flexDirection: 'column',
+      alignItems: 'stretch',
+      gap: '12px',
+    },
+  },
 })
 
 export const searchBarStyle = style({
@@ -18,6 +26,13 @@ export const searchBarStyle = style({
   maxWidth: '360px',
   height: '40px',
   padding: '0 12px',
+  '@media': {
+    [media.phone]: {
+      maxWidth: 'none',
+      width: '100%',
+      height: '44px',
+    },
+  },
   backgroundColor: colors.white,
   border: `1px solid ${colors.gray100}`,
   borderRadius: '8px',
@@ -88,6 +103,12 @@ export const countClusterStyle = style({
   flexShrink: 0,
   flexWrap: 'wrap',
   justifyContent: 'flex-end',
+  '@media': {
+    [media.phone]: {
+      justifyContent: 'flex-start',
+      width: '100%',
+    },
+  },
 })
 
 export const countActionButtonStyle = style({

@@ -33,7 +33,7 @@ export function HistoryBatchTable({
       <table className={styles.table}>
         <thead>
           <tr>
-            <th className={styles.th}>발송 일시</th>
+            <th className={`${styles.th} ${styles.stickyFirstCell}`}>발송 일시</th>
             <th className={styles.th}>반</th>
             <th className={styles.th}>발송 상태</th>
             <th className={styles.th}>문자 유형</th>
@@ -50,7 +50,7 @@ export function HistoryBatchTable({
                   className={`${styles.trClickable}${open ? ` ${styles.trExpanded}` : ''}`}
                   onClick={() => onToggleRow(r.batch_id)}
                 >
-                  <td className={styles.td}>
+                  <td className={`${styles.td} ${styles.stickyFirstCell}`}>
                     <div className={styles.dateCell}>
                       <span
                         className={`${styles.chevron}${open ? ` ${styles.chevronOpen}` : ''}`}

@@ -32,6 +32,11 @@ export const card = style({
   border: `1px solid ${colors.gray50}`,
   borderRadius: '20px',
   padding: '28px',
+  '@media': {
+    [media.phone]: {
+      padding: '20px',
+    },
+  },
 })
 
 export const sectionTitle = style({
@@ -41,6 +46,11 @@ export const sectionTitle = style({
   lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray900,
+  '@media': {
+    [media.phone]: {
+      fontSize: '20px',
+    },
+  },
 })
 
 export const fieldTitle = style({
@@ -76,6 +86,12 @@ export const chip = style({
   cursor: 'pointer',
   whiteSpace: 'nowrap',
   flexShrink: 0,
+  '@media': {
+    [media.phone]: {
+      minHeight: '36px',
+      padding: '8px 12px',
+    },
+  },
 })
 
 export const chipActive = style({

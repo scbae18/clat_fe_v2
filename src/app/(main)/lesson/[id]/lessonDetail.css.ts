@@ -1,4 +1,4 @@
-import { style, keyframes } from '@vanilla-extract/css'
+import { style, globalStyle, keyframes } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
@@ -39,9 +39,18 @@ export const backButtonStyle = style({
   color: colors.gray500,
   display: 'flex',
   alignItems: 'center',
+  flexShrink: 0,
   selectors: {
     '&:hover': {
       color: colors.gray700,
+    },
+  },
+  '@media': {
+    [media.phone]: {
+      width: '44px',
+      height: '44px',
+      justifyContent: 'center',
+      marginLeft: '-10px',
     },
   },
 })
@@ -50,6 +59,23 @@ export const headerLeftStyle = style({
   display: 'flex',
   alignItems: 'center',
   gap: '12px',
+  '@media': {
+    [media.phone]: {
+      flex: '1 1 100%',
+      minWidth: 0,
+      flexWrap: 'wrap',
+      rowGap: '8px',
+    },
+  },
+})
+
+export const headerTitleStyle = style({
+  '@media': {
+    [media.phone]: {
+      minWidth: 0,
+      overflowWrap: 'anywhere',
+    },
+  },
 })
 
 export const headerButtonGroupStyle = style({
@@ -60,6 +86,17 @@ export const headerButtonGroupStyle = style({
   '@media': {
     [media.phone]: {
       width: '100%',
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+    },
+  },
+})
+
+globalStyle(`${headerButtonGroupStyle} > *`, {
+  '@media': {
+    [media.phone]: {
+      width: '100%',
+      minWidth: 0,
     },
   },
 })
@@ -87,8 +124,9 @@ export const footerStyle = style({
   '@media': {
     [media.phone]: {
       padding: '12px 16px',
-      gap: '8px',
-      flexWrap: 'wrap',
+      gap: '12px',
+      flexDirection: 'column',
+      alignItems: 'stretch',
     },
   },
 })
@@ -205,6 +243,12 @@ export const templateChipButtonStyle = style({
   selectors: {
     '&:hover': {
       backgroundColor: colors.gray75,
+    },
+  },
+  '@media': {
+    [media.phone]: {
+      maxWidth: '100%',
+      minHeight: '36px',
     },
   },
 })

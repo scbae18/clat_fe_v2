@@ -14,6 +14,7 @@ import {
   trStyle,
   thStyle,
   tdStyle,
+  stickyNameCellStyle,
   tdPhoneStyle,
   completionCellStyle,
   progressTrackStyle,
@@ -104,7 +105,7 @@ export default function StudentTable({
         </colgroup>
         <thead>
           <tr>
-            <th className={thStyle}>학생</th>
+            <th className={`${thStyle} ${stickyNameCellStyle}`}>학생</th>
             <th className={thStyle}>학생 전화</th>
             <th className={thStyle}>학부모 전화</th>
             {middleColumns.map((col) => (
@@ -139,7 +140,7 @@ export default function StudentTable({
                 onClick={handleRowClick}
                 style={{ cursor: selectionMode || onRowClick ? 'pointer' : 'default' }}
               >
-                <td className={tdStyle} title={student.name}>
+                <td className={`${tdStyle} ${stickyNameCellStyle}`} title={student.name}>
                   {student.name}
                 </td>
                 <td className={tdPhoneStyle} title={student.phone}>

@@ -16,6 +16,11 @@ export const overlayStyle = style({
   alignItems: 'center',
   justifyContent: 'center',
   zIndex: zIndex.modal,
+  '@media': {
+    [media.phone]: {
+      alignItems: 'flex-end',
+    },
+  },
 })
 
 export const modalRecipe = recipe({
@@ -26,6 +31,11 @@ export const modalRecipe = recipe({
     flexDirection: 'column',
     maxHeight: '90vh',
     overflow: 'hidden',
+    '@media': {
+      [media.phone]: {
+        maxHeight: '92dvh',
+      },
+    },
   },
   variants: {
     size: {
@@ -34,6 +44,14 @@ export const modalRecipe = recipe({
         maxWidth: 'calc(100vw - 32px)',
         borderRadius: '16px',
         padding: '24px',
+        '@media': {
+          [media.phone]: {
+            width: '100%',
+            maxWidth: '100%',
+            borderRadius: '20px 20px 0 0',
+            padding: '20px 16px calc(16px + env(safe-area-inset-bottom, 0px))',
+          },
+        },
       },
       md: {
         width: '640px',
@@ -42,8 +60,10 @@ export const modalRecipe = recipe({
         padding: '48px',
         '@media': {
           [media.phone]: {
-            padding: '24px',
-            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '100%',
+            padding: '20px 16px calc(16px + env(safe-area-inset-bottom, 0px))',
+            borderRadius: '20px 20px 0 0',
           },
         },
       },
@@ -54,8 +74,10 @@ export const modalRecipe = recipe({
         padding: '32px',
         '@media': {
           [media.phone]: {
-            padding: '20px',
-            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '100%',
+            padding: '20px 16px calc(16px + env(safe-area-inset-bottom, 0px))',
+            borderRadius: '20px 20px 0 0',
           },
         },
       },

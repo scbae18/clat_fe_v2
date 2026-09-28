@@ -34,6 +34,13 @@ export const logoSectionStyle = style({
   alignItems: 'center',
   gap: '40px',
   marginBottom: '60px',
+  '@media': {
+    [media.phone]: {
+      gap: '20px',
+      marginBottom: '32px',
+      marginTop: '24px',
+    },
+  },
 })
 
 export const formStyle = style({

@@ -106,6 +106,13 @@ export const removeItemButtonStyle = style({
   cursor: 'pointer',
   opacity: 0,
   transition: 'opacity 0.15s ease',
+  '@media': {
+    [media.phone]: {
+      opacity: 1,
+      width: '32px',
+      height: '32px',
+    },
+  },
   selectors: {
     'tr:hover &': {
       opacity: 1,

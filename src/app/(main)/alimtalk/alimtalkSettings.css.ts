@@ -17,6 +17,12 @@ export const pageTitle = style({
   letterSpacing: '-0.03em',
   color: colors.gray900,
   margin: '0 0 24px',
+  '@media': {
+    [media.phone]: {
+      fontSize: '22px',
+      marginBottom: '16px',
+    },
+  },
 })
 
 export const tabRow = style({
@@ -26,6 +32,18 @@ export const tabRow = style({
   borderBottom: `1px solid ${colors.gray100}`,
   paddingBottom: '12px',
   marginBottom: '32px',
+  '@media': {
+    [media.phone]: {
+      gap: '16px',
+      overflowX: 'auto',
+      marginBottom: '20px',
+      WebkitOverflowScrolling: 'touch',
+      scrollbarWidth: 'none',
+      selectors: {
+        '&::-webkit-scrollbar': { display: 'none' },
+      },
+    },
+  },
 })
 
 export const tabLink = style({
@@ -38,6 +56,15 @@ export const tabLink = style({
   borderBottom: '2px solid transparent',
   paddingBottom: '10px',
   marginBottom: '-13px',
+  '@media': {
+    [media.phone]: {
+      fontSize: '16px',
+      flexShrink: 0,
+      minHeight: '44px',
+      display: 'inline-flex',
+      alignItems: 'center',
+    },
+  },
 })
 
 export const tabActive = style({
@@ -62,6 +89,12 @@ export const deliveryBanner = style({
   fontSize: '14px',
   fontWeight: 500,
   color: colors.gray700,
+  '@media': {
+    [media.phone]: {
+      display: 'block',
+      lineHeight: 1.5,
+    },
+  },
 })
 
 export const columns = style({

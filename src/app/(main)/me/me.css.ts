@@ -1,4 +1,4 @@
-import { style } from '@vanilla-extract/css'
+import { style, globalStyle } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
 import { media } from '@/styles/tokens/breakpoints'
@@ -24,6 +24,11 @@ export const pageTitle = style({
 
 export const pageDesc = style({
   margin: '0 0 40px',
+  '@media': {
+    [media.phone]: {
+      marginBottom: '24px',
+    },
+  },
   fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: fontStyles.bodyMd.fontWeight,
   lineHeight: '140%',
@@ -45,6 +50,12 @@ export const card = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '20px',
+  '@media': {
+    [media.phone]: {
+      padding: '20px 16px',
+      borderRadius: '16px',
+    },
+  },
 })
 
 export const profileTop = style({
@@ -211,6 +222,19 @@ export const modalActions = style({
   display: 'flex',
   gap: '8px',
   marginTop: '24px',
+  '@media': {
+    [media.phone]: {
+      flexDirection: 'column-reverse',
+    },
+  },
+})
+
+globalStyle(`${modalActions} > *`, {
+  '@media': {
+    [media.phone]: {
+      width: '100%',
+    },
+  },
 })
 
 export const dangerCard = style({
@@ -221,6 +245,12 @@ export const dangerCard = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '16px',
+  '@media': {
+    [media.phone]: {
+      padding: '20px 16px',
+      borderRadius: '16px',
+    },
+  },
 })
 
 export const dangerTitle = style({

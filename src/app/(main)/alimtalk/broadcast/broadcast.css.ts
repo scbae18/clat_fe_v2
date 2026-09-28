@@ -23,6 +23,11 @@ export const panel = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '16px',
+  '@media': {
+    [media.phone]: {
+      padding: '16px',
+    },
+  },
 })
 
 export const recipientPanel = style({

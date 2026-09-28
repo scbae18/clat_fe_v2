@@ -46,7 +46,7 @@ export const shellStyle = style({
       '@media': {
         [media.phone]: {
           vars: {
-            [lessonFooterHeightVar]: '104px',
+            [lessonFooterHeightVar]: '148px',
           },
         },
       },

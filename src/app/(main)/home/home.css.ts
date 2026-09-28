@@ -145,6 +145,12 @@ export const betaCardStyle = style({
   overflow: 'hidden',
   minHeight: '200px',
   position: 'relative',
+  '@media': {
+    [media.phone]: {
+      padding: '20px',
+      minHeight: '160px',
+    },
+  },
 })
 
 export const inviteCardStyle = style({
@@ -154,6 +160,12 @@ export const inviteCardStyle = style({
   overflow: 'hidden',
   minHeight: '200px',
   position: 'relative',
+  '@media': {
+    [media.phone]: {
+      padding: '20px',
+      minHeight: '160px',
+    },
+  },
 })
 
 export const cardContentStyle = style({

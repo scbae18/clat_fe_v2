@@ -1,6 +1,8 @@
-import { style } from '@vanilla-extract/css'
+import { style, globalStyle } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { media } from '@/styles/tokens/breakpoints'
+import { footerStyle } from '../../lessonDetail.css'
 
 export const wrapperStyle = style({
   display: 'flex',
@@ -8,6 +10,22 @@ export const wrapperStyle = style({
   gap: '36px',
   flex: 1,
   marginRight: '24px',
+  '@media': {
+    [media.phone]: {
+      width: '100%',
+      minWidth: 0,
+      gap: '12px',
+      marginRight: 0,
+    },
+  },
+})
+
+globalStyle(`${footerStyle} > button`, {
+  '@media': {
+    [media.phone]: {
+      width: '100%',
+    },
+  },
 })
 
 export const labelStyle = style({

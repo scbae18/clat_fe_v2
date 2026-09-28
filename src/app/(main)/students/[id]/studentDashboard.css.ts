@@ -18,6 +18,12 @@ export const headerRow = style({
   alignItems: 'center',
   gap: '12px',
   marginBottom: '32px',
+  '@media': {
+    [media.phone]: {
+      marginBottom: '20px',
+      minWidth: 0,
+    },
+  },
 })
 
 export const backButton = style({
@@ -42,9 +48,11 @@ export const pageTitle = style({
   lineHeight: 1.4,
   letterSpacing: '-0.03em',
   color: colors.gray900,
+  minWidth: 0,
   '@media': {
     [media.phone]: {
       fontSize: '22px',
+      overflowWrap: 'anywhere',
     },
   },
 })
@@ -79,6 +87,12 @@ export const profileCard = style({
   borderRadius: '20px',
   padding: '27px',
   minHeight: '316px',
+  '@media': {
+    [media.phone]: {
+      padding: '20px 16px',
+      minHeight: 0,
+    },
+  },
 })
 
 export const profileTop = style({

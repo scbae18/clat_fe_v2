@@ -22,6 +22,7 @@ import {
   sectionStyle,
   backButtonStyle,
   headerLeftStyle,
+  headerTitleStyle,
   headerButtonGroupStyle,
   autoSaveHintStyle,
   templateChipButtonStyle,
@@ -136,7 +137,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
             >
               <ArrowLeftIcon width={24} height={24} />
             </button>
-            <Text variant="display" as="h1">
+            <Text variant="display" as="h1" className={headerTitleStyle}>
               {format(new Date(lesson.lesson_date), 'M월 d일(E)', { locale: ko })}{' '}
               {lesson.class_name}
             </Text>
@@ -214,7 +215,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           >
             <ArrowLeftIcon width={24} height={24} />
           </button>
-          <Text variant="display" as="h1">
+          <Text variant="display" as="h1" className={headerTitleStyle}>
             {format(new Date(lesson.lesson_date), 'M월 d일(E)', { locale: ko })} {lesson.class_name}
           </Text>
           <Button

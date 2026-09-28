@@ -18,6 +18,9 @@ const tabBase = {
   '@media': {
     [media.phone]: {
       fontSize: fontStyles.titleMd.fontSize,
+      minHeight: '44px',
+      display: 'inline-flex',
+      alignItems: 'center',
     },
   },
 } as const
@@ -88,6 +91,15 @@ export const backButtonStyle = style({
   selectors: {
     '&:hover': {
       color: colors.gray700,
+    },
+  },
+  '@media': {
+    [media.phone]: {
+      width: '44px',
+      height: '44px',
+      justifyContent: 'center',
+      marginLeft: '-10px',
+      flexShrink: 0,
     },
   },
 })
