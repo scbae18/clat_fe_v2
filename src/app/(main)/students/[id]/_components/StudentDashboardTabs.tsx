@@ -8,6 +8,7 @@ import type {
 } from '@/services/studentDashboard'
 import ScoreLineChart from '../ScoreLineChart'
 import * as styles from '../studentDashboard.css'
+import { StudentAlimtalkHistory } from './StudentAlimtalkHistory'
 import {
   MSG,
   PERIODS,
@@ -155,44 +156,7 @@ export function StudentDashboardTabs({
           </>
         )}
 
-        {mainTab === 'alimtalk' && (
-          <>
-            {alimRows.length === 0 ? (
-              <div className={styles.emptyState}>{MSG.noAlim}</div>
-            ) : (
-              <table className={styles.listTable}>
-                <thead>
-                  <tr>
-                    <th className={styles.th}>{MSG.thSentDate}</th>
-                    <th className={styles.th}>{MSG.thSentTime}</th>
-                    <th className={styles.th}>{MSG.thType}</th>
-                    <th className={styles.th}>{MSG.thSentClass}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {alimRows.map((row) => (
-                    <tr key={row.message_id}>
-                      <td className={styles.td}>
-                        {new Date(row.sent_at).toLocaleString('ko-KR', {
-                          month: '2-digit',
-                          day: '2-digit',
-                        })}
-                      </td>
-                      <td className={styles.td}>
-                        {new Date(row.sent_at).toLocaleString('ko-KR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </td>
-                      <td className={styles.td}>{row.batch_type}</td>
-                      <td className={styles.td}>{row.class_name ?? '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </>
-        )}
+        {mainTab === 'alimtalk' && <StudentAlimtalkHistory rows={alimRows} />}
       </div>
     </div>
   )

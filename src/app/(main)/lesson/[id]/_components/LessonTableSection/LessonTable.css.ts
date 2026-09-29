@@ -346,27 +346,23 @@ export const completeRowTdStyle = style({
 })
 
 export const nameStickyCellStyle = style({
-  '@media': {
-    [media.phone]: {
-      position: 'sticky',
-      left: 0,
-      zIndex: 2,
-      width: 'auto',
-      minWidth: '112px',
-      backgroundColor: colors.white,
-      boxShadow: `4px 0 8px -6px ${colors.gray200}`,
-      selectors: {
-        'th&': {
-          zIndex: 3,
-          backgroundColor: colors.gray50,
-        },
-        [`&.${activeRowTdStyle}`]: {
-          backgroundColor: colors.success50,
-        },
-        [`&.${completeRowTdStyle}`]: {
-          backgroundColor: colors.primary50,
-        },
-      },
+  position: 'sticky',
+  left: 0,
+  zIndex: 2,
+  width: 'auto',
+  minWidth: '112px',
+  backgroundColor: colors.white,
+  boxShadow: `4px 0 8px -6px ${colors.gray200}`,
+  selectors: {
+    'th&': {
+      zIndex: 3,
+      backgroundColor: colors.gray50,
+    },
+    [`&.${activeRowTdStyle}`]: {
+      backgroundColor: colors.success50,
+    },
+    [`&.${completeRowTdStyle}`]: {
+      backgroundColor: colors.primary50,
     },
   },
 })

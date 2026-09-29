@@ -766,3 +766,186 @@ export const memoTextarea = style({
     borderColor: colors.primary300,
   },
 })
+
+export const alimTableWrap = style({
+  width: '100%',
+  overflowX: 'auto',
+})
+
+export const alimRow = style({
+  cursor: 'pointer',
+  selectors: {
+    '&:hover': {
+      backgroundColor: colors.gray50,
+    },
+  },
+})
+
+export const alimRowOpen = style({
+  backgroundColor: colors.primary50,
+  selectors: {
+    '&:hover': {
+      backgroundColor: colors.primary50,
+    },
+  },
+})
+
+export const alimDateCell = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  whiteSpace: 'nowrap',
+})
+
+export const alimChevron = style({
+  flexShrink: 0,
+  color: colors.gray500,
+  display: 'inline-flex',
+  transform: 'rotate(-90deg)',
+  transition: 'transform 0.2s',
+})
+
+export const alimChevronOpen = style({
+  transform: 'rotate(0deg)',
+})
+
+export const alimBadgeOk = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: '2px 8px',
+  borderRadius: '6px',
+  backgroundColor: colors.success50,
+  color: colors.success500,
+  fontSize: '14px',
+  fontWeight: 600,
+  whiteSpace: 'nowrap',
+})
+
+export const alimBadgeFail = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: '2px 8px',
+  borderRadius: '6px',
+  backgroundColor: colors.error50,
+  color: colors.error500,
+  fontSize: '14px',
+  fontWeight: 600,
+  whiteSpace: 'nowrap',
+})
+
+export const alimTypeLesson = style({
+  display: 'inline-flex',
+  padding: '2px 8px',
+  borderRadius: '6px',
+  border: `1px solid ${colors.primary100}`,
+  backgroundColor: colors.primary50,
+  color: colors.primary500,
+  fontSize: '14px',
+  fontWeight: 600,
+  whiteSpace: 'nowrap',
+})
+
+export const alimTypeAttendance = style({
+  display: 'inline-flex',
+  padding: '2px 8px',
+  borderRadius: '6px',
+  border: `1px solid ${colors.gray100}`,
+  backgroundColor: colors.gray50,
+  color: colors.gray700,
+  fontSize: '14px',
+  fontWeight: 600,
+  whiteSpace: 'nowrap',
+})
+
+export const alimTypeBroadcast = style({
+  display: 'inline-flex',
+  padding: '2px 8px',
+  borderRadius: '6px',
+  border: `1px solid ${colors.warning200}`,
+  backgroundColor: colors.warning50,
+  color: colors.gray700,
+  fontSize: '14px',
+  fontWeight: 600,
+  whiteSpace: 'nowrap',
+})
+
+export const alimDetailRow = style({
+  backgroundColor: colors.background,
+})
+
+export const alimDetailInner = style({
+  padding: '16px',
+})
+
+export const alimDetailCard = style({
+  backgroundColor: colors.white,
+  border: `1px solid ${colors.gray100}`,
+  borderRadius: '12px',
+  padding: '16px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+})
+
+export const alimChannelRow = style({
+  display: 'flex',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: '8px',
+})
+
+export const alimPillOk = style({
+  fontSize: '12px',
+  fontWeight: 600,
+  padding: '2px 8px',
+  borderRadius: '4px',
+  color: colors.success500,
+  backgroundColor: colors.success50,
+})
+
+export const alimPillFail = style({
+  fontSize: '12px',
+  fontWeight: 600,
+  padding: '2px 8px',
+  borderRadius: '4px',
+  color: colors.error500,
+  backgroundColor: colors.error50,
+})
+
+export const alimPhoneLine = style({
+  fontSize: '13px',
+  color: colors.gray500,
+})
+
+export const alimMsgBlock = style({
+  marginTop: '4px',
+  fontSize: '13px',
+  color: colors.gray700,
+  whiteSpace: 'pre-wrap',
+  lineHeight: 1.6,
+})
+
+export const alimError = style({
+  fontSize: '12px',
+  color: colors.error500,
+})
+
+export const alimParentLink = style({
+  alignSelf: 'flex-start',
+  marginTop: '4px',
+  border: `1px solid ${colors.gray100}`,
+  borderRadius: '10px',
+  padding: '8px 12px',
+  backgroundColor: colors.white,
+  color: colors.gray700,
+  fontSize: '14px',
+  fontWeight: 600,
+  fontFamily: 'inherit',
+  cursor: 'pointer',
+  selectors: {
+    '&:hover': {
+      borderColor: colors.primary200,
+      color: colors.primary600,
+    },
+  },
+})

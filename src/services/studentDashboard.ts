@@ -22,15 +22,25 @@ export interface LessonHistoryRow {
   status: string
 }
 
-export interface AlimtalkHistoryRow {
+export interface StudentAlimtalkMessage {
   message_id: number
-  phone_type: string
+  phone_type: 'STUDENT' | 'PARENT'
+  phone: string
+  message_body: string
+  status: 'SUCCESS' | 'FAIL'
+  error_message: string | null
+  parent_dashboard_token: string | null
+  token_expires_at: string | null
+}
+
+export interface AlimtalkHistoryRow {
+  batch_id: number
   sent_at: string
-  batch_type: string
-  class_name?: string
+  class_name: string | null
+  type: 'LESSON' | 'ATTENDANCE' | 'BROADCAST'
   delivery_mode: 'mock' | 'live'
-  status: string
-  preview: string
+  status: 'SUCCESS' | 'FAIL'
+  messages: StudentAlimtalkMessage[]
 }
 
 export const studentDashboardService = {
