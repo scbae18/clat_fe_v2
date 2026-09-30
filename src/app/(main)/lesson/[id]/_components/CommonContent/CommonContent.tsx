@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { CommonSuggestionItem } from '@/types/commonSuggestion'
 import { hasSuggestionContent } from '@/types/commonSuggestion'
 import { lessonService } from '@/services/lesson'
@@ -21,6 +21,53 @@ interface CommonItem {
   id: number
   source: ItemSource
   label: string
+}
+
+function GrowingTextarea({
+  value,
+  onChange,
+  onFocus,
+}: {
+  value: string
+  onChange: (value: string) => void
+  onFocus: () => void
+}) {
+  const areaRef = useRef<HTMLTextAreaElement>(null)
+
+  useLayoutEffect(() => {
+    const area = areaRef.current
+    const parent = area?.parentElement
+    if (!area || !parent) return
+
+    const fit = () => {
+      area.style.height = 'auto'
+      area.style.height = `${Math.max(area.scrollHeight, 48)}px`
+    }
+
+    fit()
+
+    let lastWidth = parent.getBoundingClientRect().width
+    const observer = new ResizeObserver(() => {
+      const width = parent.getBoundingClientRect().width
+      if (width === lastWidth) return
+      lastWidth = width
+      fit()
+    })
+    observer.observe(parent)
+    return () => observer.disconnect()
+  }, [value])
+
+  return (
+    <textarea
+      ref={areaRef}
+      className={inputStyle}
+      rows={1}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onFocus={onFocus}
+      placeholder="내용을 입력해주세요"
+    />
+  )
 }
 
 interface CommonContentSectionProps {
@@ -131,12 +178,10 @@ export default function CommonContent({
                 </th>
                 <td className={tdStyle}>
                   <div className={inputCellWrapStyle}>
-                    <textarea
-                      className={inputStyle}
+                    <GrowingTextarea
                       value={current}
-                      onChange={(e) => onChange(refKey, e.target.value)}
+                      onChange={(next) => onChange(refKey, next)}
                       onFocus={() => setFocusedId(refKey)}
-                      placeholder="내용을 입력해주세요"
                     />
                     {showPopover && suggestion ? (
                       <CommonSuggestionPopover

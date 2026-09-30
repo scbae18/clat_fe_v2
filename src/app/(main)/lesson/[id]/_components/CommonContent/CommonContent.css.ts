@@ -55,8 +55,8 @@ export const inputCellWrapStyle = style({
 })
 
 export const inputStyle = style({
+  display: 'block',
   width: '100%',
-  flex: 1,
   minHeight: '48px',
   padding: '12px 16px',
   border: 'none',
@@ -66,8 +66,12 @@ export const inputStyle = style({
   color: colors.gray700,
   letterSpacing: '-0.03em',
   backgroundColor: 'transparent',
-  resize: 'vertical',
+  resize: 'none',
+  overflow: 'hidden',
+  whiteSpace: 'pre-wrap',
+  overflowWrap: 'break-word',
   lineHeight: 1.5,
+  boxSizing: 'border-box',
   selectors: {
     '&::placeholder': {
       color: colors.gray300,
