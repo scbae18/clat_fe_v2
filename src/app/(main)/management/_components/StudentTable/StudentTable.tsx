@@ -6,6 +6,7 @@ import { colors } from '@/styles/tokens/colors'
 import type { Student } from '@/types/student'
 import { formatCompletionRatePercent } from '@/lib/completionRate'
 import { formatListLabel } from '@/lib/formatListLabel'
+import { listParentPhones } from '@/lib/parentPhones'
 import {
   tableWrapStyle,
   tableStyle,
@@ -16,6 +17,7 @@ import {
   tdStyle,
   stickyNameCellStyle,
   tdPhoneStyle,
+  tdParentPhonesStyle,
   completionCellStyle,
   progressTrackStyle,
   progressBarStyle,
@@ -124,6 +126,7 @@ export default function StudentTable({
             const school = student.school_name?.trim() || '-'
             const grade = student.grade?.trim()
             const schoolLabel = grade ? `${school} · ${grade}` : school
+            const parentPhoneLabel = listParentPhones(student).join('\n')
             const isSelected = selectionMode && selectedIds.includes(student.id)
             const handleRowClick = () => {
               if (selectionMode) {
@@ -146,8 +149,8 @@ export default function StudentTable({
                 <td className={tdPhoneStyle} title={student.phone}>
                   {student.phone}
                 </td>
-                <td className={tdPhoneStyle} title={student.parent_phone}>
-                  {student.parent_phone}
+                <td className={tdParentPhonesStyle} title={parentPhoneLabel}>
+                  {parentPhoneLabel}
                 </td>
                 {middleColumns.map((col) => {
                   const title = col.getTitle?.(student)

@@ -44,6 +44,32 @@ export const requiredMarkStyle = style({
   color: colors.error500,
 })
 
+export const addParentButtonStyle = style({
+  alignSelf: 'flex-start',
+  padding: 0,
+  border: 'none',
+  background: 'transparent',
+  color: colors.gray500,
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  letterSpacing: '-0.03em',
+  cursor: 'pointer',
+  selectors: {
+    '&:hover': {
+      color: colors.primary500,
+    },
+  },
+})
+
+export const parentSendHintStyle = style({
+  margin: 0,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.labelSm.fontWeight,
+  color: colors.gray500,
+  letterSpacing: '-0.02em',
+  lineHeight: '140%',
+})
+
 export const actionsStyle = style({
   display: 'flex',
   gap: '8px',

@@ -180,6 +180,24 @@ export const infoValueCell = style([
 
 export const infoPhoneValueCell = style([infoValueCell, phoneTextRules])
 
+export const infoParentPhonesValueCell = style([
+  infoValueCell,
+  {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+    whiteSpace: 'normal',
+    overflow: 'visible',
+    textOverflow: 'clip',
+    fontVariantNumeric: 'tabular-nums',
+  },
+])
+
+export const parentPhoneLine = style({
+  display: 'block',
+  lineHeight: 1.4,
+})
+
 export const statsRow = style({
   display: 'flex',
   gap: '8px',

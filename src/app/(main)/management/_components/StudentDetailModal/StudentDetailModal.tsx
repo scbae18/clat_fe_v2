@@ -17,6 +17,7 @@ import {
   formatCompletionRatePercent,
 } from '@/lib/completionRate'
 import { formatListLabel } from '@/lib/formatListLabel'
+import { listParentPhones } from '@/lib/parentPhones'
 import { formatLessonDateKo } from '@/lib/formatLessonDate'
 import CloseIcon from '@/assets/icons/icon-close.svg'
 import CheckIcon from '@/assets/icons/icon-check.svg'
@@ -29,6 +30,7 @@ import {
   infoLabelStyle,
   infoValueStyle,
   infoPhoneValueStyle,
+  infoParentPhonesValueStyle,
   editButtonStyle,
   statsGridStyle,
   statCardStyle,
@@ -152,8 +154,11 @@ export default function StudentDetailModal({
                 </div>
                 <div style={{ display: 'flex', gap: '16px' }}>
                   <span className={infoLabelStyle}>학부모 전화번호</span>
-                  <span className={infoPhoneValueStyle} title={detail.parent_phone || '-'}>
-                    {detail.parent_phone || '-'}
+                  <span
+                    className={infoParentPhonesValueStyle}
+                    title={listParentPhones(detail).join('\n') || '-'}
+                  >
+                    {listParentPhones(detail).join('\n') || '-'}
                   </span>
                 </div>
                 <div style={{ display: 'flex', gap: '16px' }}>
@@ -253,6 +258,7 @@ export default function StudentDetailModal({
             name: detail.name,
             phone: detail.phone,
             parent_phone: detail.parent_phone,
+            parent_phone_2: detail.parent_phone_2 ?? '',
             school_name: detail.school_name,
             grade: detail.grade ?? '',
             class_ids: detail.classes.map((c) => c.id),

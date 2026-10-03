@@ -4,6 +4,7 @@ import Text from '@/components/common/Text'
 import LessonAlimtalkFramePreview from '@/components/message/LessonAlimtalkFramePreview'
 import { stripParentDashboardPreviewLine } from '@/lib/lessonAlimtalkFrame'
 import type { LessonPreviewRow } from '@/services/lesson'
+import { listParentPhones } from '@/lib/parentPhones'
 import * as styles from './AlimtalkSendModal.css'
 
 function hasPhone(value: string | null | undefined) {
@@ -50,7 +51,7 @@ export default function AlimtalkMessagePreview({
         <div>
           <div className={styles.previewSectionLabel}>학부모용</div>
           <div className={styles.previewBox}>
-            {hasPhone(focused.parent_phone) ? (
+            {listParentPhones(focused).some((phone) => hasPhone(phone)) ? (
               <LessonAlimtalkFramePreview
                 header={frameHeader}
                 body={stripParentDashboardPreviewLine(focused.message_for_parent || '')}

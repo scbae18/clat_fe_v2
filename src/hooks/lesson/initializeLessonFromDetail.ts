@@ -109,6 +109,7 @@ export function mergePolledLessonState(args: {
     name: s.name,
     phone: '',
     parent_phone: '',
+    parent_phone_2: '',
     classes: [],
     completion_rate: 0,
     total_incomplete_items: 0,

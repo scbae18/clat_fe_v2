@@ -103,6 +103,7 @@ export interface LessonPreviewRow {
   student_name: string
   phone: string
   parent_phone: string
+  parent_phone_2?: string
   message: string
   message_for_parent: string
 }

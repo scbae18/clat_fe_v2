@@ -18,6 +18,7 @@ export interface Student {
   name: string
   phone: string
   parent_phone: string
+  parent_phone_2?: string
   school_name?: string
   grade?: string
   memo?: string
@@ -42,6 +43,7 @@ export interface StudentDetail {
   name: string
   phone: string
   parent_phone: string
+  parent_phone_2?: string
   school_name: string
   grade?: string
   memo?: string

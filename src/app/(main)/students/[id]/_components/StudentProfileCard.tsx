@@ -4,6 +4,7 @@ import EditIcon from '@/assets/icons/icon-edit.svg'
 import type { StudentDetail } from '@/types/student'
 import * as styles from '../studentDashboard.css'
 import { MSG } from '../_lib/studentDashboardShared'
+import { listParentPhones } from '@/lib/parentPhones'
 import { IconBook, IconBuilding, IconPhone, IconSchool } from './StudentDashboardIcons'
 
 type ClassLabel = { display: string; full: string }
@@ -84,8 +85,14 @@ export function StudentProfileCard({
           <IconPhone />
           {MSG.parentPhone}
         </div>
-        <div className={styles.infoPhoneValueCell} title={detail.parent_phone?.trim() || '-'}>
-          {detail.parent_phone?.trim() || '-'}
+        <div className={styles.infoParentPhonesValueCell}>
+          {listParentPhones(detail).length === 0
+            ? '-'
+            : listParentPhones(detail).map((phone) => (
+                <span key={phone} className={styles.parentPhoneLine}>
+                  {phone}
+                </span>
+              ))}
         </div>
       </div>
     </section>

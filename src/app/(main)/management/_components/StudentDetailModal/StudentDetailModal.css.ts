@@ -57,6 +57,16 @@ export const infoValueStyle = style([
 
 export const infoPhoneValueStyle = style([infoValueStyle, phoneTextRules])
 
+export const infoParentPhonesValueStyle = style([
+  infoValueStyle,
+  {
+    whiteSpace: 'pre-line',
+    overflow: 'visible',
+    textOverflow: 'clip',
+    fontVariantNumeric: 'tabular-nums',
+  },
+])
+
 export const editButtonStyle = style({
   fontSize: fontStyles.labelSm.fontSize,
   fontWeight: fontStyles.labelSm.fontWeight,

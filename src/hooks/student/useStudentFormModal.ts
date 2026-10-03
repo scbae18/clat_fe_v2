@@ -10,6 +10,7 @@ export type StudentFormData = {
   name: string
   phone: string
   parent_phone: string
+  parent_phone_2: string
   school_name: string
   grade: string
   class_ids: number[]
@@ -35,6 +36,8 @@ export function useStudentFormModal({
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [parentPhone, setParentPhone] = useState('')
+  const [parentPhone2, setParentPhone2] = useState('')
+  const [showSecondParent, setShowSecondParent] = useState(false)
   const [schoolName, setSchoolName] = useState('')
   const [grade, setGrade] = useState('')
   const [classes, setClasses] = useState<Class[]>([])
@@ -51,26 +54,34 @@ export function useStudentFormModal({
 
   useEffect(() => {
     if (!isOpen) return
+    if (defaultValues) {
+      setName(defaultValues.name ?? '')
+      setPhone(defaultValues.phone ?? '')
+      setParentPhone(defaultValues.parent_phone ?? '')
+      setParentPhone2(defaultValues.parent_phone_2 ?? '')
+      setShowSecondParent(Boolean((defaultValues.parent_phone_2 ?? '').trim()))
+      setSchoolName(defaultValues.school_name ?? '')
+      setGrade(defaultValues.grade ?? '')
+      setSelectedClassIds(defaultValues.class_ids ?? [])
+    }
+    let cancelled = false
     classService
       .getClasses({ status: 'active' })
       .then((res) => {
-        setClasses(res.data)
-        if (defaultValues) {
-          setName(defaultValues.name ?? '')
-          setPhone(defaultValues.phone ?? '')
-          setParentPhone(defaultValues.parent_phone ?? '')
-          setSchoolName(defaultValues.school_name ?? '')
-          setGrade(defaultValues.grade ?? '')
-          setSelectedClassIds(defaultValues.class_ids ?? [])
-        }
+        if (!cancelled) setClasses(res.data)
       })
       .catch((err) => console.error('반 목록 조회 실패', err))
+    return () => {
+      cancelled = true
+    }
   }, [isOpen])
 
   const handleClose = () => {
     setName('')
     setPhone('')
     setParentPhone('')
+    setParentPhone2('')
+    setShowSecondParent(false)
     setSchoolName('')
     setGrade('')
     resetClasses()
@@ -83,6 +94,7 @@ export function useStudentFormModal({
       name,
       phone,
       parent_phone: parentPhone,
+      parent_phone_2: showSecondParent ? parentPhone2 : '',
       school_name: schoolName,
       grade,
       class_ids: selectedClassIds,
@@ -121,6 +133,10 @@ export function useStudentFormModal({
     setPhone: (v: string) => setPhone(formatPhoneInput(v)),
     parentPhone,
     setParentPhone: (v: string) => setParentPhone(formatPhoneInput(v)),
+    parentPhone2,
+    setParentPhone2: (v: string) => setParentPhone2(formatPhoneInput(v)),
+    showSecondParent,
+    openSecondParent: () => setShowSecondParent(true),
     schoolName,
     setSchoolName,
     grade,

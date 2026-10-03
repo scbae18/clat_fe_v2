@@ -17,6 +17,8 @@ import {
   headerStyle,
   requiredMarkStyle,
   actionsStyle,
+  addParentButtonStyle,
+  parentSendHintStyle,
 } from './AddStudentFormModal.css'
 
 export type { StudentFormData }
@@ -97,6 +99,23 @@ export default function AddStudentFormModal({
             placeholder="숫자만 입력"
             onChange={(e) => form.setParentPhone(e.target.value)}
           />
+          {form.showSecondParent ? (
+            <>
+              <Input
+                variant="gray"
+                value={form.parentPhone2}
+                placeholder="숫자만 입력"
+                onChange={(e) => form.setParentPhone2(e.target.value)}
+              />
+              <p className={parentSendHintStyle}>
+                알림톡 발송 시, 등록된 학부모 모두에게 발송됩니다
+              </p>
+            </>
+          ) : (
+            <button type="button" className={addParentButtonStyle} onClick={form.openSecondParent}>
+              학부모 추가하기
+            </button>
+          )}
         </div>
         <div className={fieldStyle}>
           <span className={labelStyle}>학교명</span>

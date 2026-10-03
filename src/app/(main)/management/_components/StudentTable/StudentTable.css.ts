@@ -120,6 +120,18 @@ export const stickyNameCellStyle = style({
 
 export const tdPhoneStyle = style([tdBase, phoneTextRules])
 
+export const tdParentPhonesStyle = style([
+  tdBase,
+  {
+    height: 'auto',
+    minHeight: '40px',
+    paddingTop: '8px',
+    paddingBottom: '8px',
+    whiteSpace: 'pre-line',
+    fontVariantNumeric: 'tabular-nums',
+  },
+])
+
 export const completionCellStyle = style({
   height: '100%',
   paddingLeft: '20px',

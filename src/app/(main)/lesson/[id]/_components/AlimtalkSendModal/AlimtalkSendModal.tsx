@@ -26,6 +26,7 @@ import { invalidateLessonLists } from '@/lib/queryKeys'
 import { useToastStore } from '@/stores/toastStore'
 import { useUserStore } from '@/stores/userStore'
 import { fillLessonAlimtalkFrameHeader } from '@/lib/lessonAlimtalkFrame'
+import { listParentPhones } from '@/lib/parentPhones'
 import * as styles from './AlimtalkSendModal.css'
 
 function maskPhone(phone: string): string {
@@ -37,6 +38,12 @@ function maskPhone(phone: string): string {
 
 function hasPhone(value: string | null | undefined) {
   return Boolean(value && String(value).replace(/\D/g, '').length >= 8)
+}
+
+function parentAudienceLabel(row: LessonPreviewRow) {
+  const phones = listParentPhones(row)
+  if (phones.length === 0) return '학부모 번호 없음'
+  return `학부모 ${phones.map(maskPhone).join(' · ')}`
 }
 
 function resolveSendChannel(
@@ -54,7 +61,7 @@ function isRowSelectable(
   sendToParent: boolean,
   sendToStudent: boolean,
 ) {
-  if (sendToParent && hasPhone(row.parent_phone)) return true
+  if (sendToParent && listParentPhones(row).some((phone) => hasPhone(phone))) return true
   if (sendToStudent && hasPhone(row.phone)) return true
   return false
 }
@@ -525,16 +532,9 @@ export default function AlimtalkSendModal({
                         </div>
                         <div
                           className={styles.phoneMuted}
-                          title={`학생 ${maskPhone(r.phone)}${
-                            r.parent_phone?.trim()
-                              ? ` · 학부모 ${maskPhone(r.parent_phone)}`
-                              : ' · 학부모 번호 없음'
-                          }`}
+                          title={`학생 ${maskPhone(r.phone)} · ${parentAudienceLabel(r)}`}
                         >
-                          {'\uD559\uC0DD'} {maskPhone(r.phone)}
-                          {r.parent_phone?.trim()
-                            ? ` \u00B7 \uD559\uBD80\uBAA8 ${maskPhone(r.parent_phone)}`
-                            : ' \u00B7 \uD559\uBD80\uBAA8 \uBC88\uD638 \uC5C6\uC74C'}
+                          {`학생 ${maskPhone(r.phone)} · ${parentAudienceLabel(r)}`}
                         </div>
                       </div>
                     </div>

@@ -7,6 +7,7 @@ export interface CreateStudentDto {
   name: string
   phone?: string
   parent_phone?: string
+  parent_phone_2?: string
   school_name?: string
   grade?: string
   class_ids?: number[]
@@ -16,6 +17,7 @@ export interface UpdateStudentDto {
   name?: string
   phone?: string
   parent_phone?: string
+  parent_phone_2?: string
   school_name?: string
   grade?: string
   memo?: string

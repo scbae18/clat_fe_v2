@@ -12,6 +12,7 @@ import useToast from '@/hooks/useToast'
 import { classService, type Class } from '@/services/class'
 import { studentService } from '@/services/student'
 import type { Student } from '@/types/student'
+import { listParentPhones } from '@/lib/parentPhones'
 import {
   alimtalkService,
   type BroadcastChannel,
@@ -51,7 +52,7 @@ function isSelectable(
 ) {
   if (!sendToParent && !sendToStudent) return false
   if (sendToStudent && !hasPhone(student.phone)) return false
-  if (sendToParent && !hasPhone(student.parent_phone)) return false
+  if (sendToParent && !listParentPhones(student).some((phone) => hasPhone(phone))) return false
   return true
 }
 
@@ -62,7 +63,7 @@ function disableReason(
 ) {
   if (!sendToParent && !sendToStudent) return '수신 대상 선택'
   const needStudent = sendToStudent && !hasPhone(student.phone)
-  const needParent = sendToParent && !hasPhone(student.parent_phone)
+  const needParent = sendToParent && !listParentPhones(student).some((phone) => hasPhone(phone))
   if (needStudent && needParent) return '번호 없음'
   if (needStudent) return '학생번호 없음'
   if (needParent) return '학부모번호 없음'
@@ -70,14 +71,18 @@ function disableReason(
 }
 
 function estimateCount(
-  selectedCount: number,
+  selected: Student[],
   sendToParent: boolean,
   sendToStudent: boolean,
 ) {
-  let per = 0
-  if (sendToParent) per += 1
-  if (sendToStudent) per += 1
-  return selectedCount * per
+  let total = 0
+  for (const student of selected) {
+    if (sendToStudent && hasPhone(student.phone)) total += 1
+    if (sendToParent) {
+      total += listParentPhones(student).filter((phone) => hasPhone(phone)).length
+    }
+  }
+  return total
 }
 
 export default function AlimtalkBroadcastPage() {
@@ -224,7 +229,11 @@ export default function AlimtalkBroadcastPage() {
     [noticeType],
   )
 
-  const expectedCount = estimateCount(selectedIds.size, sendToParent, sendToStudent)
+  const expectedCount = estimateCount(
+    students.filter((student) => selectedIds.has(student.id)),
+    sendToParent,
+    sendToStudent,
+  )
 
   const handleSend = async () => {
     if (sending) return

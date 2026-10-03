@@ -106,6 +106,7 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
           name: detail.name,
           phone: detail.phone,
           parent_phone: detail.parent_phone,
+          parent_phone_2: detail.parent_phone_2 ?? '',
             school_name: detail.school_name,
             grade: detail.grade ?? '',
             class_ids: detail.classes.map((c) => c.id),

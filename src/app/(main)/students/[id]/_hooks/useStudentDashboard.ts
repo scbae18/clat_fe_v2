@@ -160,7 +160,8 @@ export function useStudentDashboard(studentId: number) {
     if (!detail) return
     try {
       await studentService.updateStudent(detail.id, data)
-      await loadDetail()
+      const next = await studentService.getStudent(studentId)
+      setDetail(next)
       editStudent.close()
       addToast({ variant: 'success', message: MSG.editStudentOk })
     } catch {
