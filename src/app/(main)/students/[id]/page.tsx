@@ -1,6 +1,6 @@
 'use client'
 
-import { use } from 'react'
+import { use, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import ArrowLeftIcon from '@/assets/icons/icon-arrow-left.svg'
 import ChoiceConfirmModal from '@/components/common/ChoiceConfirmModal/ChoiceConfirmModal'
@@ -9,11 +9,12 @@ import * as styles from './studentDashboard.css'
 import { MSG } from './_lib/studentDashboardShared'
 import { useStudentDashboard } from './_hooks/useStudentDashboard'
 import { StudentProfileCard } from './_components/StudentProfileCard'
-import { ParentLinkCard } from './_components/ParentLinkCard'
 import { StudentMemoCard } from './_components/StudentMemoCard'
 import { StudentStatsRow } from './_components/StudentStatsRow'
 import { StudentIncompleteList } from './_components/StudentIncompleteList'
 import { StudentDashboardTabs } from './_components/StudentDashboardTabs'
+import { studentService } from '@/services/student'
+import { useToastStore } from '@/stores/toastStore'
 
 export default function StudentDashboardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: idStr } = use(params)
@@ -21,6 +22,21 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
   const router = useRouter()
 
   const dash = useStudentDashboard(studentId)
+  const addToast = useToastStore((s) => s.addToast)
+  const [openingParent, setOpeningParent] = useState(false)
+
+  const openParentDashboard = async () => {
+    setOpeningParent(true)
+    try {
+      const { token } = await studentService.openParentDashboard(studentId)
+      const opened = window.open(`/parent/${token}`, '_blank', 'noopener,noreferrer')
+      if (!opened) addToast({ variant: 'error', message: MSG.parentViewFail })
+    } catch {
+      addToast({ variant: 'error', message: MSG.parentViewFail })
+    } finally {
+      setOpeningParent(false)
+    }
+  }
 
   if (dash.loading || !dash.detail) {
     return (
@@ -44,6 +60,14 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
           <ArrowLeftIcon width={24} height={24} />
         </button>
         <h1 className={styles.pageTitle}>{MSG.pageTitle}</h1>
+        <button
+          type="button"
+          className={styles.parentViewButton}
+          onClick={() => void openParentDashboard()}
+          disabled={openingParent}
+        >
+          {MSG.parentView}
+        </button>
       </header>
 
       <div className={styles.columns}>
@@ -54,7 +78,6 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
             classLabel={dash.classLabel}
             onEdit={dash.editStudent.open}
           />
-          <ParentLinkCard detail={detail} onUpdated={dash.replaceDetail} />
           <StudentMemoCard memo={detail.memo ?? ''} onSave={dash.saveMemo} />
           <StudentStatsRow
             monthlyCompletionPct={dash.monthlyCompletionPct}

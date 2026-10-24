@@ -208,7 +208,6 @@ export function useStudentDashboard(studentId: number) {
     editStudent,
     updateStudent,
     saveMemo,
-    replaceDetail: setDetail,
     academyName,
     classLabel,
     monthlyCompletionPct,

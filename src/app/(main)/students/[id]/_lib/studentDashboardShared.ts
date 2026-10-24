@@ -24,6 +24,8 @@ export const MSG = {
   loading: '불러오는 중…',
   back: '뒤로',
   pageTitle: '학생 대시보드',
+  parentView: '학부모 대시보드 보기',
+  parentViewFail: '학부모 대시보드를 열지 못했어요.',
   academy: '학원명',
   className: '소속 반',
   school: '학교명',

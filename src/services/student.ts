@@ -1,5 +1,5 @@
 import axiosInstance from '@/lib/api/axiosInstance'
-import type { ParentLinkInfo, Student, StudentDetail } from '@/types/student'
+import type { Student, StudentDetail } from '@/types/student'
 
 export type { StudentClass } from '@/types/student'
 
@@ -53,9 +53,9 @@ export const studentService = {
     return data.data
   },
 
-  async regenerateParentLink(id: number): Promise<{ token: string; parent_link: ParentLinkInfo }> {
-    const { data } = await axiosInstance.post(`/students/${id}/parent-link/regenerate`)
-    return data.data as { token: string; parent_link: ParentLinkInfo }
+  async openParentDashboard(id: number): Promise<{ token: string }> {
+    const { data } = await axiosInstance.post(`/students/${id}/parent-view`)
+    return data.data as { token: string }
   },
 
   async createStudent(dto: CreateStudentDto): Promise<Student> {
