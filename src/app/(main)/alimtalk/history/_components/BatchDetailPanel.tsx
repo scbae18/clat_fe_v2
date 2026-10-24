@@ -6,6 +6,7 @@ import {
   groupMessages,
   maskPhone,
   statusLabel,
+  statusPillStyle,
 } from '../_lib/historyShared'
 
 type BatchDetailPanelProps = {
@@ -52,11 +53,7 @@ export function BatchDetailPanel({
             {selected.student && (
               <span
                 className={styles.statusPill}
-                style={{
-                  color: selected.student.status === 'SUCCESS' ? '#1DAA7F' : '#EF4453',
-                  backgroundColor:
-                    selected.student.status === 'SUCCESS' ? '#EDFCF5' : '#FFF1F1',
-                }}
+                style={statusPillStyle(selected.student.status)}
               >
                 학생 {statusLabel(selected.student.status)}
               </span>
@@ -64,11 +61,7 @@ export function BatchDetailPanel({
             {selected.parent && (
               <span
                 className={styles.statusPill}
-                style={{
-                  color: selected.parent.status === 'SUCCESS' ? '#1DAA7F' : '#EF4453',
-                  backgroundColor:
-                    selected.parent.status === 'SUCCESS' ? '#EDFCF5' : '#FFF1F1',
-                }}
+                style={statusPillStyle(selected.parent.status)}
               >
                 학부모 {statusLabel(selected.parent.status)}
               </span>

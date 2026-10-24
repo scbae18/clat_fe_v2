@@ -28,8 +28,19 @@ export function groupMessages(messages: AlimtalkBatchMessage[]) {
   return Array.from(m.entries()).sort((a, b) => a[1].name.localeCompare(b[1].name, 'ko'))
 }
 
-export function statusLabel(s: 'SUCCESS' | 'FAIL'): string {
-  return s === 'SUCCESS' ? '성공' : '실패'
+export function statusLabel(s: 'SUCCESS' | 'FAIL' | 'PENDING'): string {
+  if (s === 'SUCCESS') return '성공'
+  if (s === 'PENDING') return '보내는 중'
+  return '실패'
+}
+
+export function statusPillStyle(status: 'SUCCESS' | 'FAIL' | 'PENDING'): {
+  color: string
+  backgroundColor: string
+} {
+  if (status === 'SUCCESS') return { color: '#1DAA7F', backgroundColor: '#EDFCF5' }
+  if (status === 'PENDING') return { color: '#9492A9', backgroundColor: '#F3F4F5' }
+  return { color: '#EF4453', backgroundColor: '#FFF1F1' }
 }
 
 export function formatSent(iso: string) {

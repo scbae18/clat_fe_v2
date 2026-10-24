@@ -851,6 +851,18 @@ export const alimBadgeFail = style({
   whiteSpace: 'nowrap',
 })
 
+export const alimBadgePending = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: '2px 8px',
+  borderRadius: '6px',
+  backgroundColor: colors.gray50,
+  color: colors.gray500,
+  fontSize: '14px',
+  fontWeight: 600,
+  whiteSpace: 'nowrap',
+})
+
 export const alimTypeLesson = style({
   display: 'inline-flex',
   padding: '2px 8px',
@@ -928,6 +940,15 @@ export const alimPillFail = style({
   borderRadius: '4px',
   color: colors.error500,
   backgroundColor: colors.error50,
+})
+
+export const alimPillPending = style({
+  fontSize: '12px',
+  fontWeight: 600,
+  padding: '2px 8px',
+  borderRadius: '4px',
+  color: colors.gray500,
+  backgroundColor: colors.gray50,
 })
 
 export const alimPhoneLine = style({

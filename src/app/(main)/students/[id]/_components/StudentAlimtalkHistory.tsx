@@ -67,8 +67,20 @@ export function StudentAlimtalkHistory({ rows }: { rows: AlimtalkHistoryRow[] })
                   </td>
                   <td className={styles.td}>{row.class_name ?? '—'}</td>
                   <td className={styles.td}>
-                    <span className={row.status === 'SUCCESS' ? styles.alimBadgeOk : styles.alimBadgeFail}>
-                      {row.status === 'SUCCESS' ? MSG.alimSentOk : MSG.alimSentFail}
+                    <span
+                      className={
+                        row.status === 'SUCCESS'
+                          ? styles.alimBadgeOk
+                          : row.status === 'PENDING'
+                            ? styles.alimBadgePending
+                            : styles.alimBadgeFail
+                      }
+                    >
+                      {row.status === 'SUCCESS'
+                        ? MSG.alimSentOk
+                        : row.status === 'PENDING'
+                          ? '보내는 중'
+                          : MSG.alimSentFail}
                     </span>
                   </td>
                   <td className={styles.td}>
@@ -84,7 +96,13 @@ export function StudentAlimtalkHistory({ rows }: { rows: AlimtalkHistoryRow[] })
                             {row.messages.map((m) => (
                               <span
                                 key={m.message_id}
-                                className={m.status === 'SUCCESS' ? styles.alimPillOk : styles.alimPillFail}
+                                className={
+                                  m.status === 'SUCCESS'
+                                    ? styles.alimPillOk
+                                    : m.status === 'PENDING'
+                                      ? styles.alimPillPending
+                                      : styles.alimPillFail
+                                }
                               >
                                 {channelLabel(m.phone_type)} {statusLabel(m.status)}
                               </span>

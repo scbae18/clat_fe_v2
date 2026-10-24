@@ -1,6 +1,8 @@
 import axiosInstance from '@/lib/api/axiosInstance'
 
 export type AlimtalkDeliveryMode = 'mock' | 'live'
+export type AlimtalkMessageStatus = 'PENDING' | 'SUCCESS' | 'FAIL'
+export type AlimtalkBatchRunStatus = 'queued' | 'sending' | 'done' | 'partial_fail'
 
 export interface AlimtalkSettings {
   intro_text: string | null
@@ -58,7 +60,7 @@ export interface AlimtalkBatchMessage {
   phone_type: 'STUDENT' | 'PARENT'
   phone: string
   message_body: string
-  status: 'SUCCESS' | 'FAIL'
+  status: AlimtalkMessageStatus
   error_message: string | null
   parent_dashboard_token: string | null
   token_expires_at: string | null
@@ -73,6 +75,8 @@ export interface AlimtalkBatchDetail {
   total_count: number
   success_count: number
   fail_count: number
+  status: AlimtalkBatchRunStatus
+  sent_count: number
   lesson_record_id: number | null
   attendance_session_id: number | null
   body_text?: string | null
@@ -82,9 +86,8 @@ export interface AlimtalkBatchDetail {
 
 export interface BroadcastSendResult {
   batch_id: number
+  status: 'queued' | 'done'
   total_count: number
-  success_count: number
-  fail_count: number
   delivery_mode: AlimtalkDeliveryMode
 }
 
@@ -178,4 +181,21 @@ export const alimtalkService = {
     }
     return inner as BroadcastSendResult
   },
+}
+
+const BATCH_POLL_MS = 2_000
+const BATCH_POLL_LIMIT_MS = 10 * 60 * 1000
+
+export async function pollBatchUntilSettled(
+  batchId: number,
+  onProgress: (sent: number, total: number) => void,
+): Promise<AlimtalkBatchDetail> {
+  const deadline = Date.now() + BATCH_POLL_LIMIT_MS
+  for (;;) {
+    const detail = await alimtalkService.getBatchDetail(batchId)
+    onProgress(detail.sent_count, detail.total_count)
+    if (detail.status === 'done' || detail.status === 'partial_fail') return detail
+    if (Date.now() >= deadline) throw new Error('BATCH_POLL_TIMEOUT')
+    await new Promise((resolve) => setTimeout(resolve, BATCH_POLL_MS))
+  }
 }

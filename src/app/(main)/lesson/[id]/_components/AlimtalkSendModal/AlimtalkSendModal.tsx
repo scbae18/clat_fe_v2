@@ -25,6 +25,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { invalidateLessonLists } from '@/lib/queryKeys'
 import { useToastStore } from '@/stores/toastStore'
 import { useUserStore } from '@/stores/userStore'
+import { pollBatchUntilSettled } from '@/services/alimtalk'
 import { fillLessonAlimtalkFrameHeader } from '@/lib/lessonAlimtalkFrame'
 import { listParentPhones } from '@/lib/parentPhones'
 import * as styles from './AlimtalkSendModal.css'
@@ -120,6 +121,7 @@ export default function AlimtalkSendModal({
   const [focusId, setFocusId] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
+  const [sendProgress, setSendProgress] = useState<{ sent: number; total: number } | null>(null)
   const [isClosing, setIsClosing] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -367,12 +369,19 @@ export default function AlimtalkSendModal({
     const ids = Array.from(selected)
     if (ids.length === 0 || !sendChannel) return
     setSending(true)
+    setSendProgress(null)
     try {
-      const result = await lessonService.sendLesson(lessonId, ids, sendChannel)
-      const mode = result.delivery_mode === 'mock' ? '\uBAA8\uC758 \uC804\uC1A1' : '\uC2E4\uC81C \uBC1C\uC1A1'
+      const queued = await lessonService.sendLesson(lessonId, ids, sendChannel)
+      const mode = queued.delivery_mode === 'mock' ? '모의 전송' : '실제 발송'
+      const result =
+        queued.status === 'done'
+          ? { success_count: 0, fail_count: 0, total_count: queued.total_count }
+          : await pollBatchUntilSettled(queued.batch_id, (sent, total) => {
+              setSendProgress({ sent, total })
+            })
       addToast({
         variant: 'success',
-        message: `\uBCF4\uB0C8\uC5B4\uC694. (${mode} \u00B7 \uC131\uACF5 ${result.success_count}\uAC74 / \uC2E4\uD328 ${result.fail_count}\uAC74)`,
+        message: `보냈어요. (${mode} · 성공 ${result.success_count}건 / 실패 ${result.fail_count}건)`,
       })
       if (result.success_count > 0) {
         invalidateLessonLists(queryClient)
@@ -384,17 +393,19 @@ export default function AlimtalkSendModal({
             ?.message
         : undefined
       const isTimeout =
-        isAxiosError(err) && (err.code === 'ECONNABORTED' || err.message.includes('timeout'))
+        (err instanceof Error && err.message === 'BATCH_POLL_TIMEOUT') ||
+        (isAxiosError(err) && (err.code === 'ECONNABORTED' || err.message.includes('timeout')))
       addToast({
         variant: 'error',
         message:
           apiMessage ??
           (isTimeout
-            ? '\uC54C\uB9BC\uD1A1 \uBC1C\uC1A1\uC774 \uC2DC\uAC04 \uCD08\uACFC\uB418\uC5C8\uC5B4\uC694. \uC7A0\uC2DC \uD6C4 \uBC1C\uC1A1 \uB0B4\uC5ED\uC5D0\uC11C \uACB0\uACFC\uB97C \uD655\uC778\uD574 \uC8FC\uC138\uC694.'
-            : '\uC54C\uB9BC\uD1A1 \uBC1C\uC1A1\uC5D0 \uC2E4\uD328\uD588\uC5B4\uC694.'),
+            ? '알림톡 발송이 시간 초과되었어요. 잠시 후 발송 내역에서 결과를 확인해 주세요.'
+            : '알림톡 발송에 실패했어요.'),
       })
     } finally {
       setSending(false)
+      setSendProgress(null)
     }
   }
 
@@ -618,7 +629,11 @@ export default function AlimtalkSendModal({
         {sending && (
           <div className={styles.sendingOverlay} role="status" aria-live="polite">
             <div className={styles.sendingModal}>
-              <Text variant="titleMd">{'\uBCF4\uB0B4\uB294 \uC911\u2026'}</Text>
+              <Text variant="titleMd">
+                {sendProgress
+                  ? `보내는 중 ${sendProgress.sent}/${sendProgress.total}`
+                  : '보내는 중…'}
+              </Text>
               <div className={styles.loadingDots} aria-hidden>
                 <span className={styles.loadingDot} />
                 <span className={`${styles.loadingDot} ${styles.loadingDotDelay1}`} />

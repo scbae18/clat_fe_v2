@@ -117,9 +117,8 @@ export type LessonSendChannel = 'STUDENT' | 'PARENT' | 'BOTH'
 
 export interface SendLessonResult {
   batch_id: number
+  status: 'queued' | 'done'
   total_count: number
-  success_count: number
-  fail_count: number
   delivery_mode: 'mock' | 'live'
 }
 
@@ -261,11 +260,10 @@ export const lessonService = {
     studentIds: number[],
     channel: LessonSendChannel = 'BOTH',
   ): Promise<SendLessonResult> {
-    const { data } = await axiosInstance.post(
-      `/lessons/${lessonId}/send`,
-      { student_ids: studentIds, channel },
-      { timeout: 60_000 },
-    )
+    const { data } = await axiosInstance.post(`/lessons/${lessonId}/send`, {
+      student_ids: studentIds,
+      channel,
+    })
     return unwrapSendLessonResult(data)
   },
 

@@ -27,7 +27,7 @@ export interface StudentAlimtalkMessage {
   phone_type: 'STUDENT' | 'PARENT'
   phone: string
   message_body: string
-  status: 'SUCCESS' | 'FAIL'
+  status: 'PENDING' | 'SUCCESS' | 'FAIL'
   error_message: string | null
   parent_dashboard_token: string | null
   token_expires_at: string | null
@@ -39,7 +39,7 @@ export interface AlimtalkHistoryRow {
   class_name: string | null
   type: 'LESSON' | 'ATTENDANCE' | 'BROADCAST'
   delivery_mode: 'mock' | 'live'
-  status: 'SUCCESS' | 'FAIL'
+  status: 'PENDING' | 'SUCCESS' | 'FAIL'
   messages: StudentAlimtalkMessage[]
 }
 

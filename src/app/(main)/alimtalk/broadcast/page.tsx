@@ -15,6 +15,7 @@ import type { Student } from '@/types/student'
 import { listParentPhones } from '@/lib/parentPhones'
 import {
   alimtalkService,
+  pollBatchUntilSettled,
   type BroadcastChannel,
   type BroadcastNoticeType,
   type AlimtalkDeliveryMode,
@@ -102,6 +103,7 @@ export default function AlimtalkBroadcastPage() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [body, setBody] = useState('')
   const [sending, setSending] = useState(false)
+  const [sendProgress, setSendProgress] = useState<{ sent: number; total: number } | null>(null)
 
   const channel = resolveChannel(sendToParent, sendToStudent)
 
@@ -251,13 +253,20 @@ export default function AlimtalkBroadcastPage() {
     }
 
     setSending(true)
+    setSendProgress(null)
     try {
-      const res = await alimtalkService.sendBroadcast({
+      const queued = await alimtalkService.sendBroadcast({
         student_ids: [...selectedIds],
         channel,
         notice_type: noticeType,
         body: body.trim(),
       })
+      const res =
+        queued.status === 'done'
+          ? { success_count: 0, fail_count: 0 }
+          : await pollBatchUntilSettled(queued.batch_id, (sent, total) => {
+              setSendProgress({ sent, total })
+            })
       if (res.fail_count > 0) {
         error(`발송 완료 · 실패 ${res.fail_count}건 (성공 ${res.success_count}건)`)
       } else {
@@ -265,9 +274,10 @@ export default function AlimtalkBroadcastPage() {
       }
       router.push('/alimtalk/history')
     } catch {
-      error('발송에 실패했어요.')
+      error('발송에 실패했어요. 발송 내역에서 결과를 확인해 주세요.')
     } finally {
       setSending(false)
+      setSendProgress(null)
     }
   }
 
@@ -486,7 +496,11 @@ export default function AlimtalkBroadcastPage() {
                 onClick={() => void handleSend()}
                 disabled={sending}
               >
-                {sending ? '발송 중…' : '발송하기'}
+                {sendProgress
+                  ? `보내는 중 ${sendProgress.sent}/${sendProgress.total}`
+                  : sending
+                    ? '발송 중…'
+                    : '발송하기'}
               </Button>
             </div>
           </div>
