@@ -7,6 +7,9 @@ type ParentLessonSummary = {
 }
 
 export type ParentDashboardData = {
+  legacy_redirect?: boolean
+  token?: string
+  lesson_id?: number
   student_name: string
   class_name: string
   academy_name: string
@@ -30,6 +33,19 @@ export type ParentDashboardData = {
   }>
 }
 
+export type ParentLessonListItem = {
+  lesson_id: number
+  lesson_date: string
+  class_name: string
+  template_name: string
+}
+
+export type ParentNoticeItem = {
+  batch_id: number
+  sent_at: string
+  body: string
+}
+
 function unwrapData<T>(input: unknown): T {
   let cur: unknown = input
   for (let i = 0; i < 4; i += 1) {
@@ -43,9 +59,23 @@ function unwrapData<T>(input: unknown): T {
 }
 
 export const parentDashboardService = {
-  async getByToken(token: string): Promise<ParentDashboardData> {
-    const { data } = await publicAxios.get(`/parent/${encodeURIComponent(token)}`)
+  async getByToken(token: string, lessonId?: number): Promise<ParentDashboardData> {
+    const { data } = await publicAxios.get(`/parent/${encodeURIComponent(token)}`, {
+      params: lessonId ? { lesson: lessonId } : undefined,
+    })
     return unwrapData<ParentDashboardData>(data)
+  },
+
+  async listLessons(token: string, page = 1): Promise<{ lessons: ParentLessonListItem[]; has_more: boolean }> {
+    const { data } = await publicAxios.get(`/parent/${encodeURIComponent(token)}/lessons`, {
+      params: { page },
+    })
+    return unwrapData<{ lessons: ParentLessonListItem[]; has_more: boolean }>(data)
+  },
+
+  async listNotices(token: string): Promise<{ notices: ParentNoticeItem[] }> {
+    const { data } = await publicAxios.get(`/parent/${encodeURIComponent(token)}/notices`)
+    return unwrapData<{ notices: ParentNoticeItem[] }>(data)
   },
 }
 

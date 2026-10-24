@@ -1,13 +1,36 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
-import { parentDashboardService, type ParentDashboardData } from '@/services/parentDashboard'
+import { Suspense, use, useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { format, parseISO } from 'date-fns'
+import { ko } from 'date-fns/locale'
+import {
+  parentDashboardService,
+  type ParentDashboardData,
+  type ParentLessonListItem,
+  type ParentNoticeItem,
+} from '@/services/parentDashboard'
 import ParentDashboardView from '../_components/ParentDashboardView'
 import * as styles from './parentDashboard.css'
 
-export default function ParentDashboardPage({ params }: { params: Promise<{ token: string }> }) {
+type Tab = 'lesson' | 'timeline' | 'notices'
+
+function formatDay(value: string) {
+  const parsed = parseISO(value.slice(0, 10))
+  if (Number.isNaN(parsed.getTime())) return value
+  return format(parsed, 'M월 d일 (E)', { locale: ko })
+}
+
+function ParentDashboardPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params)
+  const router = useRouter()
+  const search = useSearchParams()
+  const lessonParam = search.get('lesson')
+  const lessonId = lessonParam ? Number(lessonParam) : undefined
+  const [tab, setTab] = useState<Tab>('lesson')
   const [data, setData] = useState<ParentDashboardData | null>(null)
+  const [lessons, setLessons] = useState<ParentLessonListItem[]>([])
+  const [notices, setNotices] = useState<ParentNoticeItem[]>([])
   const [loading, setLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
@@ -16,9 +39,20 @@ export default function ParentDashboardPage({ params }: { params: Promise<{ toke
     setLoading(true)
     setErrorMsg(null)
     parentDashboardService
-      .getByToken(token)
+      .getByToken(token, Number.isFinite(lessonId) ? lessonId : undefined)
       .then((res) => {
-        if (!cancelled) setData(res)
+        if (cancelled) return
+        if (res.legacy_redirect && res.token) {
+          const next = res.lesson_id
+            ? `/parent/${res.token}?lesson=${res.lesson_id}`
+            : `/parent/${res.token}`
+          router.replace(next)
+          return
+        }
+        setData(res)
+        if (!lessonParam && res.lesson_id) {
+          router.replace(`/parent/${token}?lesson=${res.lesson_id}`)
+        }
       })
       .catch((e: unknown) => {
         if (cancelled) return
@@ -35,13 +69,132 @@ export default function ParentDashboardPage({ params }: { params: Promise<{ toke
     return () => {
       cancelled = true
     }
+  }, [lessonId, lessonParam, router, token])
+
+  useEffect(() => {
+    let cancelled = false
+    parentDashboardService
+      .listLessons(token)
+      .then((res) => {
+        if (!cancelled) setLessons(res.lessons)
+      })
+      .catch(() => {
+        if (!cancelled) setLessons([])
+      })
+    return () => {
+      cancelled = true
+    }
   }, [token])
+
+  useEffect(() => {
+    if (tab !== 'notices') return
+    let cancelled = false
+    parentDashboardService
+      .listNotices(token)
+      .then((res) => {
+        if (!cancelled) setNotices(res.notices)
+      })
+      .catch(() => {
+        if (!cancelled) setNotices([])
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [tab, token])
+
+  const chrome = (
+    <div className={styles.chrome}>
+      <div className={styles.tabRow}>
+        {(
+          [
+            ['lesson', '이번 수업'],
+            ['timeline', '지난 수업'],
+            ['notices', '공지'],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            className={tab === id ? `${styles.tabButton} ${styles.tabButtonOn}` : styles.tabButton}
+            onClick={() => setTab(id)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {lessons.length > 0 ? (
+        <select
+          className={styles.lessonSelect}
+          value={data?.lesson_id ?? ''}
+          onChange={(event) => {
+            const next = event.target.value
+            if (!next) return
+            setTab('lesson')
+            router.replace(`/parent/${token}?lesson=${next}`)
+          }}
+        >
+          {lessons.map((lesson) => (
+            <option key={lesson.lesson_id} value={lesson.lesson_id}>
+              {formatDay(lesson.lesson_date)} {lesson.class_name}
+            </option>
+          ))}
+        </select>
+      ) : null}
+    </div>
+  )
 
   return (
     <div className={styles.page}>
       {loading ? <div className={styles.stateBox}>불러오는 중...</div> : null}
       {!loading && errorMsg ? <div className={styles.stateBox}>{errorMsg}</div> : null}
-      {!loading && !errorMsg && data ? <ParentDashboardView data={data} /> : null}
+      {!loading && !errorMsg && data && tab === 'lesson' ? (
+        <ParentDashboardView data={data} header={chrome} />
+      ) : null}
+      {!loading && !errorMsg && data && tab !== 'lesson' ? (
+        <div className={styles.frame}>
+          {chrome}
+          {tab === 'timeline'
+            ? lessons.map((lesson) => (
+                <button
+                  key={lesson.lesson_id}
+                  type="button"
+                  className={styles.listCard}
+                  onClick={() => {
+                    setTab('lesson')
+                    router.replace(`/parent/${token}?lesson=${lesson.lesson_id}`)
+                  }}
+                >
+                  <div className={styles.listTitle}>{formatDay(lesson.lesson_date)}</div>
+                  <div className={styles.listMeta}>
+                    {lesson.class_name} · {lesson.template_name}
+                  </div>
+                </button>
+              ))
+            : null}
+          {tab === 'timeline' && lessons.length === 0 ? (
+            <div className={styles.stateBox}>아직 수업이 없어요.</div>
+          ) : null}
+          {tab === 'notices'
+            ? notices.map((notice) => (
+                <div key={notice.batch_id} className={styles.listCard}>
+                  <div className={styles.listMeta}>{formatDay(notice.sent_at)}</div>
+                  <div className={styles.noticeBody}>{notice.body}</div>
+                </div>
+              ))
+            : null}
+          {tab === 'notices' && notices.length === 0 ? (
+            <div className={styles.stateBox}>받은 공지가 없어요.</div>
+          ) : null}
+        </div>
+      ) : null}
     </div>
+  )
+}
+
+export default function Page(props: { params: Promise<{ token: string }> }) {
+  return (
+    <Suspense fallback={<div className={styles.stateBox}>불러오는 중...</div>}>
+      <ParentDashboardPage {...props} />
+    </Suspense>
   )
 }

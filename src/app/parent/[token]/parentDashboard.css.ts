@@ -382,3 +382,74 @@ export const feedbackHead = style({
   marginBottom: '12px',
 })
 
+export const chrome = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
+  marginBottom: '16px',
+})
+
+export const tabRow = style({
+  display: 'flex',
+  gap: '8px',
+})
+
+export const tabButton = style({
+  flex: 1,
+  border: `1px solid ${colors.gray100}`,
+  borderRadius: '999px',
+  background: colors.white,
+  color: colors.gray700,
+  fontSize: '13px',
+  fontWeight: 600,
+  padding: '8px 0',
+  cursor: 'pointer',
+})
+
+export const tabButtonOn = style({
+  borderColor: colors.primary400,
+  background: colors.primary50,
+  color: colors.primary600,
+})
+
+export const lessonSelect = style({
+  width: '100%',
+  border: `1px solid ${colors.gray100}`,
+  borderRadius: '12px',
+  background: colors.white,
+  color: colors.gray900,
+  fontSize: '14px',
+  padding: '10px 12px',
+})
+
+export const listCard = style({
+  width: '100%',
+  textAlign: 'left',
+  border: `1px solid ${colors.gray75}`,
+  borderRadius: '16px',
+  background: colors.white,
+  padding: '14px 16px',
+  cursor: 'pointer',
+  color: colors.gray900,
+  marginBottom: '10px',
+})
+
+export const listTitle = style({
+  fontSize: '15px',
+  fontWeight: 600,
+})
+
+export const listMeta = style({
+  marginTop: '4px',
+  fontSize: '13px',
+  color: colors.gray600,
+})
+
+export const noticeBody = style({
+  marginTop: '8px',
+  fontSize: '14px',
+  lineHeight: 1.5,
+  whiteSpace: 'pre-wrap',
+  color: colors.gray700,
+})
+

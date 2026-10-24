@@ -988,3 +988,63 @@ export const alimParentLink = style({
     },
   },
 })
+
+export const parentLinkCard = style({
+  background: colors.white,
+  border: `1px solid ${colors.gray50}`,
+  borderRadius: '20px',
+  padding: '20px',
+  marginTop: '16px',
+})
+
+export const parentLinkTitle = style({
+  fontSize: '16px',
+  fontWeight: 600,
+  color: colors.gray900,
+  marginBottom: '8px',
+})
+
+export const parentLinkStatus = style({
+  fontSize: '13px',
+  fontWeight: 600,
+  color: colors.primary600,
+  marginBottom: '8px',
+})
+
+export const parentLinkUrl = style({
+  width: '100%',
+  boxSizing: 'border-box',
+  border: `1px solid ${colors.gray100}`,
+  borderRadius: '10px',
+  padding: '10px 12px',
+  fontSize: '13px',
+  color: colors.gray700,
+  marginBottom: '12px',
+})
+
+export const parentLinkActions = style({
+  display: 'flex',
+  gap: '8px',
+})
+
+export const parentLinkButton = style({
+  border: 'none',
+  borderRadius: '10px',
+  background: colors.primary500,
+  color: colors.white,
+  fontSize: '14px',
+  fontWeight: 600,
+  padding: '10px 14px',
+  cursor: 'pointer',
+})
+
+export const parentLinkButtonGhost = style({
+  border: `1px solid ${colors.gray100}`,
+  borderRadius: '10px',
+  background: colors.white,
+  color: colors.gray700,
+  fontSize: '14px',
+  fontWeight: 600,
+  padding: '10px 14px',
+  cursor: 'pointer',
+})

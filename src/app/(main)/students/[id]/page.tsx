@@ -9,6 +9,7 @@ import * as styles from './studentDashboard.css'
 import { MSG } from './_lib/studentDashboardShared'
 import { useStudentDashboard } from './_hooks/useStudentDashboard'
 import { StudentProfileCard } from './_components/StudentProfileCard'
+import { ParentLinkCard } from './_components/ParentLinkCard'
 import { StudentMemoCard } from './_components/StudentMemoCard'
 import { StudentStatsRow } from './_components/StudentStatsRow'
 import { StudentIncompleteList } from './_components/StudentIncompleteList'
@@ -53,6 +54,7 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
             classLabel={dash.classLabel}
             onEdit={dash.editStudent.open}
           />
+          <ParentLinkCard detail={detail} onUpdated={dash.replaceDetail} />
           <StudentMemoCard memo={detail.memo ?? ''} onSave={dash.saveMemo} />
           <StudentStatsRow
             monthlyCompletionPct={dash.monthlyCompletionPct}

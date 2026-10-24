@@ -38,6 +38,13 @@ export interface IncompleteItem {
   template_name: string
 }
 
+export interface ParentLinkInfo {
+  status: 'active' | 'ending' | 'blocked'
+  access_until: string | null
+  days_left: number | null
+  token: string | null
+}
+
 export interface StudentDetail {
   id: number
   name: string
@@ -50,4 +57,5 @@ export interface StudentDetail {
   classes: StudentClass[]
   stats: StudentStats
   incomplete_items: IncompleteItem[]
+  parent_link?: ParentLinkInfo | null
 }

@@ -81,12 +81,14 @@ interface ParentDashboardViewProps {
   data: ParentDashboardData
   embed?: boolean
   feedbackExtra?: ReactNode
+  header?: ReactNode
 }
 
 export default function ParentDashboardView({
   data,
   embed = false,
   feedbackExtra,
+  header,
 }: ParentDashboardViewProps) {
   const [showAllIncomplete, setShowAllIncomplete] = useState(false)
   const incompleteItems = data.incomplete_items ?? []
@@ -123,6 +125,7 @@ export default function ParentDashboardView({
   return (
     <div className={embed ? styles.frameEmbed : styles.frame}>
       <div className={embed ? styles.topHaloEmbed : styles.topHalo} />
+      {header}
       <p className={styles.greet}>{`${data.student_name} 학부모님 안녕하세요`}</p>
       <div className={styles.classBadge}>{data.class_name}</div>
       <h1 className={styles.title}>{`${formatKoreanDate(data.lesson_date)} 수업 결과`}</h1>
