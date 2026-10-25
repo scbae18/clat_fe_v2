@@ -76,7 +76,7 @@ export const parentViewButton = style({
   },
   ':disabled': {
     cursor: 'default',
-    color: colors.gray400,
+    color: colors.gray500,
   },
 })
 
