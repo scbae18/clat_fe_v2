@@ -16,6 +16,11 @@ const TABS = [
     label: '발송 내역',
     match: (p: string) => p.startsWith('/alimtalk/history'),
   },
+  {
+    href: '/alimtalk/test',
+    label: '테스트',
+    match: (p: string) => p.startsWith('/alimtalk/test'),
+  },
 ] as const
 
 export function AlimtalkTabs() {

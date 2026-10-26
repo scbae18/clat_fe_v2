@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import LogoBetaIcon from '@/assets/logo/logo-beta.svg'
 import bannerIllust from '@/assets/images/banner-illust.png'
 import giftBox from '@/assets/images/gift-box.png'
@@ -112,6 +113,10 @@ export default function HomePage() {
               <br />
               무료로 사용하세요.
             </div>
+            <Link href="/alimtalk/test" className={styles.inviteButtonStyle}>
+              내 폰으로 받아보기
+              <ChevronRight width={24} height={24} />
+            </Link>
           </div>
           <div className={styles.cardImageWrapStyle}>
             <Image

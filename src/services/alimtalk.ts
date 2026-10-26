@@ -25,7 +25,16 @@ function unwrapAlimtalkSettings(res: { data?: unknown }): AlimtalkSettings {
   return inner as AlimtalkSettings
 }
 
-export type AlimtalkBatchType = 'LESSON' | 'ATTENDANCE' | 'BROADCAST'
+export type AlimtalkBatchType = 'LESSON' | 'ATTENDANCE' | 'BROADCAST' | 'TEST'
+
+export type AlimtalkTestKind = 'LESSON' | 'ATTENDANCE' | 'BROADCAST'
+
+export interface AlimtalkTestStatus {
+  phone: string | null
+  remaining: number
+  limit: number
+  delivery_mode: AlimtalkDeliveryMode
+}
 
 export type BroadcastChannel = 'STUDENT' | 'PARENT' | 'BOTH'
 
@@ -55,7 +64,7 @@ export interface AlimtalkBatchesMeta {
 
 export interface AlimtalkBatchMessage {
   message_id: number
-  student_id: number
+  student_id: number | null
   student_name: string
   phone_type: 'STUDENT' | 'PARENT'
   phone: string
@@ -180,6 +189,26 @@ export const alimtalkService = {
       return inner.data as BroadcastSendResult
     }
     return inner as BroadcastSendResult
+  },
+
+  async getTestStatus(): Promise<AlimtalkTestStatus> {
+    const { data } = await axiosInstance.get('/alimtalk/test')
+    return (data.data ?? data) as AlimtalkTestStatus
+  },
+
+  async sendTest(dto: {
+    kind: AlimtalkTestKind
+    notice_type?: BroadcastNoticeType
+    lesson?: {
+      content?: string
+      attendance?: string
+      score?: string
+      score_max?: string
+      homework?: '완료' | '미완료'
+    }
+  }): Promise<BroadcastSendResult & { remaining: number }> {
+    const { data } = await axiosInstance.post('/alimtalk/test', dto)
+    return (data.data ?? data) as BroadcastSendResult & { remaining: number }
   },
 }
 

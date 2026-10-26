@@ -19,11 +19,12 @@ export function maskPhone(phone: string): string {
 export function groupMessages(messages: AlimtalkBatchMessage[]) {
   const m = new Map<number, GroupedStudentMessages>()
   for (const msg of messages) {
-    const cur = m.get(msg.student_id) ?? { name: msg.student_name }
+    const studentId = msg.student_id ?? 0
+    const cur = m.get(studentId) ?? { name: msg.student_name }
     cur.name = msg.student_name
     if (msg.phone_type === 'STUDENT') cur.student = msg
     else cur.parent = msg
-    m.set(msg.student_id, cur)
+    m.set(studentId, cur)
   }
   return Array.from(m.entries()).sort((a, b) => a[1].name.localeCompare(b[1].name, 'ko'))
 }
