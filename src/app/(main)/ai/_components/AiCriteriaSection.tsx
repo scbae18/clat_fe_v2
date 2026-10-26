@@ -11,9 +11,10 @@ import {
 type AiCriteriaSectionProps = {
   settings: AiSettings
   onUpdate: <K extends keyof AiSettings>(key: K, value: AiSettings[K]) => void
+  lengthLocked?: boolean
 }
 
-export function AiCriteriaSection({ settings, onUpdate }: AiCriteriaSectionProps) {
+export function AiCriteriaSection({ settings, onUpdate, lengthLocked = false }: AiCriteriaSectionProps) {
   return (
     <section className={styles.card}>
       <h2 className={styles.sectionTitle}>피드백 생성 기준</h2>
@@ -37,7 +38,7 @@ export function AiCriteriaSection({ settings, onUpdate }: AiCriteriaSectionProps
         </div>
       </div>
 
-      <div className={styles.fieldRow}>
+      <div className={lengthLocked ? `${styles.fieldRow} ${styles.sectionDisabled}` : styles.fieldRow}>
         <h3 className={styles.fieldTitle}>피드백 길이</h3>
         <div className={styles.chipRow}>
           {FEEDBACK_LENGTHS.map((it) => {

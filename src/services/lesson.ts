@@ -128,10 +128,12 @@ export interface ParentPreviewStatusItem {
   student_id: number
   status: ParentPreviewStatusValue
   stale: boolean
+  unwritten?: boolean
 }
 
 export interface ParentPreviewStatusResult {
   lesson_updated_at: string
+  feedback_mode?: 'AUTO' | 'ASSIST' | 'MANUAL'
   ready_count: number
   total_count: number
   items: ParentPreviewStatusItem[]
@@ -153,6 +155,11 @@ export interface ParentPreviewResult {
   ai_feedback: string | null
   ai_feedback_status: ParentPreviewStatusValue
   stale: boolean
+  feedback_mode?: 'AUTO' | 'ASSIST' | 'MANUAL'
+  teacher_note?: string | null
+  feedback_source?: 'AI' | 'ASSIST' | 'MANUAL'
+  edited_at?: string | null
+  show_ai_label?: boolean
   incomplete_items: Array<{
     item_name: string
     note?: string | null
@@ -287,6 +294,18 @@ export const lessonService = {
       params: studentIds.length ? { student_ids: studentIds.join(',') } : undefined,
     })
     return (data.data ?? data) as ParentPreviewStatusResult
+  },
+
+  async saveParentPreview(
+    lessonId: number,
+    studentId: number,
+    body: { teacher_note?: string | null; ai_feedback?: string | null },
+  ): Promise<ParentPreviewResult> {
+    const { data } = await axiosInstance.put(
+      `/lessons/${lessonId}/parent-preview/${studentId}`,
+      body,
+    )
+    return (data.data ?? data) as ParentPreviewResult
   },
 
   async getParentPreview(lessonId: number, studentId: number): Promise<ParentPreviewResult> {

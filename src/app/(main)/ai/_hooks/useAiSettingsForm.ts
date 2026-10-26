@@ -26,9 +26,11 @@ export function useAiSettingsForm() {
         const data = await aiSettingsService.getSettings()
         if (cancelled) return
         setSettings({
+          ...EMPTY_SETTINGS,
           ...data,
           custom_tone_description: data.custom_tone_description ?? '',
           custom_tone_messages: data.custom_tone_messages ?? '',
+          feedback_mode: data.feedback_mode ?? 'AUTO',
         })
       } catch {
         if (!cancelled) error('AI 조교 설정을 불러오지 못했어요.')
@@ -93,11 +95,13 @@ export function useAiSettingsForm() {
         include_attendance: settings.include_attendance,
         include_improvement: settings.include_improvement,
         include_praise: settings.include_praise,
+        feedback_mode: settings.feedback_mode,
       })
       setSettings({
         ...saved,
         custom_tone_description: saved.custom_tone_description ?? '',
         custom_tone_messages: saved.custom_tone_messages ?? '',
+        feedback_mode: saved.feedback_mode ?? 'AUTO',
       })
       success('AI 조교 설정을 저장했어요.')
     } catch (e: unknown) {

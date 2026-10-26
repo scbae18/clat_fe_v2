@@ -70,17 +70,19 @@ function ClockIcon() {
 }
 
 function feedbackText(data: ParentDashboardData) {
-  if (data.ai_feedback_status === 'ready' && data.ai_feedback) return data.ai_feedback
-  if (data.ai_feedback_status === 'pending') {
-    return data.ai_feedback || '피드백을 준비 중이에요.'
-  }
-  return data.ai_feedback || '피드백을 불러오지 못했어요.'
+  if (data.ai_feedback) return data.ai_feedback
+  if (data.ai_feedback_status === 'pending') return '피드백을 준비 중이에요.'
+  if (data.ai_feedback_status === 'failed') return '피드백을 불러오지 못했어요.'
+  return '아직 피드백이 없어요.'
 }
 
 interface ParentDashboardViewProps {
   data: ParentDashboardData
   embed?: boolean
   feedbackExtra?: ReactNode
+  feedbackBody?: ReactNode
+  memoEditor?: ReactNode
+  onEditFeedback?: () => void
   header?: ReactNode
 }
 
@@ -88,6 +90,9 @@ export default function ParentDashboardView({
   data,
   embed = false,
   feedbackExtra,
+  feedbackBody,
+  memoEditor,
+  onEditFeedback,
   header,
 }: ParentDashboardViewProps) {
   const [showAllIncomplete, setShowAllIncomplete] = useState(false)
@@ -162,7 +167,8 @@ export default function ParentDashboardView({
           )}
         </section>
 
-        <section className={styles.card}>
+        <section className={`${styles.card} ${styles.feedbackCard}`}>
+          {memoEditor}
           {feedbackExtra ? (
             <div className={styles.feedbackHead}>
               <div className={styles.cardHeadInline}>
@@ -181,11 +187,21 @@ export default function ParentDashboardView({
               <span className={styles.cardHeadText}>선생님 피드백</span>
             </div>
           )}
-          <p className={styles.feedbackText}>{feedbackText(data)}</p>
-          <p className={styles.aiHint}>
-            <SparkleIcon />
-            선생님이 설정한 기준으로 생성된 AI피드백입니다.
-          </p>
+          {feedbackBody ??
+            (onEditFeedback ? (
+              <button type="button" className={styles.feedbackField} onClick={onEditFeedback}>
+                <span className={styles.feedbackText}>{feedbackText(data)}</span>
+                <span className={styles.feedbackEditMark}>눌러서 수정</span>
+              </button>
+            ) : (
+              <p className={styles.feedbackText}>{feedbackText(data)}</p>
+            ))}
+          {!feedbackBody && data.show_ai_label ? (
+            <p className={styles.aiHint}>
+              <SparkleIcon />
+              AI가 작성하고 선생님이 확인한 피드백이에요
+            </p>
+          ) : null}
         </section>
 
         <section className={styles.card}>

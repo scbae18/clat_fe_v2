@@ -133,6 +133,121 @@ export const feedbackText = style({
   lineHeight: '140%',
   letterSpacing: '-0.03em',
   fontWeight: 500,
+  whiteSpace: 'pre-wrap',
+})
+
+export const feedbackField = style({
+  width: '100%',
+  boxSizing: 'border-box',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'stretch',
+  gap: '8px',
+  margin: 0,
+  padding: '10px 12px',
+  border: 'none',
+  borderRadius: '8px',
+  backgroundColor: colors.gray50,
+  textAlign: 'left',
+  cursor: 'text',
+  fontFamily: 'inherit',
+})
+
+export const feedbackEditMark = style({
+  alignSelf: 'flex-end',
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 600,
+  color: colors.primary500,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+})
+
+export const feedbackTextarea = style([
+  feedbackText,
+  {
+    display: 'block',
+    width: '100%',
+    minHeight: '72px',
+    padding: 0,
+    border: 'none',
+    background: 'none',
+    resize: 'vertical',
+    fontFamily: 'inherit',
+    outline: 'none',
+  },
+])
+
+export const feedbackCard = style({
+  position: 'relative',
+})
+
+export const feedbackActions = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: '10px',
+  flexWrap: 'wrap',
+  flexShrink: 0,
+})
+
+export const textAction = style({
+  border: 'none',
+  background: 'none',
+  cursor: 'pointer',
+  padding: 0,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 600,
+  color: colors.primary500,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  fontFamily: 'inherit',
+})
+
+export const textActionMuted = style([
+  textAction,
+  {
+    color: colors.gray500,
+    fontWeight: 500,
+  },
+])
+
+export const memoPopover = style({
+  position: 'absolute',
+  left: '20px',
+  right: '20px',
+  bottom: 'calc(100% + 8px)',
+  zIndex: 2,
+  backgroundColor: colors.white,
+  border: `1px solid ${colors.gray50}`,
+  borderRadius: '16px',
+  padding: '16px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '10px',
+})
+
+export const memoField = style({
+  width: '100%',
+  boxSizing: 'border-box',
+  minHeight: '96px',
+  border: 'none',
+  borderRadius: '8px',
+  backgroundColor: colors.gray50,
+  padding: '12px',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: 500,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.gray900,
+  fontFamily: 'inherit',
+  resize: 'vertical',
+  outline: 'none',
+})
+
+export const memoActions = style({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: '12px',
 })
 
 export const aiHint = style({

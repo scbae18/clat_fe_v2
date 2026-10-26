@@ -71,6 +71,7 @@ export const EMPTY_SETTINGS: AiSettings = {
   include_attendance: true,
   include_improvement: false,
   include_praise: true,
+  feedback_mode: 'AUTO',
 }
 
 export function parseSampleMessages(input: string): string[] {

@@ -3,6 +3,7 @@ import axiosInstance from '@/lib/api/axiosInstance'
 export type AiTonePreset = 'WARM' | 'ANALYTICAL' | 'CONCISE' | 'CUSTOM'
 export type AiDataPeriod = 'THIS_LESSON' | 'RECENT_3' | 'RECENT_5' | 'RECENT_1MONTH'
 export type AiFeedbackLength = 'SHORT' | 'MEDIUM' | 'LONG'
+export type AiFeedbackMode = 'AUTO' | 'ASSIST' | 'MANUAL'
 
 export interface AiSettings {
   tone_preset: AiTonePreset
@@ -15,6 +16,7 @@ export interface AiSettings {
   include_attendance: boolean
   include_improvement: boolean
   include_praise: boolean
+  feedback_mode: AiFeedbackMode
 }
 
 export interface PutAiSettingsDto {
@@ -28,6 +30,7 @@ export interface PutAiSettingsDto {
   include_attendance?: boolean
   include_improvement?: boolean
   include_praise?: boolean
+  feedback_mode?: AiFeedbackMode
 }
 
 export interface AnalyzeToneDto {

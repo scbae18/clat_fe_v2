@@ -21,6 +21,11 @@ export const pageTitle = style({
   },
 })
 
+export const sectionDisabled = style({
+  opacity: 0.45,
+  pointerEvents: 'none',
+})
+
 export const cardStack = style({
   display: 'flex',
   flexDirection: 'column',
@@ -51,6 +56,13 @@ export const sectionTitle = style({
       fontSize: '20px',
     },
   },
+})
+
+export const modeHelp = style({
+  margin: '8px 0 0',
+  fontSize: '13px',
+  lineHeight: 1.5,
+  color: colors.gray600,
 })
 
 export const fieldTitle = style({
