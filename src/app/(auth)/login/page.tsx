@@ -68,7 +68,7 @@ function LoginContent() {
         <div className={logoSectionStyle}>
           <Logo height={80} style={{ width: 'auto' }} />
           <Text variant="headingMd" color="gray500">
-            출강 강사를 위한 운영 매니저
+            학원 강사 행정 자동화 AI 수업 운영 플랫폼
           </Text>
         </div>
 
