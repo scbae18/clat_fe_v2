@@ -7,7 +7,7 @@ export const rootStyle = style({
   flexDirection: 'column',
   alignItems: 'stretch',
   width: '100%',
-  maxHeight: 'min(85vh, 800px)',
+  minHeight: 0,
 })
 
 export const timerIconWrapStyle = style({
@@ -194,8 +194,9 @@ export const gridStyle = style({
   flexDirection: 'column',
   gap: '12px',
   overflowY: 'auto',
-  flex: 1,
-  minHeight: '120px',
+  flex: '1 1 auto',
+  minHeight: 0,
+  overscrollBehavior: 'contain',
   marginBottom: '24px',
 })
 
@@ -281,6 +282,9 @@ export const selectNativeStyle = style({
 
 export const endBtnStyle = style({
   width: '100%',
+  flexShrink: 0,
+  position: 'sticky',
+  bottom: 0,
   border: 'none',
   borderRadius: '12px',
   padding: '16px 12px',

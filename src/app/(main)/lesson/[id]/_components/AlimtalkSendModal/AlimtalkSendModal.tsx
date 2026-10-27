@@ -27,6 +27,7 @@ import { useToastStore } from '@/stores/toastStore'
 import { useUserStore } from '@/stores/userStore'
 import { pollBatchUntilSettled } from '@/services/alimtalk'
 import { fillLessonAlimtalkFrameHeader } from '@/lib/lessonAlimtalkFrame'
+import { useRegisterModal } from '@/components/common/Modal/useRegisterModal'
 import { listParentPhones } from '@/lib/parentPhones'
 import * as styles from './AlimtalkSendModal.css'
 
@@ -123,6 +124,7 @@ export default function AlimtalkSendModal({
   const [sending, setSending] = useState(false)
   const [sendProgress, setSendProgress] = useState<{ sent: number; total: number } | null>(null)
   const [isClosing, setIsClosing] = useState(false)
+  useRegisterModal(isOpen || isClosing)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [emptySendOpen, setEmptySendOpen] = useState(false)
   const [emptySendCount, setEmptySendCount] = useState(0)

@@ -33,6 +33,7 @@ export const backdrop = style({
   display: 'flex',
   justifyContent: 'flex-end',
   zIndex: zIndex.modal,
+  overscrollBehavior: 'none',
 })
 
 export const drawer = style({
@@ -90,6 +91,7 @@ export const leftCol = style({
   display: 'flex',
   flexDirection: 'column',
   backgroundColor: colors.white,
+  minHeight: 0,
   '@media': {
     [media.phone]: {
       width: '156px',
@@ -120,8 +122,10 @@ export const rightCol = style({
   display: 'flex',
   flexDirection: 'column',
   minWidth: 0,
+  minHeight: 0,
   padding: '24px',
   overflowY: 'auto',
+  overscrollBehavior: 'contain',
   gap: '16px',
   '@media': {
     [media.phone]: {
@@ -219,7 +223,9 @@ export const studentRowDisabled = style({
 
 export const studentList = style({
   flex: 1,
+  minHeight: 0,
   overflowY: 'auto',
+  overscrollBehavior: 'contain',
 })
 
 export const studentRow = style({

@@ -14,6 +14,7 @@ export const overlayStyle = style({
   backgroundColor: 'rgba(0, 0, 0, 0.2)',
   backdropFilter: 'blur(4px)',
   zIndex: zIndex.moreSheet,
+  overscrollBehavior: 'none',
   '@media': {
     [media.desktop]: {
       display: 'none',
@@ -33,6 +34,9 @@ export const sheetStyle = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '4px',
+  maxHeight: `calc(100dvh - ${bottomNavHeightVar} - 12px)`,
+  overflowY: 'auto',
+  overscrollBehavior: 'contain',
   '@media': {
     [media.desktop]: {
       display: 'none',

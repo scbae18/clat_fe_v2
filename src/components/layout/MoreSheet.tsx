@@ -11,6 +11,7 @@ import MessageIcon from '@/assets/icons/icon-message.svg'
 import StarIcon from '@/assets/icons/icon-star.svg'
 import UsersIcon from '@/assets/icons/icon-users.svg'
 import LogoutIcon from '@/assets/icons/icon-logout.svg'
+import { useRegisterModal } from '@/components/common/Modal/useRegisterModal'
 import * as styles from './MoreSheet.css'
 
 const LINK_ICONS = {
@@ -29,6 +30,7 @@ export default function MoreSheet({ open, onClose }: MoreSheetProps) {
   const pathname = usePathname() ?? ''
   const logout = useLogout()
   const [logoutOpen, setLogoutOpen] = useState(false)
+  useRegisterModal(open)
 
   useEffect(() => {
     if (!open) return

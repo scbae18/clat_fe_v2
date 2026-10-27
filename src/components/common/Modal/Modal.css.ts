@@ -16,6 +16,7 @@ export const overlayStyle = style({
   alignItems: 'center',
   justifyContent: 'center',
   zIndex: zIndex.modal,
+  overscrollBehavior: 'none',
   '@media': {
     [media.phone]: {
       alignItems: 'flex-end',
@@ -29,8 +30,10 @@ export const modalRecipe = recipe({
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
-    maxHeight: '90vh',
-    overflow: 'hidden',
+    maxHeight: '90dvh',
+    overflowX: 'hidden',
+    overflowY: 'auto',
+    overscrollBehavior: 'contain',
     '@media': {
       [media.phone]: {
         maxHeight: '92dvh',

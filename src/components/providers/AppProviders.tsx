@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import BodyScrollLock from '@/components/common/Modal/BodyScrollLock'
 
 function makeQueryClient() {
   return new QueryClient({
@@ -18,5 +19,10 @@ function makeQueryClient() {
 export default function AppProviders({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(makeQueryClient)
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BodyScrollLock />
+      {children}
+    </QueryClientProvider>
+  )
 }

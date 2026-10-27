@@ -2,8 +2,8 @@
 
 import { ReactNode, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useModalStore } from '@/stores/modalStore'
 import { overlayStyle, modalRecipe, modalBodyStyle } from './Modal.css'
+import { useRegisterModal } from './useRegisterModal'
 
 interface ModalProps {
   isOpen: boolean
@@ -13,19 +13,12 @@ interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, size = 'md', children }: ModalProps) {
-  const registerOpen = useModalStore((s) => s.registerOpen)
-  const registerClose = useModalStore((s) => s.registerClose)
   const [mounted, setMounted] = useState(false)
+  useRegisterModal(isOpen)
 
   useEffect(() => {
     setMounted(true)
   }, [])
-
-  useEffect(() => {
-    if (!isOpen) return
-    registerOpen()
-    return () => registerClose()
-  }, [isOpen, registerOpen, registerClose])
 
   if (!isOpen || !mounted) return null
 
