@@ -1,13 +1,33 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { media } from '@/styles/tokens/breakpoints'
+import { mobileTopBarHeightVar } from '@/styles/layoutVars.css'
 
 export const pageRoot = style({
   maxWidth: '1200px',
 })
 
+export const saveBar = style({
+  position: 'sticky',
+  top: mobileTopBarHeightVar,
+  zIndex: 20,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '16px',
+  margin: '0 -48px 24px',
+  padding: '0 48px 16px',
+  backgroundColor: colors.background,
+  '@media': {
+    [media.phone]: {
+      margin: '0 -16px 16px',
+      padding: '0 16px 12px',
+    },
+  },
+})
+
 export const pageTitle = style({
-  margin: '0 0 40px',
+  margin: 0,
   fontSize: '39px',
   fontWeight: 700,
   lineHeight: '140%',
@@ -16,7 +36,6 @@ export const pageTitle = style({
   '@media': {
     [media.phone]: {
       fontSize: '24px',
-      marginBottom: '24px',
     },
   },
 })
@@ -313,9 +332,9 @@ export const toggleHelp = style({
 })
 
 export const saveRow = style({
-  marginTop: '24px',
   display: 'flex',
   justifyContent: 'flex-end',
+  flexShrink: 0,
 })
 
 export const saveButton = style({

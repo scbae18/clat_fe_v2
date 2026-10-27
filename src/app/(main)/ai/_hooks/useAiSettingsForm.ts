@@ -11,6 +11,22 @@ import {
   parseSampleMessages,
 } from '../_lib/aiSettingsShared'
 
+function settingsSnapshot(settings: AiSettings): string {
+  return JSON.stringify({
+    tone_preset: settings.tone_preset,
+    custom_tone_description: (settings.custom_tone_description ?? '').trim(),
+    custom_tone_messages: (settings.custom_tone_messages ?? '').trim(),
+    data_period: settings.data_period,
+    feedback_length: settings.feedback_length,
+    include_score: Boolean(settings.include_score),
+    include_homework: Boolean(settings.include_homework),
+    include_attendance: Boolean(settings.include_attendance),
+    include_improvement: Boolean(settings.include_improvement),
+    include_praise: Boolean(settings.include_praise),
+    feedback_mode: settings.feedback_mode ?? 'AUTO',
+  })
+}
+
 export function useAiSettingsForm() {
   const { success, error } = useToast()
   const [settings, setSettings] = useState<AiSettings>(EMPTY_SETTINGS)
@@ -18,6 +34,7 @@ export function useAiSettingsForm() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -25,13 +42,15 @@ export function useAiSettingsForm() {
       try {
         const data = await aiSettingsService.getSettings()
         if (cancelled) return
-        setSettings({
+        const loaded = {
           ...EMPTY_SETTINGS,
           ...data,
           custom_tone_description: data.custom_tone_description ?? '',
           custom_tone_messages: data.custom_tone_messages ?? '',
           feedback_mode: data.feedback_mode ?? 'AUTO',
-        })
+        }
+        setSettings(loaded)
+        setSavedSnapshot(settingsSnapshot(loaded))
       } catch {
         if (!cancelled) error('AI 조교 설정을 불러오지 못했어요.')
       } finally {
@@ -97,12 +116,14 @@ export function useAiSettingsForm() {
         include_praise: settings.include_praise,
         feedback_mode: settings.feedback_mode,
       })
-      setSettings({
+      const next = {
         ...saved,
         custom_tone_description: saved.custom_tone_description ?? '',
         custom_tone_messages: saved.custom_tone_messages ?? '',
         feedback_mode: saved.feedback_mode ?? 'AUTO',
-      })
+      }
+      setSettings(next)
+      setSavedSnapshot(settingsSnapshot(next))
       success('AI 조교 설정을 저장했어요.')
     } catch (e: unknown) {
       error(extractApiErrorMessage(e, '저장에 실패했어요.'))
@@ -111,11 +132,14 @@ export function useAiSettingsForm() {
     }
   }
 
+  const dirty = savedSnapshot !== null && settingsSnapshot(settings) !== savedSnapshot
+
   return {
     settings,
     sampleFeedback,
     loading,
     saving,
+    dirty,
     analyzing,
     selectedPreset,
     updateSetting,
