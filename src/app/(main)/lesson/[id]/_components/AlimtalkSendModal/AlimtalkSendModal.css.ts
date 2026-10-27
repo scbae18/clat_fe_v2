@@ -3,7 +3,7 @@ import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
 import { media } from '@/styles/tokens/breakpoints'
 import { zIndex } from '@/styles/tokens/zIndex'
-import { phoneTextRules, truncateRules } from '@/styles/tokens/textOverflow'
+import { truncateRules } from '@/styles/tokens/textOverflow'
 
 const slideIn = keyframes({
   from: { transform: 'translateX(100%)' },
@@ -277,15 +277,16 @@ export const studentName = style([
   truncateRules,
 ])
 
-export const phoneMuted = style([
-  {
-    fontSize: fontStyles.labelSm.fontSize,
-    fontWeight: 500,
-    color: colors.gray500,
-    marginTop: '4px',
-  },
-  phoneTextRules,
-])
+export const phoneMuted = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 500,
+  color: colors.gray500,
+  marginTop: '4px',
+  lineHeight: '140%',
+  fontVariantNumeric: 'tabular-nums',
+  whiteSpace: 'normal',
+  overflowWrap: 'break-word',
+})
 
 export const studentNameRow = style({
   display: 'flex',
