@@ -6,12 +6,10 @@ import type {
   AdminAlimtalkList,
   AdminAlimtalkStatus,
   AdminAlimtalkBatchType,
-  AdminClassList,
   AdminCreatedUser,
   AdminDashboard,
-  AdminHealth,
-  AdminLessonList,
   AdminSession,
+  AdminActionLogList,
   AdminUserDetail,
   AdminUserList,
 } from '@/types/admin'
@@ -46,9 +44,21 @@ export const admin = {
     return unwrap(data)
   },
 
-  async listUsers(page = 1, limit = 50, approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED') {
+  async listUsers(params?: {
+    page?: number
+    limit?: number
+    approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED'
+    withdrawal?: boolean
+    q?: string
+  }) {
     const { data } = await axiosInstance.get<Envelope<AdminUserList>>('/admin/users', {
-      params: { page, limit, approval_status: approvalStatus },
+      params: {
+        page: params?.page ?? 1,
+        limit: params?.limit ?? 50,
+        approval_status: params?.approvalStatus,
+        withdrawal: params?.withdrawal ? '1' : undefined,
+        q: params?.q || undefined,
+      },
     })
     return unwrap(data)
   },
@@ -71,7 +81,7 @@ export const admin = {
     return unwrap(data)
   },
 
-  async setUserApproval(id: number, status: 'APPROVED' | 'REJECTED') {
+  async setUserApproval(id: number, status: 'APPROVED' | 'REJECTED' | 'SUSPENDED') {
     const { data } = await axiosInstance.patch<
       Envelope<{
         id: number
@@ -79,20 +89,14 @@ export const admin = {
         name: string
         approval_status: 'PENDING' | 'APPROVED' | 'REJECTED'
         approved_at: string | null
+        suspended_at: string | null
       }>
     >(`/admin/users/${id}/approval`, { status })
     return unwrap(data)
   },
 
-  async listClasses(page = 1, limit = 50) {
-    const { data } = await axiosInstance.get<Envelope<AdminClassList>>('/admin/classes', {
-      params: { page, limit },
-    })
-    return unwrap(data)
-  },
-
-  async listLessons(page = 1, limit = 30) {
-    const { data } = await axiosInstance.get<Envelope<AdminLessonList>>('/admin/lessons', {
+  async listActionLogs(page = 1, limit = 50) {
+    const { data } = await axiosInstance.get<Envelope<AdminActionLogList>>('/admin/action-logs', {
       params: { page, limit },
     })
     return unwrap(data)
@@ -116,11 +120,12 @@ export const admin = {
     page = 1,
     limit = 50,
     type?: AdminAlimtalkBatchType,
+    teacherId?: number,
   ) {
     const { data } = await axiosInstance.get<Envelope<AdminAlimtalkBatchList>>(
       '/admin/alimtalk/batches',
       {
-        params: { status, page, limit, type },
+        params: { status, page, limit, type, teacher_id: teacherId },
         timeout: ADMIN_TIMEOUT,
       },
     )
@@ -132,13 +137,6 @@ export const admin = {
       `/admin/alimtalk/batches/${id}`,
       { timeout: ADMIN_TIMEOUT },
     )
-    return unwrap(data)
-  },
-
-  async getHealth() {
-    const { data } = await axiosInstance.get<Envelope<AdminHealth>>('/admin/health', {
-      timeout: ADMIN_TIMEOUT,
-    })
     return unwrap(data)
   },
 

@@ -23,6 +23,15 @@ export type AdminDashboard = {
     total_lessons: number
     today_lessons: number
   }
+  today: {
+    pending_approvals: number
+    withdrawal_requests: number
+    recent_send_failures: number
+  }
+  month: {
+    message_count: number
+    test_message_count: number
+  }
   wow: {
     lessons: { label: string; pct: number }
     signups: { label: string; pct: number }
@@ -31,10 +40,8 @@ export type AdminDashboard = {
     this_week_signups: number
     last_week_signups: number
   }
-  funnel: Array<{ label: string; count: number }>
   signup_daily: Array<{ date: string; value: number }>
   lesson_daily: Array<{ date: string; value: number }>
-  dow: Array<{ label: string; value: number }>
   top_teachers: Array<{ id: number; name: string; lesson_count: number }>
   recent_feed: Array<{
     id: number
@@ -52,11 +59,11 @@ export type AdminUserListItem = {
   id: number
   email: string
   name: string
-  phone: string | null
   created_at: string
   withdrawal_requested_at: string | null
   approval_status?: 'PENDING' | 'APPROVED' | 'REJECTED'
   approved_at?: string | null
+  suspended_at?: string | null
   class_count: number
   student_count: number
   template_count: number
@@ -86,6 +93,11 @@ export type AdminUserDetail = {
   withdrawal_requested_at: string | null
   approval_status?: 'PENDING' | 'APPROVED' | 'REJECTED'
   approved_at?: string | null
+  suspended_at?: string | null
+  month?: {
+    message_count: number
+    test_message_count: number
+  }
   is_active_7d: boolean
   last_lesson_at: string | null
   stats: {
@@ -106,13 +118,6 @@ export type AdminUserDetail = {
     student_count: number
     lesson_count: number
     days_of_week: number[]
-  }>
-  students: Array<{
-    id: number
-    name: string
-    school_name: string | null
-    created_at: string
-    classes: string[]
   }>
   templates: Array<{
     id: number
@@ -184,7 +189,24 @@ export type AdminLessonList = {
 }
 
 export type AdminAlimtalkStatus = 'all' | 'SUCCESS' | 'FAIL'
-export type AdminAlimtalkBatchType = 'LESSON' | 'ATTENDANCE' | 'BROADCAST'
+export type AdminAlimtalkBatchType = 'LESSON' | 'ATTENDANCE' | 'BROADCAST' | 'TEST'
+
+export type AdminActionType = 'APPROVE' | 'REJECT' | 'DELETE' | 'SUSPEND'
+
+export type AdminActionLogList = {
+  items: Array<{
+    id: number
+    action: AdminActionType
+    created_at: string
+    actor_user_id: number
+    actor_name: string | null
+    actor_email: string | null
+    target_user_id: number | null
+    target_email: string
+    target_name: string
+  }>
+  meta: AdminMeta
+}
 
 export type AdminAlimtalkBatchListItem = {
   batch_id: number

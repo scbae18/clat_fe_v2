@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Users, Activity, UserX, AlertTriangle, ChevronRight, Clock } from 'lucide-react'
 import { admin, adminErrorMessage } from '@/services/admin'
+import Input from '@/components/common/Input/Input'
 import { useToastStore } from '@/stores/toastStore'
 import { AdminHeader, AdminPager, StatCard } from '../_components/AdminUi'
 import CreateTeacherForm from '../_components/CreateTeacherForm'
@@ -13,17 +15,34 @@ import { formatMd, formatYmd, fromNow } from '../_lib/format'
 import * as styles from '../admin.css'
 
 export default function AdminUsersPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const approvalParam = searchParams.get('approval_status')
+  const approvalStatus =
+    approvalParam === 'PENDING' || approvalParam === 'APPROVED' || approvalParam === 'REJECTED'
+      ? approvalParam
+      : undefined
+  const withdrawal = searchParams.get('withdrawal') === '1'
+  const q = searchParams.get('q') ?? ''
   const [page, setPage] = useState(1)
+  const [draft, setDraft] = useState(q)
   const queryClient = useQueryClient()
   const addToast = useToastStore((s) => s.addToast)
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['admin', 'users', 'list', page],
-    queryFn: () => admin.listUsers(page, 50),
+    queryKey: ['admin', 'users', 'list', page, approvalStatus, withdrawal, q],
+    queryFn: () =>
+      admin.listUsers({
+        page,
+        limit: 50,
+        approvalStatus,
+        withdrawal,
+        q,
+      }),
     refetchOnWindowFocus: false,
   })
   const pendingQuery = useQuery({
     queryKey: ['admin', 'users', 'pending'],
-    queryFn: () => admin.listUsers(1, 50, 'PENDING'),
+    queryFn: () => admin.listUsers({ page: 1, limit: 50, approvalStatus: 'PENDING' }),
     refetchOnWindowFocus: false,
   })
   const approve = useMutation({
@@ -62,7 +81,6 @@ export default function AdminUsersPage() {
                   <div>
                     <strong>{u.name}</strong>
                     <span className={styles.mutedInline}> {u.email}</span>
-                    {u.phone ? <span className={styles.mutedInline}> · {u.phone}</span> : null}
                     <p className={styles.statHint}>가입일: {formatYmd(u.created_at)}</p>
                   </div>
                   <button
@@ -86,6 +104,27 @@ export default function AdminUsersPage() {
         <StatCard label="승인 대기" value={data.summary.pending ?? 0} icon={Clock} iconTone="warning" />
         <StatCard label="탈퇴 요청" value={data.summary.withdrawal} icon={AlertTriangle} iconTone="error" />
       </div>
+      <form
+        className={styles.headerRow}
+        onSubmit={(e) => {
+          e.preventDefault()
+          const params = new URLSearchParams(searchParams.toString())
+          const next = draft.trim()
+          if (next) params.set('q', next)
+          else params.delete('q')
+          setPage(1)
+          router.replace(`/admin/users?${params.toString()}`)
+        }}
+      >
+        <Input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="이름 또는 이메일"
+        />
+        <button type="submit" className={styles.ghostBtn}>
+          검색
+        </button>
+      </form>
       <section className={styles.card}>
         <div className={styles.cardHeader}>
           <h2 className={styles.cardTitle}>전체 선생님 목록</h2>
@@ -114,7 +153,6 @@ export default function AdminUsersPage() {
                         <ChevronRight size={14} />
                       </Link>
                       <span className={styles.muted}>{u.email}</span>
-                      {u.phone ? <span className={styles.muted}>{u.phone}</span> : null}
                     </div>
                   </td>
                   <td className={styles.td}>
@@ -137,7 +175,9 @@ export default function AdminUsersPage() {
                     )}
                   </td>
                   <td className={styles.td}>
-                    {u.withdrawal_requested_at ? (
+                    {u.suspended_at ? (
+                      <span className={styles.badge.red}>정지</span>
+                    ) : u.withdrawal_requested_at ? (
                       <span className={styles.badge.red}>탈퇴 요청</span>
                     ) : u.approval_status === 'PENDING' ? (
                       <span className={styles.badge.yellow}>승인 대기</span>

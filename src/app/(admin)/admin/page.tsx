@@ -1,6 +1,5 @@
 'use client'
 
-import type { CSSProperties } from 'react'
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -11,23 +10,14 @@ import {
   FileText,
   Activity,
   AlertCircle,
-  Filter,
   Trophy,
 } from 'lucide-react'
 import { admin, adminErrorMessage } from '@/services/admin'
-import { AdminHeader, PctBar, PctBarSm, StatCard, UsageRing } from './_components/AdminUi'
-import { BarChart, TrendChart } from './_components/AdminCharts'
+import { AdminHeader, PctBarSm, StatCard } from './_components/AdminUi'
+import { TrendChart } from './_components/AdminCharts'
 import { formatLong, formatMdE, formatToday, fromNow } from './_lib/format'
 import { colors } from '@/styles/tokens/colors'
 import * as styles from './admin.css'
-
-const FUNNEL_COLORS = [
-  colors.primary500,
-  colors.primary400,
-  colors.primary600,
-  colors.primary700,
-  colors.success500,
-]
 
 const RANK_TONE = ['gold', 'silver', 'bronze', 'rest', 'rest'] as const
 
@@ -45,16 +35,30 @@ export default function AdminDashboardPage() {
   const k = data.kpis
   const totalUsers = k.total_users
   const maxTeacher = data.top_teachers[0]?.lesson_count ?? 1
-  const usage = [
-    { label: '반 개설', count: data.funnel.find((f) => f.label === '반 생성')?.count ?? 0, color: colors.primary500 },
-    { label: '학생 등록', count: data.funnel.find((f) => f.label === '학생 등록')?.count ?? 0, color: colors.primary400 },
-    { label: '템플릿 생성', count: data.funnel.find((f) => f.label === '템플릿 생성')?.count ?? 0, color: colors.primary600 },
-    { label: '수업 기록', count: data.funnel.find((f) => f.label === '수업 기록')?.count ?? 0, color: colors.success500 },
-  ]
 
   return (
     <div className={styles.stack}>
       <AdminHeader title="대시보드" subtitle={`${formatLong(data.generated_at)} · 베타 테스트 현황`} />
+
+      <div className={styles.kpiGrid}>
+        <Link href="/admin/users?approval_status=PENDING" className={styles.statCard}>
+          <p className={styles.statLabel}>승인 대기</p>
+          <p className={styles.statValue}>{data.today.pending_approvals}</p>
+        </Link>
+        <Link href="/admin/users?withdrawal=1" className={styles.statCard}>
+          <p className={styles.statLabel}>탈퇴 요청</p>
+          <p className={styles.statValue}>{data.today.withdrawal_requests}</p>
+        </Link>
+        <Link href="/admin/alimtalk?status=FAIL" className={styles.statCard}>
+          <p className={styles.statLabel}>최근 발송 실패</p>
+          <p className={styles.statValue}>{data.today.recent_send_failures}</p>
+          <p className={styles.statHint}>최근 7일</p>
+        </Link>
+        <Link href="/admin/anomalies" className={styles.statCard}>
+          <p className={styles.statLabel}>이상 감지</p>
+          <p className={styles.statHint}>나중에 제공합니다</p>
+        </Link>
+      </div>
 
       <div className={styles.kpiGrid}>
         <StatCard
@@ -100,6 +104,13 @@ export default function AdminDashboardPage() {
           iconTone="warning"
         />
         <StatCard
+          label="이번 달 발송량"
+          value={data.month.message_count}
+          sub={`테스트 ${data.month.test_message_count}건`}
+          icon={FileText}
+          iconTone="primary50"
+        />
+        <StatCard
           label="이번 주 수업"
           value={data.wow.this_week_lessons}
           sub={`지난주 ${data.wow.last_week_lessons}건`}
@@ -140,42 +151,6 @@ export default function AdminDashboardPage() {
             이번 주 {data.wow.this_week_lessons}건 · 지난 주 {data.wow.last_week_lessons}건
           </p>
           <TrendChart data={data.lesson_daily} color={colors.success500} label="수업 기록" />
-        </div>
-      </div>
-
-      <div className={styles.statCard}>
-        <div className={styles.funnelHead}>
-          <Filter size={16} color={colors.gray500} />
-          <h2 className={styles.sectionTitleInline}>온보딩 퍼널</h2>
-          <span className={styles.mutedInline}>가입 후 각 기능을 실제로 사용한 선생님 수</span>
-        </div>
-        <div className={styles.stack}>
-          {data.funnel.map((step, i) => {
-            const pct = totalUsers > 0 ? Math.round((step.count / totalUsers) * 100) : 0
-            const dropFrom = i > 0 ? data.funnel[i - 1].count : totalUsers
-            const drop = dropFrom - step.count
-            return (
-              <div key={step.label}>
-                <div className={styles.funnelStepHead}>
-                  <div className={styles.funnelLeft}>
-                    <span
-                      className={styles.funnelNum}
-                      style={{ '--step': FUNNEL_COLORS[i] ?? colors.primary500 } as CSSProperties}
-                    >
-                      {i + 1}
-                    </span>
-                    <span>{step.label}</span>
-                    {i > 0 && drop > 0 ? <span className={styles.dropText}>▼ {drop}명 이탈</span> : null}
-                  </div>
-                  <div className={styles.funnelLeft}>
-                    <strong>{step.count}명</strong>
-                    <span className={styles.mutedInline}>{pct}%</span>
-                  </div>
-                </div>
-                <PctBar pct={pct} color={FUNNEL_COLORS[i]} />
-              </div>
-            )
-          })}
         </div>
       </div>
 
@@ -230,29 +205,6 @@ export default function AdminDashboardPage() {
               ))}
             </div>
           )}
-        </div>
-      </div>
-
-      <div className={styles.statCard}>
-        <h2 className={styles.sectionTitle}>요일별 수업 기록 분포</h2>
-        <p className={styles.chartNote}>전체 기간 기준 · 어느 요일에 수업이 많이 기록되는지</p>
-        <BarChart data={data.dow} color={colors.primary500} valueLabel="수업 기록" height={180} />
-      </div>
-
-      <div className={styles.statCard}>
-        <h2 className={styles.sectionTitle}>기능별 활용률</h2>
-        <p className={styles.chartNote}>전체 {totalUsers}명 중 각 기능을 1회 이상 사용한 선생님 비율</p>
-        <div className={styles.usageGrid}>
-          {usage.map((f) => {
-            const pct = totalUsers > 0 ? Math.round((f.count / totalUsers) * 100) : 0
-            return (
-              <div key={f.label} className={styles.usageCell}>
-                <UsageRing pct={pct} color={f.color} />
-                <p>{f.label}</p>
-                <p className={styles.muted}>{f.count}명</p>
-              </div>
-            )
-          })}
         </div>
       </div>
     </div>

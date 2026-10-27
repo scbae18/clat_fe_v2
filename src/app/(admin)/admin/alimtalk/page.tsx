@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { MessageSquare, CheckCircle2, XCircle, Send, ChevronRight } from 'lucide-react'
 import { admin, adminErrorMessage } from '@/services/admin'
@@ -23,17 +23,27 @@ const TYPE_FILTERS: Array<{ id: AdminAlimtalkBatchType | 'all'; label: string }>
   { id: 'LESSON', label: '수업' },
   { id: 'ATTENDANCE', label: '출결' },
   { id: 'BROADCAST', label: '공지' },
+  { id: 'TEST', label: '테스트' },
 ]
 
 export default function AdminAlimtalkPage() {
   const router = useRouter()
-  const [status, setStatus] = useState<AdminAlimtalkStatus>('all')
+  const searchParams = useSearchParams()
+  const statusParam = searchParams.get('status')
+  const teacherRaw = Number(searchParams.get('teacher'))
+  const teacherId = Number.isInteger(teacherRaw) && teacherRaw > 0 ? teacherRaw : undefined
+  const [status, setStatus] = useState<AdminAlimtalkStatus>(
+    statusParam === 'FAIL' || statusParam === 'SUCCESS' ? statusParam : 'all',
+  )
   const [type, setType] = useState<AdminAlimtalkBatchType | 'all'>('all')
+  useEffect(() => {
+    if (statusParam === 'FAIL' || statusParam === 'SUCCESS') setStatus(statusParam)
+  }, [statusParam])
   const [page, setPage] = useState(1)
   const typeParam = type === 'all' ? undefined : type
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['admin', 'alimtalk', 'batches', status, type, page],
-    queryFn: () => admin.listAlimtalkBatches(status, page, 50, typeParam),
+    queryKey: ['admin', 'alimtalk', 'batches', status, type, page, teacherId],
+    queryFn: () => admin.listAlimtalkBatches(status, page, 50, typeParam, teacherId),
     refetchOnWindowFocus: false,
   })
 
@@ -46,6 +56,11 @@ export default function AdminAlimtalkPage() {
         title="알림톡 발송 내역"
         subtitle="수업·출결·공지를 한 번 보낸 단위로 보여 줍니다. 행을 누르면 수신자와 문자 본문을 확인할 수 있습니다."
       />
+      {teacherId ? (
+        <p className={styles.statHint}>
+          이 선생님의 발송만 봅니다. <Link href="/admin/alimtalk">전체 보기</Link>
+        </p>
+      ) : null}
       <div className={styles.kpiGrid3}>
         <StatCard
           label="발송 횟수"

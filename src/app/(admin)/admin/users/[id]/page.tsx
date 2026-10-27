@@ -1,7 +1,8 @@
 'use client'
 
-import { use } from 'react'
+import { use, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
@@ -16,14 +17,16 @@ import {
   ShieldAlert,
   Zap,
   CheckCircle2,
+  ChevronRight,
 } from 'lucide-react'
 import { isAxiosError } from '@/lib/api/http'
 import { admin, adminErrorMessage } from '@/services/admin'
 import { useToastStore } from '@/stores/toastStore'
-import { StatCard } from '../../_components/AdminUi'
+import { AdminPager, StatCard } from '../../_components/AdminUi'
 import { BarChart, TrendChart } from '../../_components/AdminCharts'
 import DeleteTeacherDialog from '../../_components/DeleteTeacherDialog'
-import { daysLabel, formatMdE, formatYmd, fromNow } from '../../_lib/format'
+import { daysLabel, formatMdE, formatMdHm, formatYmd, fromNow } from '../../_lib/format'
+import { batchTitle, batchTypeLabel } from '../../_lib/alimtalk'
 import { colors } from '@/styles/tokens/colors'
 import * as styles from '../../admin.css'
 
@@ -32,8 +35,16 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
   const id = Number.parseInt(rawId, 10)
   const enabled = Number.isInteger(id) && id > 0
 
+  const router = useRouter()
+  const [alimtalkPage, setAlimtalkPage] = useState(1)
   const queryClient = useQueryClient()
   const addToast = useToastStore((s) => s.addToast)
+  const alimtalkQuery = useQuery({
+    queryKey: ['admin', 'alimtalk', 'batches', 'teacher', id, alimtalkPage],
+    queryFn: () => admin.listAlimtalkBatches('all', alimtalkPage, 20, undefined, id),
+    enabled,
+    refetchOnWindowFocus: false,
+  })
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['admin', 'users', 'detail', id],
     queryFn: () => admin.getUser(id),
@@ -42,11 +53,19 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
     refetchOnWindowFocus: false,
   })
   const setApproval = useMutation({
-    mutationFn: (status: 'APPROVED' | 'REJECTED') => admin.setUserApproval(id, status),
-    onSuccess: (res) => {
+    mutationFn: (status: 'APPROVED' | 'REJECTED' | 'SUSPENDED') => admin.setUserApproval(id, status),
+    onSuccess: (_res, status) => {
+      const message =
+        status === 'SUSPENDED'
+          ? '계정을 정지했습니다.'
+          : status === 'APPROVED' && data?.suspended_at
+            ? '정지를 해제했습니다.'
+            : status === 'APPROVED'
+              ? '가입을 승인했습니다.'
+              : '가입을 거절했습니다.'
       addToast({
         variant: 'success',
-        message: res.approval_status === 'APPROVED' ? '가입을 승인했습니다.' : '가입을 거절했습니다.',
+        message,
       })
       void queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
     },
@@ -99,7 +118,9 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
             </div>
           </div>
           <div className={styles.funnelLeft}>
-            {data.withdrawal_requested_at ? (
+            {data.suspended_at ? (
+              <span className={styles.badge.red}>정지</span>
+            ) : data.withdrawal_requested_at ? (
               <span className={styles.badge.red}>탈퇴 요청 중</span>
             ) : data.approval_status === 'PENDING' ? (
               <span className={styles.badge.yellow}>승인 대기</span>
@@ -129,6 +150,24 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
                   거절
                 </button>
               </>
+            ) : data.approval_status === 'APPROVED' && data.suspended_at ? (
+              <button
+                type="button"
+                className={styles.ghostBtn}
+                disabled={setApproval.isPending}
+                onClick={() => setApproval.mutate('APPROVED')}
+              >
+                정지 해제
+              </button>
+            ) : data.approval_status === 'APPROVED' ? (
+              <button
+                type="button"
+                className={styles.dangerBtn}
+                disabled={setApproval.isPending}
+                onClick={() => setApproval.mutate('SUSPENDED')}
+              >
+                정지
+              </button>
             ) : null}
           </div>
         </div>
@@ -151,7 +190,96 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
           iconTone="success"
         />
         <StatCard label="30일 수업 기록" value={thirtyDayLessons} sub="최근 30일" icon={FileText} iconTone="warning" />
+        <StatCard
+          label="이번 달 발송량"
+          value={data.month?.message_count ?? 0}
+          sub={`테스트 ${data.month?.test_message_count ?? 0}건`}
+          icon={FileText}
+          iconTone="primary50"
+        />
       </div>
+
+      <section className={styles.card}>
+        <div className={styles.cardHeader}>
+          <h2 className={styles.cardTitle}>보낸 알림톡</h2>
+          <span className={styles.badge.indigo}>{alimtalkQuery.data?.meta.total ?? 0}회</span>
+        </div>
+        {alimtalkQuery.isLoading ? (
+          <p className={styles.loading}>발송 내역을 불러오는 중…</p>
+        ) : alimtalkQuery.isError ? (
+          <p className={styles.empty}>{adminErrorMessage(alimtalkQuery.error)}</p>
+        ) : (
+          <>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th className={styles.th}>발송 시각</th>
+                    <th className={styles.th}>유형</th>
+                    <th className={styles.th}>반 / 수업</th>
+                    <th className={styles.th}>발송</th>
+                    <th className={styles.th} />
+                  </tr>
+                </thead>
+                <tbody>
+                  {(alimtalkQuery.data?.items ?? []).map((row) => (
+                    <tr
+                      key={row.batch_id}
+                      className={styles.clickRow}
+                      onClick={() => router.push(`/admin/alimtalk/${row.batch_id}`)}
+                    >
+                      <td className={styles.td}>
+                        <div className={styles.cellStack}>
+                          <span>{formatMdHm(row.sent_at)}</span>
+                          <span className={styles.muted}>{fromNow(row.sent_at)}</span>
+                        </div>
+                      </td>
+                      <td className={styles.td}>
+                        <span className={styles.badge.slate}>{batchTypeLabel(row.batch_type)}</span>
+                      </td>
+                      <td className={styles.td}>
+                        <div className={styles.cellStack}>
+                          <span>{batchTitle(row)}</span>
+                          {row.lesson_date ? (
+                            <span className={styles.muted}>수업일 {formatYmd(row.lesson_date)}</span>
+                          ) : null}
+                        </div>
+                      </td>
+                      <td className={styles.td}>
+                        {row.fail_count > 0 ? (
+                          <span className={styles.badge.red}>실패 {row.fail_count}건</span>
+                        ) : (
+                          <span className={styles.badge.green}>
+                            {row.success_count}/{row.total_count}
+                          </span>
+                        )}
+                      </td>
+                      <td className={styles.td}>
+                        <ChevronRight size={16} />
+                      </td>
+                    </tr>
+                  ))}
+                  {(alimtalkQuery.data?.items.length ?? 0) === 0 ? (
+                    <tr>
+                      <td className={styles.td} colSpan={5}>
+                        <p className={styles.empty}>보낸 알림톡이 없습니다.</p>
+                      </td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+            {alimtalkQuery.data ? (
+              <AdminPager
+                page={alimtalkPage}
+                limit={alimtalkQuery.data.meta.limit}
+                total={alimtalkQuery.data.meta.total}
+                onPage={setAlimtalkPage}
+              />
+            ) : null}
+          </>
+        )}
+      </section>
 
       <div className={styles.grid2}>
         <div className={styles.statCard}>
@@ -236,51 +364,6 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
                 </div>
               </div>
             ))}
-          </div>
-        )}
-      </section>
-
-      <section className={styles.card}>
-        <div className={styles.cardHeader}>
-          <h2 className={styles.cardTitle}>학생 목록</h2>
-          <span className={styles.badge.indigo}>{data.students.length}명</span>
-        </div>
-        {data.students.length === 0 ? (
-          <p className={styles.empty}>등록된 학생이 없습니다.</p>
-        ) : (
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th className={styles.th}>이름</th>
-                  <th className={styles.th}>학교</th>
-                  <th className={styles.th}>소속 반</th>
-                  <th className={styles.th}>등록일</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.students.map((s) => (
-                  <tr key={s.id}>
-                    <td className={styles.td}>{s.name}</td>
-                    <td className={styles.td}>{s.school_name ?? '-'}</td>
-                    <td className={styles.td}>
-                      {s.classes.length > 0 ? (
-                        <span className={styles.chipWrap}>
-                          {s.classes.map((name) => (
-                            <span key={name} className={styles.badge.indigo}>
-                              {name}
-                            </span>
-                          ))}
-                        </span>
-                      ) : (
-                        <span className={styles.mutedInline}>미소속</span>
-                      )}
-                    </td>
-                    <td className={styles.td}>{formatYmd(s.created_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         )}
       </section>

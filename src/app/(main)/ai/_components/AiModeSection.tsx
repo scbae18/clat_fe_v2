@@ -11,7 +11,7 @@ const MODES: Array<{ value: AiFeedbackMode; label: string; help: string }> = [
   },
   {
     value: 'ASSIST',
-    label: '도와주기',
+    label: '다듬기',
     help: '적은 메모만 선생님 말투로 다듬습니다. 없는 내용은 보태지 않습니다.',
   },
   {

@@ -4,6 +4,7 @@ export function batchTypeLabel(type: AdminAlimtalkBatchType | string): string {
   if (type === 'LESSON') return '수업'
   if (type === 'ATTENDANCE') return '출결'
   if (type === 'BROADCAST') return '공지'
+  if (type === 'TEST') return '테스트'
   return type
 }
 
