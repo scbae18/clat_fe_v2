@@ -35,6 +35,8 @@ export function isLessonStudentInputComplete(
   lessonItems?: LessonItemDetail[],
 ): boolean {
   if (student.attendance === null) return false
+  // 결석만 다른 칸이 비어 있어도 완료. 지각·추가 출결은 아래 항목 검사를 그대로 탄다.
+  if (student.attendance === '결석') return true
   const types = typeByItemRef(lessonItems)
   return student.items.every((item) => {
     const ref = itemRef(item.source, item.item_id)
