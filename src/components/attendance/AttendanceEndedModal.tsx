@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
+import { colors } from '@/styles/tokens/colors'
 import Modal from '@/components/common/Modal'
 import {
   rootStyle,
@@ -36,8 +37,8 @@ function CheckIcon() {
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
     >
-      <circle cx="30" cy="30" r="30" fill="#3B51CC" />
-      <path d="M17 31L26 40L43 23" stroke="white" strokeWidth="5" strokeLinecap="round" />
+      <circle cx="30" cy="30" r="30" fill={colors.primary500} />
+      <path d="M17 31L26 40L43 23" stroke={colors.white} strokeWidth="5" strokeLinecap="round" />
     </svg>
   )
 }

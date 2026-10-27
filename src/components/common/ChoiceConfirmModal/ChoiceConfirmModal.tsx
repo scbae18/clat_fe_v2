@@ -20,7 +20,7 @@ export interface ChoiceConfirmModalProps {
   descriptions?: string[]
   cancelLabel?: string
   confirmLabel?: string
-  /** primary: brand blue; danger: Figma delete #e54351 */
+  /** primary: brand blue; danger: error500 */
   confirmTone?: 'primary' | 'danger'
   confirmDisabled?: boolean
 }

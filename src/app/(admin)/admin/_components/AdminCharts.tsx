@@ -44,8 +44,8 @@ export function TrendChart({
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
-        <XAxis dataKey="date" tick={{ fontSize: 11, fill: TICK }} tickLine={false} axisLine={false} />
-        <YAxis tick={{ fontSize: 11, fill: TICK }} tickLine={false} axisLine={false} allowDecimals={false} />
+        <XAxis dataKey="date" tick={{ fontSize: 12, fill: TICK }} tickLine={false} axisLine={false} />
+        <YAxis tick={{ fontSize: 12, fill: TICK }} tickLine={false} axisLine={false} allowDecimals={false} />
         <Tooltip
           contentStyle={TOOLTIP}
           formatter={(value) => [value ?? 0, label]}
@@ -79,8 +79,8 @@ export function BarChart({
     <ResponsiveContainer width="100%" height={height}>
       <ReBarChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
-        <XAxis dataKey="label" tick={{ fontSize: 11, fill: TICK }} tickLine={false} axisLine={false} />
-        <YAxis tick={{ fontSize: 11, fill: TICK }} tickLine={false} axisLine={false} allowDecimals={false} />
+        <XAxis dataKey="label" tick={{ fontSize: 12, fill: TICK }} tickLine={false} axisLine={false} />
+        <YAxis tick={{ fontSize: 12, fill: TICK }} tickLine={false} axisLine={false} allowDecimals={false} />
         <Tooltip contentStyle={TOOLTIP} formatter={(value) => [value ?? 0, valueLabel]} />
         <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} maxBarSize={48} />
       </ReBarChart>

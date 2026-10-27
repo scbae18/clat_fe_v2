@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Input from '@/components/common/Input'
+import { colors } from '@/styles/tokens/colors'
 import Button from '@/components/common/Button'
 import NumberIcon from '@/assets/icons/icon-number.svg'
 import TextIcon from '@/assets/icons/icon-text.svg'
@@ -26,7 +27,6 @@ import {
   completionInfoListStyle,
   actionsStyle,
 } from './AddItemForm.css'
-import { colors } from '@/styles/tokens/colors'
 
 type ItemTypeId = 'number' | 'text' | 'choice' | 'completion'
 
@@ -88,7 +88,7 @@ export default function AddItemForm({ onAdd, onCancel }: AddItemFormProps) {
     <div className={formStyle}>
       <div className={fieldStyle}>
         <span className={labelStyle}>
-          {'\uD56D\uBAA9 \uC774\uB984'} <span style={{ color: '#EF4453' }}>*</span>
+          {'\uD56D\uBAA9 \uC774\uB984'} <span style={{ color: colors.error500 }}>*</span>
         </span>
         <Input
           value={label}
@@ -99,7 +99,7 @@ export default function AddItemForm({ onAdd, onCancel }: AddItemFormProps) {
 
       <div className={fieldStyle}>
         <span className={labelStyle}>
-          {'\uD56D\uBAA9 \uD0C0\uC785'} <span style={{ color: '#EF4453' }}>*</span>
+          {'\uD56D\uBAA9 \uD0C0\uC785'} <span style={{ color: colors.error500 }}>*</span>
         </span>
         <div className={typeGridStyle}>
           {ITEM_TYPES.map((type) => {

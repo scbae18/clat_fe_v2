@@ -1,5 +1,6 @@
 'use client'
 
+import Button from '@/components/common/Button'
 import type { AiSettings } from '@/services/aiSettings'
 import * as styles from '../aiSettings.css'
 import { TONE_PRESETS, type TonePresetMeta } from '../_lib/aiSettingsShared'
@@ -68,14 +69,14 @@ export function AiToneSection({
             onChange={(e) => onUpdate('custom_tone_messages', e.target.value)}
           />
           <div className={styles.analyzeRow}>
-            <button
+            <Button
               type="button"
-              className={styles.analyzeButton}
+              size="lg"
               onClick={onAnalyzeTone}
               disabled={analyzing}
             >
               {analyzing ? 'AI가 말투를 분석하고 있어요 ...' : '말투 분석하기'}
-            </button>
+            </Button>
           </div>
         </div>
       )}

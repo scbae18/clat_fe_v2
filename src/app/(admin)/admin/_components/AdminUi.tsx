@@ -75,7 +75,7 @@ export function PctBar({ pct, color }: { pct: number; color?: string }) {
     <div className={styles.track}>
       <div
         className={styles.trackFill}
-        style={{ '--pct': pct, '--bar': color ?? '#3B51CC' } as CSSProperties}
+        style={{ '--pct': pct, '--bar': color ?? colors.primary500 } as CSSProperties}
       />
     </div>
   )

@@ -193,7 +193,7 @@ export default function StudentDetailModal({
               <div className={statsGridStyle}>
                 <div className={statCardStyle}>
                   <span className={statLabelStyle}>완료율</span>
-                  <span className={statValueStyle} style={{ color: '#1DAA7F' }}>
+                  <span className={statValueStyle} style={{ color: colors.success500 }}>
                     {formatCompletionRatePercent(detail.stats.completion_rate)}%
                   </span>
                 </div>
@@ -212,7 +212,7 @@ export default function StudentDetailModal({
             <div className={sectionStyle}>
               <Text variant="headingMd" as="h3" className={sectionTitleStyle}>
                 미완료 항목{' '}
-                <span style={{ color: '#3B51CC' }}>{detail.incomplete_items.length}</span>
+                <span style={{ color: colors.primary500 }}>{detail.incomplete_items.length}</span>
               </Text>
               <div className={trackingListStyle}>
                 {detail.incomplete_items.length === 0 ? (

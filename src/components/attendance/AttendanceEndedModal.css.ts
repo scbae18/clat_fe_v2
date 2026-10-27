@@ -86,7 +86,7 @@ export const ctaBtnStyle = style({
   borderRadius: '12px',
   padding: '16px 12px',
   backgroundColor: colors.primary500,
-  color: colors.white,
+  color: colors.gray50,
   fontSize: fontStyles.titleMd.fontSize,
   fontWeight: 600,
   lineHeight: '140%',

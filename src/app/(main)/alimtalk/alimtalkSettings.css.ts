@@ -1,5 +1,6 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
+import { fontStyles } from '@/styles/tokens/typography'
 import { media } from '@/styles/tokens/breakpoints'
 
 const kakaoHeaderYellow = '#FEE501'
@@ -19,7 +20,7 @@ export const pageTitle = style({
   margin: '0 0 24px',
   '@media': {
     [media.phone]: {
-      fontSize: '22px',
+      fontSize: fontStyles.headingLg.fontSize,
       marginBottom: '16px',
     },
   },

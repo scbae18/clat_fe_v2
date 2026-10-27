@@ -1,4 +1,5 @@
 import type { AlimtalkBatchMessage } from '@/services/alimtalk'
+import { colors } from '@/styles/tokens/colors'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
@@ -39,9 +40,9 @@ export function statusPillStyle(status: 'SUCCESS' | 'FAIL' | 'PENDING'): {
   color: string
   backgroundColor: string
 } {
-  if (status === 'SUCCESS') return { color: '#1DAA7F', backgroundColor: '#EDFCF5' }
-  if (status === 'PENDING') return { color: '#9492A9', backgroundColor: '#F3F4F5' }
-  return { color: '#EF4453', backgroundColor: '#FFF1F1' }
+  if (status === 'SUCCESS') return { color: colors.success500, backgroundColor: colors.success50 }
+  if (status === 'PENDING') return { color: colors.gray500, backgroundColor: colors.gray50 }
+  return { color: colors.error500, backgroundColor: colors.error50 }
 }
 
 export function formatSent(iso: string) {

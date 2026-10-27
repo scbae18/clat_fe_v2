@@ -267,7 +267,7 @@ export default function ScoreLineChart({
                 y={y + 3}
                 textAnchor="end"
                 fill={colors.gray500}
-                fontSize="10"
+                fontSize="12"
               >
                 {`${Math.round(val)}${yAxisUnit}`}
               </text>

@@ -1,5 +1,6 @@
 import { keyframes, style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
+import { fontStyles } from '@/styles/tokens/typography'
 import { phoneTextRules, truncateRules } from '@/styles/tokens/textOverflow'
 import { media } from '@/styles/tokens/breakpoints'
 
@@ -51,7 +52,7 @@ export const pageTitle = style({
   minWidth: 0,
   '@media': {
     [media.phone]: {
-      fontSize: '22px',
+      fontSize: fontStyles.headingLg.fontSize,
       overflowWrap: 'anywhere',
     },
   },
@@ -157,7 +158,7 @@ export const profileEditButton = style({
   border: `1px solid ${colors.gray100}`,
   background: colors.white,
   color: colors.gray700,
-  fontSize: '13px',
+  fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: 500,
   lineHeight: 1.4,
   letterSpacing: '-0.02em',
@@ -363,7 +364,7 @@ export const incompleteHomeworkMain = style({
 })
 
 export const incompleteNote = style({
-  fontSize: '13px',
+  fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: 500,
   lineHeight: 1.4,
   letterSpacing: '-0.03em',
@@ -418,7 +419,7 @@ export const incompleteTemplateAccent = style({
 })
 
 export const badgeOverdue = style({
-  background: '#fee5e5',
+  background: colors.error50,
   color: colors.error500,
   fontSize: '12px',
   fontWeight: 600,
@@ -545,7 +546,7 @@ export const chartWrap = style({
 })
 
 export const chartAxisHint = style({
-  fontSize: '11px',
+  fontSize: fontStyles.labelSm.fontSize,
   fontWeight: 500,
   color: colors.gray500,
   letterSpacing: '-0.02em',
@@ -581,7 +582,7 @@ export const chartTooltip = style({
 })
 
 export const chartTooltipTitle = style({
-  fontSize: '13px',
+  fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: 600,
   color: colors.gray900,
   marginBottom: '6px',
@@ -787,7 +788,10 @@ export const memoTitle = style({
 })
 
 export const memoHint = style({
-  fontSize: '12px',
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.labelSm.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
   color: colors.gray500,
 })
 
@@ -975,20 +979,28 @@ export const alimPillPending = style({
 })
 
 export const alimPhoneLine = style({
-  fontSize: '13px',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
   color: colors.gray500,
 })
 
 export const alimMsgBlock = style({
   marginTop: '4px',
-  fontSize: '13px',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
   color: colors.gray700,
   whiteSpace: 'pre-wrap',
-  lineHeight: 1.6,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
 })
 
 export const alimError = style({
-  fontSize: '12px',
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.labelSm.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
   color: colors.error500,
 })
 

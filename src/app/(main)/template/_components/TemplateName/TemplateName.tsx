@@ -1,4 +1,5 @@
 import Text from '@/components/common/Text'
+import { colors } from '@/styles/tokens/colors'
 import Input from '@/components/common/Input'
 import { sectionStyle } from './TemplateName.css'
 
@@ -12,7 +13,7 @@ export default function TemplateNameSection({ value, onChange, hasError }: Templ
   return (
     <div className={sectionStyle}>
       <Text variant="headingMd" as="h2">
-        템플릿 이름 <span style={{ color: '#EF4453' }}>*</span>
+        템플릿 이름 <span style={{ color: colors.error500 }}>*</span>
       </Text>
       <Input
         value={value}

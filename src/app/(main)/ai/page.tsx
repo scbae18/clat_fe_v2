@@ -1,5 +1,6 @@
 'use client'
 
+import Button from '@/components/common/Button'
 import * as styles from './aiSettings.css'
 import { useAiSettingsForm } from './_hooks/useAiSettingsForm'
 import { UnsavedChangesGuard } from './_hooks/useUnsavedChangesGuard'
@@ -19,14 +20,14 @@ export default function AiSettingsPage() {
       <div className={styles.saveBar}>
         <h1 className={styles.pageTitle}>AI 조교</h1>
         <div className={styles.saveRow}>
-          <button
+          <Button
             type="button"
-            className={styles.saveButton}
+            size="lg"
             onClick={() => void form.onSave()}
             disabled={form.saving}
           >
             {form.saving ? '저장 중...' : '저장'}
-          </button>
+          </Button>
         </div>
       </div>
 

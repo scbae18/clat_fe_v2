@@ -263,7 +263,7 @@ export const userTextWrapStyle = styleVariants({
 })
 
 export const userNameStyle = style({
-  fontSize: '13px',
+  fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: 600,
   lineHeight: 1.3,
   letterSpacing: '-0.03em',
@@ -274,7 +274,7 @@ export const userNameStyle = style({
 })
 
 export const userEmailStyle = style({
-  fontSize: '11px',
+  fontSize: fontStyles.labelSm.fontSize,
   fontWeight: 500,
   lineHeight: 1.3,
   letterSpacing: '-0.03em',

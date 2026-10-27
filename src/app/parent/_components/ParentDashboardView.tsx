@@ -4,6 +4,7 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import type { ParentDashboardData } from '@/services/parentDashboard'
+import { colors } from '@/styles/tokens/colors'
 import { isCoreAttendanceLabel } from '@/lib/attendanceLabels'
 import * as styles from '../[token]/parentDashboard.css'
 
@@ -18,11 +19,11 @@ function BookIcon() {
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <path
         d="M3.333 5.833A2.5 2.5 0 0 1 5.833 3.333H9.167a2.5 2.5 0 0 1 2.5 2.5v10H5.833a2.5 2.5 0 0 1-2.5-2.5V5.833Z"
-        fill="#5774DA"
+        fill={colors.primary400}
       />
       <path
         d="M16.667 5.833A2.5 2.5 0 0 0 14.167 3.333h-3.334a2.5 2.5 0 0 0-2.5 2.5v10h5.834a2.5 2.5 0 0 0 2.5-2.5V5.833Z"
-        fill="#5774DA"
+        fill={colors.primary400}
       />
     </svg>
   )
@@ -31,10 +32,10 @@ function BookIcon() {
 function CheckCircleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <circle cx="9" cy="9" r="9" fill="#5774DA" />
+      <circle cx="9" cy="9" r="9" fill={colors.primary400} />
       <path
         d="m12.684 6.676-4.39 4.457L5.92 8.75"
-        stroke="#fff"
+        stroke={colors.white}
         strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -48,7 +49,7 @@ function SparkleIcon() {
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
       <path
         d="M6 1.2 6.7 4.3 9.8 5 6.7 5.7 6 8.8 5.3 5.7 2.2 5 5.3 4.3 6 1.2Z"
-        fill="#5774DA"
+        fill={colors.primary400}
       />
     </svg>
   )
@@ -57,10 +58,10 @@ function SparkleIcon() {
 function ClockIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-      <circle cx="10" cy="10" r="10" fill="#5774DA" />
+      <circle cx="10" cy="10" r="10" fill={colors.primary400} />
       <path
         d="M10 5.833v4.583l2.917 1.667"
-        stroke="#fff"
+        stroke={colors.white}
         strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"

@@ -160,7 +160,7 @@ export const btnPrimaryStyle = style({
   borderRadius: '8px',
   padding: '8px 12px',
   backgroundColor: colors.primary500,
-  color: colors.white,
+  color: colors.gray50,
   fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: 600,
   lineHeight: '140%',

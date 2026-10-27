@@ -1,5 +1,6 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
+import { fontStyles } from '@/styles/tokens/typography'
 import { media } from '@/styles/tokens/breakpoints'
 import { mobileTopBarHeightVar } from '@/styles/layoutVars.css'
 
@@ -28,14 +29,14 @@ export const saveBar = style({
 
 export const pageTitle = style({
   margin: 0,
-  fontSize: '39px',
+  fontSize: fontStyles.display.fontSize,
   fontWeight: 700,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray900,
   '@media': {
     [media.phone]: {
-      fontSize: '24px',
+      fontSize: fontStyles.headingLg.fontSize,
     },
   },
 })
@@ -79,9 +80,11 @@ export const sectionTitle = style({
 
 export const modeHelp = style({
   margin: '8px 0 0',
-  fontSize: '13px',
-  lineHeight: 1.5,
-  color: colors.gray600,
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.gray700,
 })
 
 export const fieldTitle = style({
@@ -201,26 +204,6 @@ export const analyzeRow = style({
   justifyContent: 'flex-end',
 })
 
-export const analyzeButton = style({
-  border: 'none',
-  borderRadius: '10px',
-  backgroundColor: colors.primary500,
-  color: colors.white,
-  height: '46px',
-  padding: '0 20px',
-  fontSize: '16px',
-  fontWeight: 600,
-  cursor: 'pointer',
-  whiteSpace: 'nowrap',
-  flexShrink: 0,
-  selectors: {
-    '&:disabled': {
-      backgroundColor: colors.gray300,
-      cursor: 'not-allowed',
-    },
-  },
-})
-
 export const sampleBox = style({
   marginTop: '12px',
   backgroundColor: colors.gray50,
@@ -335,25 +318,5 @@ export const saveRow = style({
   display: 'flex',
   justifyContent: 'flex-end',
   flexShrink: 0,
-})
-
-export const saveButton = style({
-  border: 'none',
-  borderRadius: '12px',
-  backgroundColor: colors.primary500,
-  color: colors.white,
-  height: '52px',
-  padding: '0 28px',
-  fontSize: '16px',
-  fontWeight: 600,
-  cursor: 'pointer',
-  whiteSpace: 'nowrap',
-  flexShrink: 0,
-  selectors: {
-    '&:disabled': {
-      backgroundColor: colors.gray300,
-      cursor: 'not-allowed',
-    },
-  },
 })
 

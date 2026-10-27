@@ -130,7 +130,7 @@ export const cancelBtnStyle = style({
 
 export const primaryBtnStyle = style({
   backgroundColor: colors.primary500,
-  color: colors.white,
+  color: colors.gray50,
 })
 
 export const successCodeStyle = style({

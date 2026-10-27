@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Modal from '@/components/common/Modal'
+import { colors } from '@/styles/tokens/colors'
 import Text from '@/components/common/Text'
 import Button from '@/components/common/Button'
 import Chip from '@/components/common/Chip'
@@ -115,7 +116,7 @@ export default function TemplateSelectModal({
             <ArrowRightIcon
               width={20}
               height={20}
-              style={{ color: '#9492A9', flexShrink: 0, marginTop: '28px' }}
+              style={{ color: colors.gray500, flexShrink: 0, marginTop: '28px' }}
             />
 
             <div className={templateColStyle}>

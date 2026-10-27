@@ -10,14 +10,14 @@ export const pageRoot = style({
 
 export const pageTitle = style({
   margin: '0 0 8px',
-  fontSize: '39px',
+  fontSize: fontStyles.display.fontSize,
   fontWeight: 700,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray900,
   '@media': {
     [media.phone]: {
-      fontSize: '24px',
+      fontSize: fontStyles.headingLg.fontSize,
     },
   },
 })
@@ -71,7 +71,7 @@ export const avatar = style({
   background: `linear-gradient(135deg, ${colors.primary300} 0%, ${colors.primary500} 100%)`,
   flexShrink: 0,
   color: colors.white,
-  fontSize: '22px',
+  fontSize: fontStyles.headingLg.fontSize,
   fontWeight: 700,
   display: 'flex',
   alignItems: 'center',
@@ -80,7 +80,7 @@ export const avatar = style({
 })
 
 export const profileName = style({
-  fontSize: '22px',
+  fontSize: fontStyles.headingLg.fontSize,
   fontWeight: 600,
   lineHeight: '140%',
   letterSpacing: '-0.03em',

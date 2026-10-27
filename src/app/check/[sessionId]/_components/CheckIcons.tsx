@@ -1,5 +1,7 @@
 'use client'
 
+import { colors } from '@/styles/tokens/colors'
+
 export function SuccessCheckIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -11,10 +13,10 @@ export function SuccessCheckIcon({ className }: { className?: string }) {
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
     >
-      <circle cx="40" cy="40" r="40" fill="#3B51CC" />
+      <circle cx="40" cy="40" r="40" fill={colors.primary500} />
       <path
         d="M23 41.5 L34.5 53 L57 28"
-        stroke="white"
+        stroke={colors.white}
         strokeWidth="3.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -34,10 +36,10 @@ export function ClosedWarningIcon({ className }: { className?: string }) {
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
     >
-      <circle cx="40" cy="40" r="40" fill="#E5E6EC" />
+      <circle cx="40" cy="40" r="40" fill={colors.gray75} />
       <path
         d="M40 24v28M40 56v2"
-        stroke="#5B5C72"
+        stroke={colors.gray700}
         strokeWidth="4"
         strokeLinecap="round"
       />

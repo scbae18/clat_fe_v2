@@ -1,5 +1,6 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
+import { fontStyles } from '@/styles/tokens/typography'
 import { media } from '@/styles/tokens/breakpoints'
 
 export const chipRow = style({
@@ -310,10 +311,12 @@ export const statusPill = style({
 
 export const msgBlock = style({
   marginTop: '12px',
-  fontSize: '13px',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
   color: colors.gray700,
   whiteSpace: 'pre-wrap',
-  lineHeight: 1.6,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
 })
 
 export const emptyState = style({

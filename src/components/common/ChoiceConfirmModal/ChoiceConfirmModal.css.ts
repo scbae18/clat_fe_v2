@@ -86,7 +86,7 @@ export const confirmPrimaryStyle = style([
   btnBase,
   {
     backgroundColor: colors.primary500,
-    color: colors.white,
+    color: colors.gray50,
     selectors: {
       '&:hover:not(:disabled)': {
         backgroundColor: colors.primary600,
@@ -98,11 +98,11 @@ export const confirmPrimaryStyle = style([
 export const confirmDangerStyle = style([
   btnBase,
   {
-    backgroundColor: '#e54351',
+    backgroundColor: colors.error500,
     color: colors.white,
     selectors: {
       '&:hover:not(:disabled)': {
-        filter: 'brightness(0.95)',
+        backgroundColor: colors.error600,
       },
     },
   },

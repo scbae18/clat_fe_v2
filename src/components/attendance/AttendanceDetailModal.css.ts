@@ -55,7 +55,7 @@ export const metaIconBoxStyle = style({
   alignItems: 'center',
   justifyContent: 'center',
   flexShrink: 0,
-  fontSize: '11px',
+  fontSize: fontStyles.labelSm.fontSize,
   fontWeight: 700,
   color: colors.gray600,
 })
@@ -289,7 +289,7 @@ export const endBtnStyle = style({
   borderRadius: '12px',
   padding: '16px 12px',
   backgroundColor: colors.primary500,
-  color: colors.white,
+  color: colors.gray50,
   fontSize: fontStyles.titleMd.fontSize,
   fontWeight: 600,
   lineHeight: '140%',

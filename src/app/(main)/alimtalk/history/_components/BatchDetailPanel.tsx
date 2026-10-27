@@ -1,6 +1,8 @@
 'use client'
 
 import type { AlimtalkBatchDetail } from '@/services/alimtalk'
+import { colors } from '@/styles/tokens/colors'
+import { fontStyles } from '@/styles/tokens/typography'
 import * as styles from '../history.css'
 import {
   groupMessages,
@@ -67,7 +69,7 @@ export function BatchDetailPanel({
               </span>
             )}
           </div>
-          <div style={{ fontSize: 13, color: '#757693', marginTop: 8 }}>
+          <div style={{ fontSize: fontStyles.bodyMd.fontSize, color: colors.gray600, marginTop: 8 }}>
             {selected.student && <div>학생 {maskPhone(selected.student.phone)}</div>}
             {selected.parent && <div>학부모 {maskPhone(selected.parent.phone)}</div>}
           </div>
@@ -100,12 +102,12 @@ export function BatchDetailPanel({
             </div>
           )}
           {selected.student?.status === 'FAIL' && selected.student.error_message && (
-            <div style={{ marginTop: 8, fontSize: 12, color: '#EF4453' }}>
+            <div style={{ marginTop: 8, fontSize: fontStyles.labelSm.fontSize, color: colors.error500 }}>
               {selected.student.error_message}
             </div>
           )}
           {selected.parent?.status === 'FAIL' && selected.parent.error_message && (
-            <div style={{ marginTop: 8, fontSize: 12, color: '#EF4453' }}>
+            <div style={{ marginTop: 8, fontSize: fontStyles.labelSm.fontSize, color: colors.error500 }}>
               {selected.parent.error_message}
             </div>
           )}

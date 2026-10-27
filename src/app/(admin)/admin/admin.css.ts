@@ -64,7 +64,7 @@ export const brandLink = style({
 })
 
 export const brandTitle = style({
-  fontSize: '15px',
+  fontSize: fontStyles.titleMd.fontSize,
   fontWeight: 600,
   lineHeight: 1.2,
   letterSpacing: tracking,
@@ -73,7 +73,7 @@ export const brandTitle = style({
 
 export const brandSub = style({
   marginTop: '2px',
-  fontSize: '11px',
+  fontSize: fontStyles.labelSm.fontSize,
   fontWeight: 500,
   letterSpacing: tracking,
   color: vars.color.gray[500],
@@ -124,7 +124,7 @@ const navLinkBase = style({
       height: '36px',
       gap: '6px',
       padding: '0 12px',
-      fontSize: '13px',
+      fontSize: fontStyles.bodyMd.fontSize,
       whiteSpace: 'nowrap',
     },
   },
@@ -183,7 +183,7 @@ export const footerLabelText = style({
 })
 
 export const footerHint = style({
-  fontSize: '11px',
+  fontSize: fontStyles.labelSm.fontSize,
   fontWeight: 500,
   lineHeight: 1.6,
   letterSpacing: tracking,
@@ -193,7 +193,7 @@ export const footerHint = style({
 export const teacherAppLink = style({
   display: 'inline-block',
   marginTop: '12px',
-  fontSize: '11px',
+  fontSize: fontStyles.labelSm.fontSize,
   fontWeight: 600,
   letterSpacing: tracking,
   color: vars.color.primary[300],
@@ -449,7 +449,7 @@ export const statValueRow = style({
 })
 
 export const statValue = style({
-  fontSize: '30px',
+  fontSize: fontStyles.display.fontSize,
   fontWeight: 700,
   lineHeight: 1.2,
   color: vars.color.gray[900],
@@ -562,7 +562,7 @@ export const th = style({
   '@media': {
     [media.phone]: {
       padding: '10px 12px',
-      fontSize: '13px',
+      fontSize: fontStyles.bodyMd.fontSize,
     },
   },
 })
@@ -866,7 +866,7 @@ export const funnelNum = style({
   fontSize: '12px',
   fontWeight: 700,
   flexShrink: 0,
-  backgroundColor: 'var(--step, #3B51CC)',
+  backgroundColor: `var(--step, ${colors.primary500})`,
 })
 
 export const dropText = style({
@@ -889,7 +889,7 @@ export const trackFill = style({
   height: '10px',
   borderRadius: '999px',
   width: 'calc(var(--pct, 0) * 1%)',
-  backgroundColor: 'var(--bar, #3B51CC)',
+  backgroundColor: `var(--bar, ${colors.primary500})`,
 })
 
 export const trackFillSm = style({

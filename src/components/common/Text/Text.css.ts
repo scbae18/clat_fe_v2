@@ -10,7 +10,7 @@ export const textVariants = styleVariants({
     lineHeight: '140%',
     letterSpacing: '-0.03em',
     '@media': {
-      [media.phone]: { fontSize: '22px' },
+      [media.phone]: { fontSize: fontStyles.headingLg.fontSize },
     },
   },
   headingLg: {

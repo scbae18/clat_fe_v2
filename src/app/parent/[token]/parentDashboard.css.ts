@@ -4,7 +4,7 @@ import { fontStyles } from '@/styles/tokens/typography'
 
 export const page = style({
   minHeight: '100vh',
-  backgroundColor: '#FAFAFA',
+  backgroundColor: colors.background,
   display: 'flex',
   justifyContent: 'center',
   padding: '0 0 30px',
@@ -98,7 +98,7 @@ export const cardHeadIcon = style({
 export const cardHeadText = style({
   fontSize: fontStyles.titleSm.fontSize,
   fontWeight: 600,
-  backgroundImage: 'linear-gradient(90deg, #5774DA 0%, #3946BC 100%)',
+  backgroundImage: `linear-gradient(90deg, ${colors.primary400} 0%, ${colors.primary600} 100%)`,
   WebkitBackgroundClip: 'text',
   backgroundClip: 'text',
   WebkitTextFillColor: 'transparent',
@@ -343,7 +343,7 @@ export const todoClassBlue = style({
   maxWidth: '9rem',
   backgroundColor: colors.primary100,
   color: colors.primary500,
-  fontSize: '10px',
+  fontSize: fontStyles.labelSm.fontSize,
   fontWeight: 600,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
@@ -360,7 +360,7 @@ export const todoTemplateGreen = style({
   flexShrink: 0,
   backgroundColor: colors.success50,
   color: colors.success500,
-  fontSize: '10px',
+  fontSize: fontStyles.labelSm.fontSize,
   fontWeight: 600,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
@@ -379,11 +379,11 @@ export const todoTags = style({
 })
 
 export const tagLate = style({
-  backgroundColor: '#FEE5E5',
+  backgroundColor: colors.error50,
   color: colors.error500,
   borderRadius: '6px',
   padding: '4px 8px',
-  fontSize: '10px',
+  fontSize: fontStyles.labelSm.fontSize,
   fontWeight: 600,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
@@ -407,7 +407,7 @@ export const timelineRail = style({
 })
 
 export const recentDate = style({
-  fontSize: '10px',
+  fontSize: fontStyles.labelSm.fontSize,
   color: colors.primary400,
   fontWeight: 500,
   marginBottom: '4px',
@@ -432,7 +432,7 @@ export const recentClass = style({
 export const recentBadge = style({
   borderRadius: '4px',
   padding: '2px 4px',
-  fontSize: '10px',
+  fontSize: fontStyles.labelSm.fontSize,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
   fontWeight: 500,
@@ -515,8 +515,10 @@ export const tabButton = style({
   borderRadius: '999px',
   background: colors.white,
   color: colors.gray700,
-  fontSize: '13px',
+  fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: 600,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
   padding: '8px 0',
   cursor: 'pointer',
 })
@@ -550,20 +552,27 @@ export const listCard = style({
 })
 
 export const listTitle = style({
-  fontSize: '15px',
+  fontSize: fontStyles.bodyLg.fontSize,
   fontWeight: 600,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
 })
 
 export const listMeta = style({
   marginTop: '4px',
-  fontSize: '13px',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
   color: colors.gray600,
 })
 
 export const noticeBody = style({
   marginTop: '8px',
-  fontSize: '14px',
-  lineHeight: 1.5,
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
   whiteSpace: 'pre-wrap',
   color: colors.gray700,
 })

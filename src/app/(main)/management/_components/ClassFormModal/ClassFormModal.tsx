@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Text from '@/components/common/Text'
+import { colors } from '@/styles/tokens/colors'
 import Input from '@/components/common/Input'
 import useToggleArray from '@/hooks/useToggleArray'
 import Button from '@/components/common/Button'
@@ -79,15 +80,15 @@ export default function ClassFormModal({
       </div>
       <div className={fieldGroupStyle}>
         <div className={fieldStyle}>
-          <Text variant="headingSm">학원명 <span style={{ color: '#EF4453' }}>*</span></Text>
+          <Text variant="headingSm">학원명 <span style={{ color: colors.error500 }}>*</span></Text>
           <Input variant="gray" value={academyName} onChange={(e) => setAcademyName(e.target.value)} placeholder="예) OO학원" />
         </div>
         <div className={fieldStyle}>
-          <Text variant="headingSm">반 이름 <span style={{ color: '#EF4453' }}>*</span></Text>
+          <Text variant="headingSm">반 이름 <span style={{ color: colors.error500 }}>*</span></Text>
           <Input variant="gray" value={name} onChange={(e) => setName(e.target.value)} placeholder="예) 미적분 A반" />
         </div>
         <div className={fieldStyle}>
-          <Text variant="headingSm">수업 요일 <span style={{ color: '#EF4453' }}>*</span></Text>
+          <Text variant="headingSm">수업 요일 <span style={{ color: colors.error500 }}>*</span></Text>
           <div className={dayGroupStyle}>
             {DAYS.map((day) => (
               <button
