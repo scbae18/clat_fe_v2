@@ -297,7 +297,11 @@ export default function AlimtalkBroadcastPage() {
       <AlimtalkTabs />
 
       <div className={styles.layout}>
-        <section className={`${styles.panel} ${styles.recipientPanel}`} aria-label="수신자 선택">
+        <section
+          className={`${styles.panel} ${styles.recipientPanel}`}
+          aria-label="수신자 선택"
+          data-tour="alimtalk-broadcast-recipients"
+        >
           <div className={styles.sectionHeader}>
             <div className={styles.sectionHeaderText}>
               <Text as="h2" variant="headingSm">
@@ -411,7 +415,7 @@ export default function AlimtalkBroadcastPage() {
         </section>
 
         <section className={styles.composeStack} aria-label="공지 작성">
-          <div className={styles.panel}>
+          <div className={styles.panel} data-tour="alimtalk-broadcast-compose">
             <div className={styles.sectionHeaderText}>
               <Text as="h2" variant="headingSm">
                 공지 작성
@@ -505,7 +509,7 @@ export default function AlimtalkBroadcastPage() {
             </div>
           </div>
 
-          <div className={baseStyles.previewColumn}>
+          <div className={baseStyles.previewColumn} data-tour="alimtalk-broadcast-preview">
             <h2 className={baseStyles.previewTitle}>알림톡 미리보기</h2>
             <div className={baseStyles.previewPhoneShell}>
               <div className={baseStyles.previewLogoRow}>

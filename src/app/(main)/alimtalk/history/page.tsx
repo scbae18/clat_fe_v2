@@ -16,28 +16,32 @@ export default function AlimtalkHistoryPage() {
 
       <AlimtalkTabs />
 
-      <HistoryFilterChips
-        chip={batches.chip}
-        onChipChange={batches.setChip}
-        stats={batches.stats}
-      />
-
-      {batches.loading ? (
-        <div className={styles.emptyState}>불러오는 중…</div>
-      ) : batches.filtered.length === 0 ? (
-        <div className={styles.emptyState}>표시할 발송 내역이 없어요.</div>
-      ) : (
-        <HistoryBatchTable
-          rows={batches.filtered}
-          expandedId={batches.expandedId}
-          details={batches.details}
-          detailLoading={batches.detailLoading}
-          detailSelectedStudentId={batches.detailSelectedStudentId}
-          onToggleRow={(id) => void batches.toggleRow(id)}
-          onSelectStudent={batches.setDetailSelectedStudentId}
-          onResendClick={batches.onResendClick}
+      <div data-tour="alimtalk-history-filters">
+        <HistoryFilterChips
+          chip={batches.chip}
+          onChipChange={batches.setChip}
+          stats={batches.stats}
         />
-      )}
+      </div>
+
+      <div data-tour="alimtalk-history-list">
+        {batches.loading ? (
+          <div className={styles.emptyState}>불러오는 중…</div>
+        ) : batches.filtered.length === 0 ? (
+          <div className={styles.emptyState}>표시할 발송 내역이 없어요.</div>
+        ) : (
+          <HistoryBatchTable
+            rows={batches.filtered}
+            expandedId={batches.expandedId}
+            details={batches.details}
+            detailLoading={batches.detailLoading}
+            detailSelectedStudentId={batches.detailSelectedStudentId}
+            onToggleRow={(id) => void batches.toggleRow(id)}
+            onSelectStudent={batches.setDetailSelectedStudentId}
+            onResendClick={batches.onResendClick}
+          />
+        )}
+      </div>
 
       {batches.hasMore && !batches.loading && (
         <div className={styles.loadMoreRow}>

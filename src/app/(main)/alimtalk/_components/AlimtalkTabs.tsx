@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { TutorialReplayButton } from '@/features/tutorial/TutorialProvider'
+import { screenForPath } from '@/features/tutorial/tutorialSteps'
 import * as styles from '../alimtalkSettings.css'
 
 const TABS = [
@@ -25,6 +27,7 @@ const TABS = [
 
 export function AlimtalkTabs() {
   const pathname = usePathname()
+  const screen = screenForPath(pathname)
 
   return (
     <div className={styles.tabRow}>
@@ -33,10 +36,22 @@ export function AlimtalkTabs() {
           key={tab.href}
           href={tab.href}
           className={`${styles.tabLink} ${tab.match(pathname) ? styles.tabActive : styles.tabInactive}`}
+          data-tour={
+            tab.href === '/alimtalk/history'
+              ? 'alimtalk-tab-history'
+              : tab.href === '/alimtalk/broadcast'
+                ? 'alimtalk-tab-broadcast'
+                : tab.href === '/alimtalk/test'
+                  ? 'alimtalk-tab-test'
+                  : undefined
+          }
         >
           {tab.label}
         </Link>
       ))}
+      <div className={styles.replaySlot}>
+        {screen ? <TutorialReplayButton screen={screen} /> : null}
+      </div>
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import MessagePreviewShell from '@/components/message/MessagePreviewShell'
 import type { TemplateItem } from '../../_types/template'
 import { useUserStore } from '@/stores/userStore'
+import { useTutorial } from '@/features/tutorial/TutorialProvider'
 
 const DUMMY_ACADEMY = '엘리에듀학원'
 const DUMMY_CLASS = '미적분 A반'
@@ -44,13 +45,15 @@ export default function MessagePreview({ messageOrder, allItemsMap }: MessagePre
   const today = formatDate(new Date())
   const user = useUserStore((s) => s.user)
   const teacherName = user?.name ?? '강사명'
+  const tour = useTutorial()
+  const inTutorial = tour.status === 'in_progress'
 
   return (
     <MessagePreviewShell
       dataTour="template-preview"
-      academyName={DUMMY_ACADEMY}
+      academyName={inTutorial ? '클랫학원' : DUMMY_ACADEMY}
       teacherName={teacherName}
-      className={DUMMY_CLASS}
+      className={inTutorial ? '클랫반' : DUMMY_CLASS}
       dateLabel={today}
       emptyMessage="활성화된 항목이 없어요"
       items={activeItems.map((item) => ({

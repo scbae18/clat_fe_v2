@@ -26,6 +26,13 @@ export const pageTitle = style({
   },
 })
 
+export const replaySlot = style({
+  marginLeft: 'auto',
+  flexShrink: 0,
+  display: 'flex',
+  alignItems: 'center',
+})
+
 export const tabRow = style({
   display: 'flex',
   alignItems: 'center',

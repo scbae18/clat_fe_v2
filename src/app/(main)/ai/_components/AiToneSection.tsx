@@ -23,7 +23,7 @@ export function AiToneSection({
   onAnalyzeTone,
 }: AiToneSectionProps) {
   return (
-    <section className={styles.card}>
+    <section className={styles.card} data-tour="ai-tone">
       <h2 className={styles.sectionTitle}>피드백 톤</h2>
 
       <div className={styles.fieldRow}>

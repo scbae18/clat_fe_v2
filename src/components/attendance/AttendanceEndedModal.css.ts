@@ -13,6 +13,7 @@ export const iconWrapStyle = style({
   width: '60px',
   height: '60px',
   marginBottom: '20px',
+  alignSelf: 'center',
 })
 
 export const titleStyle = style({
@@ -23,6 +24,7 @@ export const titleStyle = style({
   lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray900,
+  textAlign: 'center',
 })
 
 export const summaryRowStyle = style({
@@ -78,18 +80,4 @@ export const summaryValueMutedStyle = style({
   lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray700,
-})
-
-export const ctaBtnStyle = style({
-  width: '100%',
-  border: 'none',
-  borderRadius: '12px',
-  padding: '16px 12px',
-  backgroundColor: colors.primary500,
-  color: colors.gray50,
-  fontSize: fontStyles.titleMd.fontSize,
-  fontWeight: 600,
-  lineHeight: '140%',
-  letterSpacing: '-0.03em',
-  cursor: 'pointer',
 })

@@ -25,6 +25,7 @@ interface LessonCardProps {
   alimtalkDeliveryMode?: 'mock' | 'live' | null
   onClick: () => void
   onDelete?: () => void
+  tourAnchor?: string
 }
 
 export default function LessonCard({
@@ -39,6 +40,7 @@ export default function LessonCard({
   alimtalkDeliveryMode = null,
   onClick,
   onDelete,
+  tourAnchor,
 }: LessonCardProps) {
   const alimtalkLabel =
     alimtalkDeliveryMode === 'mock' ? '알림톡 발송 완료 (모의)' : '알림톡 발송 완료'
@@ -84,7 +86,13 @@ export default function LessonCard({
           <div className={progressBarStyle} style={{ width: `${progress}%` }} />
         </div>
       </div>
-      <Button variant={isDone ? 'secondary' : 'primary'} size="md" fullWidth onClick={onClick}>
+      <Button
+        variant={isDone ? 'secondary' : 'primary'}
+        size="md"
+        fullWidth
+        onClick={onClick}
+        data-tour={tourAnchor}
+      >
         {isDone ? '수정하기' : '입력하기'}
       </Button>
     </div>

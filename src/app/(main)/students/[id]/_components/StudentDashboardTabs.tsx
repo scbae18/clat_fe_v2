@@ -73,6 +73,7 @@ export function StudentDashboardTabs({
       <div className={styles.panelBody}>
         {mainTab === 'scores' && (
           <>
+            <div data-tour="student-scores">
             <div className={styles.periodRow}>
               {PERIODS.map((p) => (
                 <button
@@ -86,6 +87,7 @@ export function StudentDashboardTabs({
               ))}
             </div>
             <ScoreLineChart rows={scoreRows} motionKey={`${period}-${scoreRows.length}`} />
+            </div>
             <div className={styles.aiBox}>
               <div className={styles.aiTitleRow}>
                 <SparkleIcon />

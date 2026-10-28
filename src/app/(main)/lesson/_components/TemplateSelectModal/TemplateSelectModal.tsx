@@ -29,6 +29,7 @@ interface TemplateSelectModalProps {
   currentTemplateId?: number
   title?: string
   confirmLabel?: string
+  initialTemplateId?: number
 }
 
 export default function TemplateSelectModal({
@@ -38,6 +39,7 @@ export default function TemplateSelectModal({
   currentTemplateId,
   title = '템플릿 선택',
   confirmLabel = '확인',
+  initialTemplateId,
 }: TemplateSelectModalProps) {
   const router = useRouter()
   const [templates, setTemplates] = useState<Template[]>([])
@@ -52,7 +54,11 @@ export default function TemplateSelectModal({
     if (currentTemplateId) {
       templateService.getTemplate(currentTemplateId).then(setCurrentDetail)
     }
-  }, [isOpen, currentTemplateId])
+    if (initialTemplateId) {
+      setSelectedId(initialTemplateId)
+      void templateService.getTemplate(initialTemplateId).then(setSelectedDetail)
+    }
+  }, [isOpen, currentTemplateId, initialTemplateId])
 
   const handleSelect = async (value: string) => {
     const id = Number(value)
@@ -85,7 +91,7 @@ export default function TemplateSelectModal({
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} size={currentTemplateId ? 'md' : 'sm'}>
-      <div className={modalContentStyle}>
+      <div className={modalContentStyle} data-tour="lesson-template-modal">
         <Text variant="headingMd">{title}</Text>
 
         {currentTemplateId ? (
@@ -195,6 +201,7 @@ export default function TemplateSelectModal({
                 fullWidth
                 onClick={handleConfirm}
                 disabled={!selectedId || isLoading}
+                data-tour="lesson-create"
               >
                 {confirmLabel}
               </Button>

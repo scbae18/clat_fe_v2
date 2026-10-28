@@ -1,6 +1,7 @@
 'use client'
 
 import Button from '@/components/common/Button'
+import SaveIcon from '@/assets/icons/icon-save.svg'
 import * as styles from './aiSettings.css'
 import { useAiSettingsForm } from './_hooks/useAiSettingsForm'
 import { UnsavedChangesGuard } from './_hooks/useUnsavedChangesGuard'
@@ -22,7 +23,9 @@ export default function AiSettingsPage() {
         <div className={styles.saveRow}>
           <Button
             type="button"
-            size="lg"
+            variant="primary"
+            size="sm"
+            leftIcon={<SaveIcon width={16} height={16} />}
             onClick={() => void form.onSave()}
             disabled={form.saving}
             data-tour="ai-save"

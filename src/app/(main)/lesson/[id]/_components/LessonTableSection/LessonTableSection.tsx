@@ -18,6 +18,7 @@ import useDisclosure from '@/hooks/useDisclosure'
 import { lessonItemRef, matchesLessonItem } from '@/lib/lessonItemRef'
 import type { ItemSource } from '@/lib/lessonItemRef'
 import { isLessonStudentInputComplete } from '@/lib/lessonProgress'
+import { isScoreUnanswered } from '@/lib/lessonScore'
 import {
   tableStyle,
   tableWrapStyle,
@@ -117,11 +118,27 @@ export default function LessonTable({
     setFocusedStudentId(null)
   }
 
+  const reportIfTutorialRowsReady = (nextStudents: LessonStudent[]) => {
+    if (tour.status !== 'in_progress' || tour.step !== 5 || tour.studentId == null) return
+    if (!nextStudents.some((row) => row.id === tour.studentId)) return
+    const ready = nextStudents.every((row) => {
+      if (!row.attendance) return false
+      return dynamicItems.every((item) => {
+        if (item.is_partial) return true
+        const cell = row.items.find((entry) => matchesLessonItem(entry, item))
+        if (!cell) return false
+        if (item.item_type === 'COMPLETE') return cell.is_completed != null
+        if (item.item_type === 'SCORE' || item.item_type === 'NUMBER') return !isScoreUnanswered(cell.value)
+        return cell.value.trim() !== ''
+      })
+    })
+    if (ready) reportTutorialAction('lesson-input', { studentId: tour.studentId })
+  }
+
   const updateAttendance = (studentId: number, value: Attendance) => {
-    onChange(students.map((s) => (s.id === studentId ? { ...s, attendance: value } : s)))
-    if (value === '출석' || value === '지각' || value === '결석') {
-      reportTutorialAction('lesson-attend', studentId)
-    }
+    const next = students.map((s) => (s.id === studentId ? { ...s, attendance: value } : s))
+    onChange(next)
+    reportIfTutorialRowsReady(next)
   }
 
   const updateItem = (
@@ -130,32 +147,32 @@ export default function LessonTable({
     value: string,
     is_completed?: boolean | null,
   ) => {
-    onChange(
-      students.map((s) => {
-        if (s.id !== studentId) return s
-        const items = s.items.map((row) =>
-          matchesLessonItem(row, item)
-            ? {
-                ...row,
-                value,
-                is_completed: is_completed === undefined ? row.is_completed : is_completed,
-              }
-            : row,
-        )
-        return { ...s, items }
-      }),
-    )
+    const next = students.map((s) => {
+      if (s.id !== studentId) return s
+      const items = s.items.map((row) =>
+        matchesLessonItem(row, item)
+          ? {
+              ...row,
+              value,
+              is_completed: is_completed === undefined ? row.is_completed : is_completed,
+            }
+          : row,
+      )
+      return { ...s, items }
+    })
+    onChange(next)
+    reportIfTutorialRowsReady(next)
   }
 
   const allAttend =
     filteredStudents.length > 0 && filteredStudents.every((s) => s.attendance === '출석')
   const handleAllAttend = (checked: boolean) => {
     const visibleIds = new Set(filteredStudents.map((s) => s.id))
-    onChange(
-      students.map((s) =>
-        visibleIds.has(s.id) ? { ...s, attendance: checked ? '출석' : null } : s,
-      ),
+    const next = students.map((s) =>
+      visibleIds.has(s.id) ? { ...s, attendance: checked ? '출석' : null } : s,
     )
+    onChange(next)
+    reportIfTutorialRowsReady(next)
   }
 
   return (
@@ -175,7 +192,12 @@ export default function LessonTable({
         </div>
       ) : (
         <div className={tableWrapStyle}>
-          <table ref={tableRef} className={tableStyle} onBlur={handleTableBlur}>
+          <table
+            ref={tableRef}
+            className={tableStyle}
+            onBlur={handleTableBlur}
+            data-tour="lesson-table"
+          >
             <thead>
               <tr>
                 <th className={`${thCompactStyle} ${nameStickyCellStyle}`}>학생</th>
@@ -247,7 +269,7 @@ export default function LessonTable({
                       extraLabels={extraAttendanceOptions.map((opt) => opt.label)}
                       onChange={(v) => updateAttendance(student.id, v)}
                       tourAnchor={
-                        tour.step === 4 && tour.studentId === student.id ? 'lesson-attend' : undefined
+                        tour.step === 5 && tour.studentId === student.id ? 'lesson-attend' : undefined
                       }
                     />
                   </td>

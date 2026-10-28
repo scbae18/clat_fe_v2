@@ -37,7 +37,6 @@ export default function AttendanceFloatingBarHost() {
           className={bar.active.className}
           prefetchedLinks={bar.active.studentLinks}
           onRequestEnd={() => {
-            bar.setDetailOpen(false)
             bar.setEndConfirmOpen(true)
           }}
         />
@@ -51,6 +50,7 @@ export default function AttendanceFloatingBarHost() {
         descriptions={['종료 후에는 같은 수업에서 출결을 다시 시작할 수 없어요.']}
         confirmLabel="종료"
         confirmVariant="danger"
+        tour="attendance-end-confirm"
       />
 
       {bar.endedSummary ? (

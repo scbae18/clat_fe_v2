@@ -1,7 +1,16 @@
 import axiosInstance from '@/lib/api/axiosInstance'
-import type { TutorialAction } from './tutorialEvents'
+import type { TutorialAction, TutorialActionExtra } from './tutorialEvents'
 
-export type TutorialScreen = 'management' | 'student' | 'home' | 'alimtalk' | 'me'
+export type TutorialScreen =
+  | 'management'
+  | 'student'
+  | 'home'
+  | 'alimtalk'
+  | 'alimtalk-settings'
+  | 'alimtalk-broadcast'
+  | 'alimtalk-history'
+  | 'alimtalk-test'
+  | 'me'
 
 export interface TutorialState {
   status: 'none' | 'in_progress' | 'completed'
@@ -60,24 +69,11 @@ export const tutorialApi = {
   restart: (force = false) => post('/tutorial/restart', { force }),
   complete: (force = false) => post('/tutorial/complete', { force }),
   skip: () => post('/tutorial/skip'),
-  advance: (action: TutorialAction, studentId?: number) =>
-    post('/tutorial/advance', { action, student_id: studentId }),
+  advance: (action: TutorialAction, extra?: TutorialActionExtra) =>
+    post('/tutorial/advance', {
+      action,
+      ...(extra?.studentId ? { student_id: extra.studentId } : {}),
+      ...(extra?.lessonId ? { lesson_id: extra.lessonId } : {}),
+    }),
   seen: (screen: TutorialScreen) => post('/tutorial/seen', { screen }),
-}
-
-export function stepPath(state: TutorialState): string | null {
-  switch (state.step) {
-    case 1:
-      return state.template_id ? `/template/${state.template_id}/edit` : null
-    case 2:
-      return '/ai'
-    case 3:
-    case 4:
-    case 5:
-      return state.lesson_id ? `/lesson/${state.lesson_id}` : null
-    case 6:
-      return state.student_id ? `/students/${state.student_id}` : null
-    default:
-      return null
-  }
 }

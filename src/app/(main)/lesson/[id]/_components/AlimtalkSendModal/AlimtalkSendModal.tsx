@@ -23,7 +23,7 @@ import {
 } from '@/services/lesson'
 import { useQueryClient } from '@tanstack/react-query'
 import { invalidateLessonLists } from '@/lib/queryKeys'
-import { reportTutorialAction } from '@/features/tutorial/tutorialEvents'
+import { reportTutorialAction, setTutorialGate } from '@/features/tutorial/tutorialEvents'
 import { useToastStore } from '@/stores/toastStore'
 import { useUserStore } from '@/stores/userStore'
 import { pollBatchUntilSettled } from '@/services/alimtalk'
@@ -281,6 +281,19 @@ export default function AlimtalkSendModal({
     aiStatusById[focusId ?? -1]?.status,
     aiStatusById[focusId ?? -1]?.stale,
   ])
+
+  useEffect(() => {
+    const mode = dashboardPreview?.feedback_mode ?? feedbackMode
+    const ready =
+      isOpen &&
+      previewTab === 'dashboard' &&
+      !dashboardLoading &&
+      dashboardPreview != null &&
+      !(mode === 'AUTO' && dashboardPreview.ai_feedback_status === 'pending')
+    setTutorialGate('feedback', ready)
+  }, [isOpen, previewTab, dashboardLoading, dashboardPreview, feedbackMode])
+
+  useEffect(() => () => setTutorialGate('feedback', false), [])
 
   if (!mounted || (!isOpen && !isClosing)) return null
 
@@ -609,6 +622,7 @@ export default function AlimtalkSendModal({
                 aria-selected={previewTab === 'message'}
                 className={`${styles.tabButton}${previewTab === 'message' ? ` ${styles.tabButtonActive}` : ''}`}
                 onClick={() => setPreviewTab('message')}
+                data-tour="alimtalk-message-tab"
               >
                 <Text variant="headingSm" color={previewTab === 'message' ? 'gray900' : 'gray500'}>
                   문자
@@ -620,6 +634,7 @@ export default function AlimtalkSendModal({
                 aria-selected={previewTab === 'dashboard'}
                 className={`${styles.tabButton}${previewTab === 'dashboard' ? ` ${styles.tabButtonActive}` : ''}`}
                 onClick={() => setPreviewTab('dashboard')}
+                data-tour="alimtalk-dashboard-tab"
               >
                 <Text variant="headingSm" color={previewTab === 'dashboard' ? 'gray900' : 'gray500'}>
                   대시보드

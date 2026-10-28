@@ -14,7 +14,6 @@ import BottomNav from './BottomNav'
 import MobileTopBar from './MobileTopBar'
 import MoreSheet from './MoreSheet'
 import { mainStyle, shellStyle } from './MainShell.css'
-import TutorialProvider from '@/features/tutorial/TutorialProvider'
 
 export default function MainShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? ''
@@ -32,7 +31,6 @@ export default function MainShell({ children }: { children: React.ReactNode }) {
   }, [pathname])
 
   return (
-    <TutorialProvider>
     <div
       className={shellStyle}
       data-sidebar-collapsed={sidebarCollapsed ? 'true' : 'false'}
@@ -49,6 +47,5 @@ export default function MainShell({ children }: { children: React.ReactNode }) {
       <AttendanceFloatingBarHost />
       <WhatsNewModalHost />
     </div>
-    </TutorialProvider>
   )
 }

@@ -48,9 +48,11 @@ function TemplateEditForm({ id, initialData }: { id: number; initialData: Editor
           <button className={formBackButtonStyle} onClick={() => router.back()}>
             <ArrowLeftIcon width={24} height={24} />
           </button>
-          <Text variant="display" as="h1">
-            수업 템플릿 수정
-          </Text>
+          <div data-tour="template-intro">
+            <Text variant="display" as="h1">
+              수업 템플릿 수정
+            </Text>
+          </div>
         </div>
         <Button
           variant="primary"
@@ -71,6 +73,7 @@ function TemplateEditForm({ id, initialData }: { id: number; initialData: Editor
               <ContentSection
                 title="공통 내용"
                 description="모든 학생에게 동일하게 전달할 내용이에요"
+                tourId="common"
                 items={editor.commonItems}
                 onToggle={editor.handleToggleCommonItem}
                 onDelete={editor.handleDeleteCommonItem}
@@ -82,6 +85,7 @@ function TemplateEditForm({ id, initialData }: { id: number; initialData: Editor
               <ContentSection
                 title="개별 내용"
                 description="학생마다 다르게 전달할 내용이에요"
+                tourId="individual"
                 items={[ATTENDANCE_DISPLAY, ...editor.individualItems]}
                 onToggle={(id) => {
                   if (id !== '__attendance__') editor.handleToggleIndividualItem(id)

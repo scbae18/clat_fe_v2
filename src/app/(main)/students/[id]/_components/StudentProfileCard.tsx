@@ -23,7 +23,7 @@ export function StudentProfileCard({
   onEdit,
 }: StudentProfileCardProps) {
   return (
-    <section className={styles.profileCard}>
+    <section className={styles.profileCard} data-tour="student-profile">
       <div className={styles.profileTop}>
         <div className={styles.avatar} />
         <div className={styles.profileName} title={detail.name}>

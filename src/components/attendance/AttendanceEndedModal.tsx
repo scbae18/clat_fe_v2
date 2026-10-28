@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { colors } from '@/styles/tokens/colors'
 import Modal from '@/components/common/Modal'
+import Button from '@/components/common/Button'
 import {
   rootStyle,
   iconWrapStyle,
@@ -14,7 +15,6 @@ import {
   summaryLabelMutedStyle,
   summaryValuePrimaryStyle,
   summaryValueMutedStyle,
-  ctaBtnStyle,
 } from './AttendanceEndedModal.css'
 
 type Props = {
@@ -81,16 +81,19 @@ export default function AttendanceEndedModal({
           </div>
         </div>
 
-        <button
+        <Button
           type="button"
-          className={ctaBtnStyle}
+          variant="primary"
+          size="lg"
+          fullWidth
+          data-tour="attendance-ended-lesson"
           onClick={() => {
             onClose()
             if (pathname !== lessonPath) router.push(lessonPath)
           }}
         >
-          {'\uC218\uC5C5 \uC785\uB825\uD558\uAE30 \u2192'}
-        </button>
+          수업 입력하기
+        </Button>
       </div>
     </Modal>
   )

@@ -11,7 +11,47 @@ import {
   type ParentNoticeItem,
 } from '@/services/parentDashboard'
 import ParentDashboardView from '../_components/ParentDashboardView'
+import { useTutorial } from '@/features/tutorial/TutorialProvider'
 import * as styles from './parentDashboard.css'
+
+function shiftDay(dateStr: string, days: number) {
+  const date = new Date(dateStr)
+  if (Number.isNaN(date.getTime())) return dateStr
+  date.setDate(date.getDate() - days)
+  return format(date, 'yyyy-MM-dd')
+}
+
+function tutorialPastLessons(className: string, lessonDate: string): ParentLessonListItem[] {
+  return [
+    {
+      lesson_id: -2,
+      lesson_date: shiftDay(lessonDate, 14),
+      class_name: className,
+      template_name: '체험 틀',
+    },
+    {
+      lesson_id: -1,
+      lesson_date: shiftDay(lessonDate, 7),
+      class_name: className,
+      template_name: '체험 틀',
+    },
+  ]
+}
+
+function tutorialNotices(lessonDate: string): ParentNoticeItem[] {
+  return [
+    {
+      batch_id: -2,
+      sent_at: shiftDay(lessonDate, 10),
+      body: '다음 주 휴강 안내예요. 수업은 그다음 주에 만나요.',
+    },
+    {
+      batch_id: -1,
+      sent_at: shiftDay(lessonDate, 3),
+      body: '준비물 안내예요. 교재를 챙겨 주세요.',
+    },
+  ]
+}
 
 type Tab = 'lesson' | 'timeline' | 'notices'
 
@@ -33,6 +73,16 @@ function ParentDashboardPage({ params }: { params: Promise<{ token: string }> })
   const [notices, setNotices] = useState<ParentNoticeItem[]>([])
   const [loading, setLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const tour = useTutorial()
+  const showSamples = tour.status === 'in_progress'
+  const sampleDate = data?.lesson_date ?? new Date().toISOString().slice(0, 10)
+  const sampleClass = data?.class_name ?? '클랫반'
+  const displayLessons =
+    showSamples && lessons.length < 2
+      ? [...tutorialPastLessons(sampleClass, sampleDate), ...lessons]
+      : lessons
+  const displayNotices =
+    showSamples && notices.length === 0 ? tutorialNotices(sampleDate) : notices
 
   useEffect(() => {
     let cancelled = false
@@ -116,6 +166,9 @@ function ParentDashboardPage({ params }: { params: Promise<{ token: string }> })
             key={id}
             type="button"
             className={tab === id ? `${styles.tabButton} ${styles.tabButtonOn}` : styles.tabButton}
+            data-tour={
+              id === 'lesson' ? 'parent-tab-lesson' : id === 'timeline' ? 'parent-tab-timeline' : 'parent-tab-notices'
+            }
             onClick={() => setTab(id)}
           >
             {label}
@@ -153,15 +206,18 @@ function ParentDashboardPage({ params }: { params: Promise<{ token: string }> })
       {!loading && !errorMsg && data && tab !== 'lesson' ? (
         <div className={styles.frame}>
           {chrome}
-          {tab === 'timeline'
-            ? lessons.map((lesson) => (
+          {tab === 'timeline' ? (
+            <div data-tour="parent-timeline">
+              {displayLessons.map((lesson) => (
                 <button
                   key={lesson.lesson_id}
                   type="button"
                   className={styles.listCard}
                   onClick={() => {
                     setTab('lesson')
-                    router.replace(`/parent/${token}?lesson=${lesson.lesson_id}`)
+                    if (lesson.lesson_id > 0) {
+                      router.replace(`/parent/${token}?lesson=${lesson.lesson_id}`)
+                    }
                   }}
                 >
                   <div className={styles.listTitle}>{formatDay(lesson.lesson_date)}</div>
@@ -169,21 +225,20 @@ function ParentDashboardPage({ params }: { params: Promise<{ token: string }> })
                     {lesson.class_name} · {lesson.template_name}
                   </div>
                 </button>
-              ))
-            : null}
-          {tab === 'timeline' && lessons.length === 0 ? (
-            <div className={styles.stateBox}>아직 수업이 없어요.</div>
+              ))}
+              {displayLessons.length === 0 ? <div className={styles.stateBox}>아직 수업이 없어요.</div> : null}
+            </div>
           ) : null}
-          {tab === 'notices'
-            ? notices.map((notice) => (
+          {tab === 'notices' ? (
+            <div data-tour="parent-notices">
+              {displayNotices.map((notice) => (
                 <div key={notice.batch_id} className={styles.listCard}>
                   <div className={styles.listMeta}>{formatDay(notice.sent_at)}</div>
                   <div className={styles.noticeBody}>{notice.body}</div>
                 </div>
-              ))
-            : null}
-          {tab === 'notices' && notices.length === 0 ? (
-            <div className={styles.stateBox}>받은 공지가 없어요.</div>
+              ))}
+              {displayNotices.length === 0 ? <div className={styles.stateBox}>받은 공지가 없어요.</div> : null}
+            </div>
           ) : null}
         </div>
       ) : null}

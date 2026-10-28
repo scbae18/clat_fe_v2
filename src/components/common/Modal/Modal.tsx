@@ -10,9 +10,10 @@ interface ModalProps {
   onClose: () => void
   size?: 'sm' | 'md' | 'lg'
   children: ReactNode
+  tour?: string
 }
 
-export default function Modal({ isOpen, onClose, size = 'md', children }: ModalProps) {
+export default function Modal({ isOpen, onClose, size = 'md', children, tour }: ModalProps) {
   const [mounted, setMounted] = useState(false)
   useRegisterModal(isOpen)
 
@@ -29,6 +30,7 @@ export default function Modal({ isOpen, onClose, size = 'md', children }: ModalP
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
+        data-tour={tour}
       >
         <div className={modalBodyStyle}>{children}</div>
       </div>

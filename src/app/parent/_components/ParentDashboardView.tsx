@@ -4,6 +4,7 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import type { ParentDashboardData } from '@/services/parentDashboard'
+import { useTutorial } from '@/features/tutorial/TutorialProvider'
 import { colors } from '@/styles/tokens/colors'
 import { isCoreAttendanceLabel } from '@/lib/attendanceLabels'
 import * as styles from '../[token]/parentDashboard.css'
@@ -12,6 +13,51 @@ function formatKoreanDate(dateStr: string) {
   const d = new Date(dateStr)
   if (Number.isNaN(d.getTime())) return dateStr
   return format(d, 'M월 d일 (E)', { locale: ko })
+}
+
+function shiftDate(dateStr: string, days: number) {
+  const d = new Date(dateStr)
+  if (Number.isNaN(d.getTime())) return dateStr
+  d.setDate(d.getDate() - days)
+  return format(d, 'yyyy-MM-dd')
+}
+
+function tutorialIncomplete(data: ParentDashboardData): ParentDashboardData['incomplete_items'] {
+  return [
+    {
+      item_name: '오답노트',
+      note: null,
+      lesson_date: shiftDate(data.lesson_date, 7),
+      class_name: data.class_name,
+      template_name: '',
+    },
+    {
+      item_name: '단어 시험',
+      note: null,
+      lesson_date: shiftDate(data.lesson_date, 14),
+      class_name: data.class_name,
+      template_name: '',
+    },
+  ]
+}
+
+function tutorialRecent(data: ParentDashboardData): ParentDashboardData['recent_lessons'] {
+  return [
+    {
+      lesson_date: shiftDate(data.lesson_date, 7),
+      class_name: data.class_name,
+      template_name: '',
+      attendance: '출석',
+      scores: [{ item_name: '단원평가', value: '90' }],
+    },
+    {
+      lesson_date: shiftDate(data.lesson_date, 14),
+      class_name: data.class_name,
+      template_name: '',
+      attendance: '지각',
+      scores: [{ item_name: '단원평가', value: '80' }],
+    },
+  ]
 }
 
 function BookIcon() {
@@ -96,8 +142,17 @@ export default function ParentDashboardView({
   onEditFeedback,
   header,
 }: ParentDashboardViewProps) {
+  const tour = useTutorial()
   const [showAllIncomplete, setShowAllIncomplete] = useState(false)
-  const incompleteItems = data.incomplete_items ?? []
+  const showTutorialSamples = tour.status === 'in_progress'
+  const incompleteItems =
+    (data.incomplete_items ?? []).length > 0 || !showTutorialSamples
+      ? (data.incomplete_items ?? [])
+      : tutorialIncomplete(data)
+  const recentLessons =
+    (data.recent_lessons ?? []).length > 0 || !showTutorialSamples
+      ? (data.recent_lessons ?? [])
+      : tutorialRecent(data)
   const incompletePreviewLimit = 4
   const visibleIncomplete = showAllIncomplete
     ? incompleteItems
@@ -134,10 +189,10 @@ export default function ParentDashboardView({
       {header}
       <p className={styles.greet}>{`${data.student_name} 학부모님 안녕하세요`}</p>
       <div className={styles.classBadge}>{data.class_name}</div>
-      <h1 className={styles.title}>{`${formatKoreanDate(data.lesson_date)} 수업 결과`}</h1>
+      <h1 className={styles.title} data-tour={embed ? undefined : 'parent-title'}>{`${formatKoreanDate(data.lesson_date)} 수업 결과`}</h1>
 
       <div className={styles.stack}>
-        <section className={styles.card}>
+        <section className={styles.card} data-tour={embed ? undefined : 'parent-summary'}>
           <div className={styles.cardHead}>
             <span className={styles.cardHeadIcon}>
               <BookIcon />
@@ -168,7 +223,10 @@ export default function ParentDashboardView({
           )}
         </section>
 
-        <section className={`${styles.card} ${styles.feedbackCard}`}>
+        <section
+          className={`${styles.card} ${styles.feedbackCard}`}
+          data-tour={embed ? 'alimtalk-feedback' : 'parent-feedback'}
+        >
           {memoEditor}
           {feedbackExtra ? (
             <div className={styles.feedbackHead}>
@@ -205,7 +263,7 @@ export default function ParentDashboardView({
           ) : null}
         </section>
 
-        <section className={styles.card}>
+        <section className={styles.card} data-tour={embed ? 'alimtalk-incomplete' : 'parent-incomplete'}>
           <div className={styles.cardHead}>
             <span className={styles.cardHeadIcon}>
               <CheckCircleIcon />
@@ -247,7 +305,10 @@ export default function ParentDashboardView({
           </div>
         </section>
 
-        <section className={`${styles.card} ${styles.recentCard}`}>
+        <section
+          className={`${styles.card} ${styles.recentCard}`}
+          data-tour={embed ? 'alimtalk-recent' : 'parent-recent'}
+        >
           <div className={styles.cardHead}>
             <span className={styles.cardHeadIcon}>
               <ClockIcon />
@@ -256,7 +317,7 @@ export default function ParentDashboardView({
           </div>
           <div className={styles.timeline}>
             <div className={styles.timelineRail} />
-            {(data.recent_lessons ?? []).map((r, idx) => (
+            {recentLessons.map((r, idx) => (
               <div key={`${r.lesson_date}-${r.class_name}-${idx}`} style={{ position: 'relative' }}>
                 <div className={styles.recentDate}>{formatKoreanDate(r.lesson_date)}</div>
                 <div className={styles.recentRow}>

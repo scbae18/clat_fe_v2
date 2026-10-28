@@ -9,7 +9,6 @@ import { AlimtalkTabs } from './_components/AlimtalkTabs'
 import { LESSON_ALIMTALK_FRAME_HEADER } from '@/lib/lessonAlimtalkFrame'
 import LessonAlimtalkFramePreview from '@/components/message/LessonAlimtalkFramePreview'
 import * as styles from './alimtalkSettings.css'
-import TutorialScreenHint from '@/features/tutorial/TutorialScreenHint'
 
 const PREVIEW_MIDDLE =
   '\u25A0 \uC624\uB298\uC758 \uD559\uC2B5 \uB0B4\uC6A9: {\uB0B4\uC6A9}\n' +
@@ -106,8 +105,6 @@ export default function AlimtalkSettingsPage() {
   return (
     <div className={styles.pageRoot}>
       <h1 className={styles.pageTitle}>{'\uC54C\uB9BC\uD1A1'}</h1>
-      <TutorialScreenHint screen="alimtalk" />
-
       {deliveryMode === 'mock' && (
         <div className={styles.deliveryBanner}>
           {'\uD604\uC7AC '}
@@ -131,7 +128,7 @@ export default function AlimtalkSettingsPage() {
             </span>
           </div>
 
-          <div className={styles.sectionBlock}>
+          <div className={styles.sectionBlock} data-tour="alimtalk-intro">
             <h2 className={styles.sectionLabel}>{'\uC778\uD2B8\uB85C'}</h2>
             <textarea
               ref={introRef}
@@ -160,7 +157,7 @@ export default function AlimtalkSettingsPage() {
             </div>
           </div>
 
-          <div className={styles.sectionBlock}>
+          <div className={styles.sectionBlock} data-tour="alimtalk-outro">
             <h2 className={styles.sectionLabel}>{'\uC544\uC6C3\uD2B8\uB85C'}</h2>
             <textarea
               ref={outroRef}
@@ -196,7 +193,7 @@ export default function AlimtalkSettingsPage() {
           </div>
         </div>
 
-        <div className={styles.previewColumn}>
+        <div className={styles.previewColumn} data-tour="alimtalk-preview">
           <h2 className={styles.previewTitle}>{'\uC54C\uB9BC\uD1A1 \uBBF8\uB9AC\uBCF4\uAE30'}</h2>
           <div className={styles.previewPhoneShell}>
             <div className={styles.previewLogoRow}>

@@ -21,7 +21,6 @@ import {
   gridStyle,
 } from './management.css'
 import ClassFormModal from './_components/ClassFormModal/ClassFormModal'
-import TutorialScreenHint from '@/features/tutorial/TutorialScreenHint'
 import StudentTable, {
   renderStudentClasses,
   studentClassesTitle,
@@ -160,18 +159,19 @@ function ManagementContent() {
       <Text variant="display" as="h1">
         학생·반 관리
       </Text>
-      <TutorialScreenHint screen="management" />
       <div className={tabContainerStyle}>
         <div className={tabGroupStyle}>
           <button
             className={tab === 'class' ? tabActiveStyle : tabStyle}
             onClick={() => router.push('/management?tab=class')}
+            data-tour="class-tab"
           >
             반별 보기
           </button>
           <button
             className={tab === 'students' ? tabActiveStyle : tabStyle}
             onClick={() => router.push('/management?tab=students')}
+            data-tour="students-tab"
           >
             전체 학생
           </button>
@@ -183,6 +183,7 @@ function ManagementContent() {
               size="sm"
               leftIcon={<UploadIcon width={20} height={20} />}
               onClick={bulkUpload.open}
+              data-tour="students-bulk"
             >
               일괄 등록
             </Button>
@@ -191,6 +192,7 @@ function ManagementContent() {
               size="sm"
               leftIcon={<PlusIcon width={20} height={20} />}
               onClick={addStudent.open}
+              data-tour="students-register"
             >
               학생 등록
             </Button>
@@ -223,6 +225,7 @@ function ManagementContent() {
               icon={<PlusCircleIcon width={36} height={36} />}
               label="반 추가"
               onClick={addClass.open}
+              data-tour="class-add"
             />
 
             <ClassFormModal

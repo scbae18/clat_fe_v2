@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Text from '@/components/common/Text'
 import CloseIcon from '@/assets/icons/icon-close.svg'
 import CheckIcon from '@/assets/icons/icon-check.svg'
@@ -19,6 +19,8 @@ import {
 } from './ContentSection.css'
 import { colors } from '@/styles/tokens/colors'
 import type { TemplateItem } from '../../_types/template'
+import { reportTutorialAction } from '@/features/tutorial/tutorialEvents'
+import { useTutorial } from '@/features/tutorial/TutorialProvider'
 
 interface ContentSectionProps {
   title: string
@@ -31,6 +33,7 @@ interface ContentSectionProps {
   onUpdate?: (id: string, label: string) => void
   // 폼 모드 (개별 내용): AddItemForm 표시
   onAdd?: (label: string, type: string, choices?: string[]) => void
+  tourId?: 'common' | 'individual'
 }
 
 function renderLabel(label: string) {
@@ -51,10 +54,13 @@ export default function ContentSection({
   onAddInline,
   onUpdate,
   onAdd,
+  tourId,
 }: ContentSectionProps) {
+  const tour = useTutorial()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingValue, setEditingValue] = useState('')
+  const reopenSeen = useRef(tour.reopenTick)
 
   const handleInlineAdd = () => {
     if (!onAddInline) return
@@ -63,13 +69,26 @@ export default function ContentSection({
     setEditingValue('')
   }
 
+  useEffect(() => {
+    if (tour.reopenTick === reopenSeen.current) return
+    reopenSeen.current = tour.reopenTick
+    if (tour.status !== 'in_progress' || tour.step !== 1) return
+    if (tourId === 'individual') setIsFormOpen(true)
+    if (tourId === 'common' && editingId == null) handleInlineAdd()
+  }, [editingId, tour.reopenTick, tour.status, tour.step, tourId])
+
   const confirmEdit = (id: string) => {
     const trimmed = editingValue.trim()
     if (trimmed === '') {
       onDelete(id)
-    } else {
-      onUpdate?.(id, trimmed)
+      setEditingId(null)
+      return
     }
+    const tourNeedsMore =
+      tourId === 'common' && tour.status === 'in_progress' && tour.step === 1 && trimmed.length < 2
+    onUpdate?.(id, trimmed)
+    if (tourNeedsMore) return
+    if (tourId === 'common') reportTutorialAction('common-added')
     setEditingId(null)
   }
 
@@ -84,7 +103,10 @@ export default function ContentSection({
   }
 
   return (
-    <div className={sectionStyle}>
+    <div
+      className={sectionStyle}
+      data-tour={tourId === 'common' ? 'template-common' : tourId === 'individual' ? 'template-individual' : undefined}
+    >
       <div className={sectionHeaderStyle}>
         <Text variant="headingMd">{title}</Text>
         <Text variant="bodyMd" color="gray500">{description}</Text>
@@ -106,6 +128,7 @@ export default function ContentSection({
                   onBlur={() => confirmEdit(item.id)}
                   onKeyDown={(e) => handleKeyDown(e, item.id)}
                   autoFocus
+                  data-tour={tourId === 'common' ? 'template-common-input' : undefined}
                 />
               ) : (
                 <span className={itemLabelVariants[state]}>
@@ -122,13 +145,21 @@ export default function ContentSection({
         })}
 
         {onAddInline ? (
-          <button className={addButtonStyle} onClick={handleInlineAdd}>
+          <button
+            className={addButtonStyle}
+            onClick={handleInlineAdd}
+            data-tour={tourId === 'common' ? 'template-common-add' : undefined}
+          >
             <PlusIcon width={14} height={14} />
             항목 추가
           </button>
         ) : (
           !isFormOpen && (
-            <button className={addButtonStyle} onClick={() => setIsFormOpen(true)}>
+            <button
+              className={addButtonStyle}
+              onClick={() => setIsFormOpen(true)}
+              data-tour={tourId === 'individual' ? 'template-individual-add' : undefined}
+            >
               <PlusIcon width={14} height={14} />
               항목 추가
             </button>
@@ -140,6 +171,7 @@ export default function ContentSection({
         <AddItemForm
           onAdd={(label, type, choices) => {
             onAdd(label, type, choices)
+            if (tourId === 'individual') reportTutorialAction('individual-added')
             setIsFormOpen(false)
           }}
           onCancel={() => setIsFormOpen(false)}

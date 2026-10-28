@@ -73,7 +73,7 @@ export function MeAccountSections({
           ) : null}
         </div>
 
-        <div className={styles.fieldGrid}>
+        <div className={styles.fieldGrid} data-tour="me-name">
           <span className={styles.fieldLabel}>{MSG.nameLabel}</span>
           {editingName ? (
             <input
@@ -88,7 +88,7 @@ export function MeAccountSections({
           )}
         </div>
 
-        <div className={styles.fieldGrid}>
+        <div className={styles.fieldGrid} data-tour="me-phone">
           <span className={styles.fieldLabel}>{MSG.phoneLabel}</span>
           {editingName ? (
             <input

@@ -58,8 +58,15 @@ export const pageTitle = style({
   },
 })
 
-export const parentViewButton = style({
+export const headerActions = style({
   marginLeft: 'auto',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  flexShrink: 0,
+})
+
+export const parentViewButton = style({
   flexShrink: 0,
   height: '36px',
   padding: '0 14px',

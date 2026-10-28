@@ -12,7 +12,6 @@ import HomeUpdateSection from './_components/HomeUpdateSection/HomeUpdateSection
 import HomeQuickMenu from './_components/HomeQuickMenu/HomeQuickMenu'
 import * as styles from './home.css'
 import { TutorialHomeCard } from '@/features/tutorial/TutorialProvider'
-import TutorialScreenHint from '@/features/tutorial/TutorialScreenHint'
 
 const GUIDE_MANUALS = [
   {
@@ -33,7 +32,6 @@ export default function HomePage() {
   return (
     <div className={styles.pageStyle}>
       <TutorialHomeCard />
-      <TutorialScreenHint screen="home" />
       {/* 웰컴 배너 */}
       <div className={styles.bannerStyle}>
         <div className={styles.bannerContentStyle}>

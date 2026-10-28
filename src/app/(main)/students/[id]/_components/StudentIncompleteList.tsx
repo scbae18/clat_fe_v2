@@ -19,7 +19,7 @@ export function StudentIncompleteList({
   onSelect,
 }: StudentIncompleteListProps) {
   return (
-    <section className={styles.incompleteCard}>
+    <section className={styles.incompleteCard} data-tour="student-incomplete">
       <h2 className={styles.incompleteTitle}>
         {MSG.incompleteTitle} <span className={styles.incompleteCount}>{items.length}</span>
       </h2>

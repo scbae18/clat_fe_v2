@@ -16,6 +16,7 @@ import {
   nameInputInlineStyle,
 } from './CommonContent.css'
 import { itemRef, type ItemSource } from '@/lib/lessonItemRef'
+import { reportTutorialAction } from '@/features/tutorial/tutorialEvents'
 
 interface CommonItem {
   id: number
@@ -27,10 +28,14 @@ function GrowingTextarea({
   value,
   onChange,
   onFocus,
+  onBlur,
+  dataTour,
 }: {
   value: string
   onChange: (value: string) => void
   onFocus: () => void
+  onBlur?: (value: string) => void
+  dataTour?: string
 }) {
   const areaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -65,7 +70,13 @@ function GrowingTextarea({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       onFocus={onFocus}
+      onBlur={(e) => {
+        const next = e.relatedTarget
+        if (next instanceof HTMLElement && next.closest('[role="dialog"]')) return
+        onBlur?.(e.target.value)
+      }}
       placeholder="내용을 입력해주세요"
+      data-tour={dataTour}
     />
   )
 }
@@ -134,8 +145,10 @@ export default function CommonContent({
     (itemRefKey: string, value: string) => {
       onChange(itemRefKey, value)
       setFocusedId(null)
+      const index = items.findIndex((item) => itemRef(item.source, item.id) === itemRefKey)
+      if (index === 0 && value.trim().length >= 2) reportTutorialAction('common-filled')
     },
-    [onChange],
+    [items, onChange],
   )
 
   const submitNewCommon = async () => {
@@ -150,7 +163,7 @@ export default function CommonContent({
     <div ref={wrapRef}>
       <table className={tableStyle}>
         <tbody>
-          {items.map((item) => {
+          {items.map((item, index) => {
             const refKey = itemRef(item.source, item.id)
             const current = values[refKey] ?? ''
             const isEmpty = !current.trim()
@@ -180,7 +193,11 @@ export default function CommonContent({
                   <div className={inputCellWrapStyle}>
                     <GrowingTextarea
                       value={current}
+                      dataTour={index === 0 ? 'lesson-common' : undefined}
                       onChange={(next) => onChange(refKey, next)}
+                      onBlur={(next) => {
+                        if (index === 0 && next.trim().length >= 2) reportTutorialAction('common-filled')
+                      }}
                       onFocus={() => setFocusedId(refKey)}
                     />
                     {showPopover && suggestion ? (

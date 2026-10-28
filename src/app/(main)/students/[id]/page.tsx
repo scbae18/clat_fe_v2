@@ -15,8 +15,7 @@ import { StudentIncompleteList } from './_components/StudentIncompleteList'
 import { StudentDashboardTabs } from './_components/StudentDashboardTabs'
 import { studentService } from '@/services/student'
 import { useToastStore } from '@/stores/toastStore'
-import { reportTutorialAction } from '@/features/tutorial/tutorialEvents'
-import TutorialScreenHint from '@/features/tutorial/TutorialScreenHint'
+import { TutorialReplayButton, useTutorial } from '@/features/tutorial/TutorialProvider'
 
 export default function StudentDashboardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: idStr } = use(params)
@@ -25,15 +24,19 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
 
   const dash = useStudentDashboard(studentId)
   const addToast = useToastStore((s) => s.addToast)
+  const tour = useTutorial()
   const [openingParent, setOpeningParent] = useState(false)
 
   const openParentDashboard = async () => {
     setOpeningParent(true)
     try {
       const { token } = await studentService.openParentDashboard(studentId)
+      if (tour.status === 'in_progress' && tour.step === 7) {
+        router.push(`/parent/${token}`)
+        return
+      }
       const opened = window.open(`/parent/${token}`, '_blank', 'noopener,noreferrer')
       if (!opened) addToast({ variant: 'error', message: MSG.parentViewFail })
-      else reportTutorialAction('parent-open')
     } catch {
       addToast({ variant: 'error', message: MSG.parentViewFail })
     } finally {
@@ -62,19 +65,22 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
         >
           <ArrowLeftIcon width={24} height={24} />
         </button>
-        <h1 className={styles.pageTitle}>{MSG.pageTitle}</h1>
-        <button
-          type="button"
-          className={styles.parentViewButton}
-          onClick={() => void openParentDashboard()}
-          disabled={openingParent}
-          data-tour="parent-dashboard"
-        >
-          {MSG.parentView}
-        </button>
+        <h1 className={styles.pageTitle} data-tour="student-heading">
+          {MSG.pageTitle}
+        </h1>
+        <div className={styles.headerActions}>
+          <TutorialReplayButton screen="student" />
+          <button
+            type="button"
+            className={styles.parentViewButton}
+            onClick={() => void openParentDashboard()}
+            disabled={openingParent}
+            data-tour="parent-dashboard"
+          >
+            {MSG.parentView}
+          </button>
+        </div>
       </header>
-      <TutorialScreenHint screen="student" />
-
       <div className={styles.columns}>
         <div className={styles.leftCol}>
           <StudentProfileCard

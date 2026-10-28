@@ -7,6 +7,7 @@ import type { Student } from '@/types/student'
 import { formatCompletionRatePercent } from '@/lib/completionRate'
 import { formatListLabel } from '@/lib/formatListLabel'
 import { listParentPhones } from '@/lib/parentPhones'
+import { useTutorial } from '@/features/tutorial/TutorialProvider'
 import {
   tableWrapStyle,
   tableStyle,
@@ -89,6 +90,7 @@ export default function StudentTable({
   selectedIds = [],
   onToggleSelect,
 }: StudentTableProps) {
+  const tour = useTutorial()
   const hasMiddle = middleColumns.length > 0
   const totalColumns = FIXED_COLUMN_COUNT + middleColumns.length
   const cellPaddingRight = getCellPaddingRight(totalColumns)
@@ -142,6 +144,7 @@ export default function StudentTable({
                 className={`${trStyle}${isSelected ? ` ${trSelectedStyle}` : ''}`}
                 onClick={handleRowClick}
                 style={{ cursor: selectionMode || onRowClick ? 'pointer' : 'default' }}
+                data-tour={tour.studentId === student.id ? 'tutorial-student' : undefined}
               >
                 <td className={`${tdStyle} ${stickyNameCellStyle}`} title={student.name}>
                   {student.name}

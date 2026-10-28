@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { attendanceService } from '@/services/attendance'
 import {
@@ -6,6 +6,8 @@ import {
   dispatchAttendanceSessionEnded,
 } from '@/stores/attendanceSessionStore'
 import { useToastStore } from '@/stores/toastStore'
+import { reportTutorialAction } from '@/features/tutorial/tutorialEvents'
+import { useTutorial } from '@/features/tutorial/TutorialProvider'
 
 import { formatAttendanceRemaining, useRemainingSeconds } from './attendanceTime'
 
@@ -16,6 +18,9 @@ export function useAttendanceFloatingBar() {
   const setActive = useAttendanceSessionStore((s) => s.setActive)
   const attendanceDetailNonce = useAttendanceSessionStore((s) => s.attendanceDetailNonce)
   const addToast = useToastStore((s) => s.addToast)
+  const tour = useTutorial()
+  const dismissSeen = useRef(tour.dismissTick)
+  const reopenSeen = useRef(tour.reopenTick)
 
   const [detailOpen, setDetailOpen] = useState(false)
   const [endConfirmOpen, setEndConfirmOpen] = useState(false)
@@ -38,6 +43,22 @@ export function useAttendanceFloatingBar() {
   useEffect(() => {
     if (attendanceDetailNonce > 0 && active) setDetailOpen(true)
   }, [attendanceDetailNonce, active])
+
+  useEffect(() => {
+    if (tour.dismissTick === dismissSeen.current) return
+    dismissSeen.current = tour.dismissTick
+    if (tour.step !== 4) return
+    setDetailOpen(false)
+    setEndConfirmOpen(false)
+  }, [tour.dismissTick, tour.step])
+
+  useEffect(() => {
+    if (tour.reopenTick === reopenSeen.current) return
+    reopenSeen.current = tour.reopenTick
+    if (tour.step !== 4 || tour.anchor !== 'attendance-end-confirm' || !active) return
+    setDetailOpen(true)
+    setEndConfirmOpen(true)
+  }, [active, tour.anchor, tour.reopenTick, tour.step])
 
   const clearAndNotifyEnd = useCallback(
     (lessonRecordId: number) => {
@@ -74,8 +95,10 @@ export function useAttendanceFloatingBar() {
           absent: d.absent_count,
           expiresAt: d.expires_at,
         })
-      } catch {
-        /* keep countdown from store when API is unavailable */
+      } catch (error) {
+        if (cancelled) return
+        const status = (error as { response?: { status?: number } })?.response?.status
+        if (status === 404) clearAndNotifyEnd(active.lessonRecordId)
       }
     }
 
@@ -108,6 +131,7 @@ export function useAttendanceFloatingBar() {
     try {
       const d = await attendanceService.getSession(active.sessionId).catch(() => null)
       await attendanceService.endSession(active.sessionId)
+      reportTutorialAction('attendance-ended')
       setEndedSummary({
         lessonRecordId: active.lessonRecordId,
         present: d?.present_count ?? snapshot?.present ?? 0,
@@ -117,10 +141,17 @@ export function useAttendanceFloatingBar() {
       clearAndNotifyEnd(active.lessonRecordId)
       addToast({ variant: 'success', message: '출결이 종료됐어요.' })
     } catch (e: unknown) {
-      const msg =
-        (e as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error
-          ?.message ?? '출결 종료에 실패했어요.'
-      addToast({ variant: 'error', message: msg })
+      const status = (e as { response?: { status?: number } })?.response?.status
+      if (status === 404) {
+        clearAndNotifyEnd(active.lessonRecordId)
+        reportTutorialAction('attendance-ended')
+        addToast({ variant: 'error', message: '출결 세션을 찾을 수 없어요.' })
+      } else {
+        const msg =
+          (e as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error
+            ?.message ?? '출결 종료에 실패했어요.'
+        addToast({ variant: 'error', message: msg })
+      }
     } finally {
       setEndConfirmOpen(false)
     }

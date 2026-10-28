@@ -27,7 +27,7 @@ export default function HomeQuickMenu() {
   return (
     <div className={styles.wrap}>
       <nav aria-label="빠른 메뉴" className={styles.grid}>
-      <Link href="/lesson" className={styles.card({ tone: 'lesson' })}>
+      <Link href="/lesson" className={styles.card({ tone: 'lesson' })} data-tour="home-lesson">
         <span className={styles.iconWriting}>
           <Image
             src={writingIcon}

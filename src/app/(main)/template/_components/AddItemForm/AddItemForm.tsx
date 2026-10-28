@@ -85,7 +85,7 @@ export default function AddItemForm({ onAdd, onCancel }: AddItemFormProps) {
   }
 
   return (
-    <div className={formStyle}>
+    <div className={formStyle} data-tour="template-individual-form">
       <div className={fieldStyle}>
         <span className={labelStyle}>
           {'\uD56D\uBAA9 \uC774\uB984'} <span style={{ color: colors.error500 }}>*</span>
@@ -109,6 +109,7 @@ export default function AddItemForm({ onAdd, onCancel }: AddItemFormProps) {
                 key={type.id}
                 className={typeCardRecipe({ selected: isSelected })}
                 onClick={() => setSelectedType(type.id)}
+                data-tour={`template-type-${type.id}`}
               >
                 <div className={typeCardTitleStyle}>
                   {type.id === 'number' && <NumberIcon width={16} height={16} />}
@@ -192,6 +193,7 @@ export default function AddItemForm({ onAdd, onCancel }: AddItemFormProps) {
           fullWidth
           onClick={handleAdd}
           disabled={!label.trim() || !selectedType}
+          data-tour="template-individual-submit"
         >
           {'\uCD94\uAC00'}
         </Button>

@@ -39,6 +39,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { invalidateLessonLists } from '@/lib/queryKeys'
 import { useLessonAttendanceOnDetail } from '@/hooks/lesson/useLessonAttendanceOnDetail'
 import { useTutorial } from '@/features/tutorial/TutorialProvider'
+import { useAttendanceSessionStore } from '@/stores/attendanceSessionStore'
 
 export default function LessonDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -97,27 +98,33 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
   })
 
   const tour = useTutorial()
-  const openedCue = useRef<string | null>(null)
+  const reopenSeen = useRef(tour.reopenTick)
+  const dismissSeen = useRef(tour.dismissTick)
   useEffect(() => {
-    if (tour.lessonId !== lessonId || tour.status !== 'in_progress') return
-    if (tour.step === 4 && attendanceStartModal.isOpen) attendanceStartModal.close()
-    if (!tour.cue || tour.hidden) return
-    const key = `${tour.cue}:${tour.reopenTick}`
-    if (openedCue.current === key) return
-    if (tour.cue === 'attendance') attendanceStartModal.open()
-    if (tour.cue === 'send') openAlimtalkSendModal()
-    openedCue.current = key
+    if (tour.reopenTick === reopenSeen.current) return
+    reopenSeen.current = tour.reopenTick
+    if (tour.status !== 'in_progress' || tour.lessonId !== lessonId) return
+    if (tour.step === 4) {
+      const active = useAttendanceSessionStore.getState().active
+      if (active) useAttendanceSessionStore.getState().bumpAttendanceDetail()
+      else attendanceStartModal.open()
+    }
+    if (tour.step === 6) void openAlimtalkSendModal()
   }, [
+    attendanceStartModal,
+    lessonId,
+    openAlimtalkSendModal,
     tour.lessonId,
+    tour.reopenTick,
     tour.status,
     tour.step,
-    tour.cue,
-    tour.hidden,
-    tour.reopenTick,
-    lessonId,
-    attendanceStartModal,
-    openAlimtalkSendModal,
   ])
+  useEffect(() => {
+    if (tour.dismissTick === dismissSeen.current) return
+    dismissSeen.current = tour.dismissTick
+    attendanceStartModal.close()
+    alimtalkSendModal.close()
+  }, [alimtalkSendModal, attendanceStartModal, tour.dismissTick])
 
   const handleTemplateSelect = (templateId: number) => {
     setPendingTemplateId(templateId)
@@ -258,6 +265,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
               variant={attendanceButtonVariant}
               size="sm"
               onClick={handleAttendanceButtonClick}
+              data-tour="attendance-open"
             >
               {attendanceButtonLabel}
             </Button>
@@ -335,6 +343,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           size="sm"
           leftIcon={<MessageIcon width={20} height={20} />}
           onClick={() => void openAlimtalkSendModal()}
+          data-tour="alimtalk-open"
         >
           알림톡 전송하기
         </Button>

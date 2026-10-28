@@ -29,7 +29,7 @@ type AiModeSectionProps = {
 export function AiModeSection({ settings, onUpdate }: AiModeSectionProps) {
   const current = MODES.find((mode) => mode.value === settings.feedback_mode) ?? MODES[0]
   return (
-    <section className={styles.card} data-tour="ai-mode">
+    <section className={styles.card}>
       <h2 className={styles.sectionTitle}>피드백 방식</h2>
       <div className={styles.chipRow}>
         {MODES.map((mode) => {
@@ -40,6 +40,7 @@ export function AiModeSection({ settings, onUpdate }: AiModeSectionProps) {
               type="button"
               className={`${styles.chip} ${active ? styles.chipActive : styles.chipInactive}`}
               onClick={() => onUpdate('feedback_mode', mode.value)}
+              data-tour={`ai-mode-${mode.value}`}
             >
               {mode.label}
             </button>

@@ -140,7 +140,7 @@ export default function AttendanceDetailModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md">
-      <div className={rootStyle}>
+      <div className={rootStyle} data-tour="attendance-detail">
         <TimerIllustration className={timerIconWrapStyle} />
         <h2 className={titleStyle}>{titleText}</h2>
 
@@ -196,7 +196,7 @@ export default function AttendanceDetailModal({
               ))}
             </div>
 
-            <div className={gridStyle}>
+            <div className={gridStyle} data-tour="attendance-detail-students">
               {detailSession.filteredStudents.map((row) => (
                 <div key={row.student_id} className={studentCellStyle}>
                   <span className={studentNameStyle} title={row.student_name}>
@@ -225,7 +225,7 @@ export default function AttendanceDetailModal({
               ))}
             </div>
 
-            <button type="button" className={endBtnStyle} onClick={onRequestEnd}>
+            <button type="button" className={endBtnStyle} onClick={onRequestEnd} data-tour="attendance-detail-end">
               출결 종료하기
             </button>
           </>

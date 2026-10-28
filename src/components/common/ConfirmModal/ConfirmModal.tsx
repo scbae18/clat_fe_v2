@@ -13,6 +13,7 @@ interface ConfirmModalProps {
   cancelLabel?: string
   confirmVariant?: 'primary' | 'danger' | 'deleteClass' | 'endClass'
   confirmTour?: string
+  tour?: string
 }
 
 export default function ConfirmModal({
@@ -25,9 +26,10 @@ export default function ConfirmModal({
   cancelLabel = '취소',
   confirmVariant = 'primary',
   confirmTour,
+  tour,
 }: ConfirmModalProps) {
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} size="sm" tour={tour}>
       <div className={contentStyle}>
         <Text variant="headingMd" as="h2" className={titleStyle}>
           {title}

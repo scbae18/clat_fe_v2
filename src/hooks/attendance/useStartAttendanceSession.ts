@@ -53,7 +53,9 @@ export function useStartAttendanceSession({
         studentLinks,
       })
       addToast({ variant: 'success', message: '출결이 시작됐어요.' })
-      reportTutorialAction('attendance-start')
+      if (reportTutorialAction('attendance-opened')) {
+        useAttendanceSessionStore.getState().bumpAttendanceDetail()
+      }
       onStarted?.()
       return true
     } catch {

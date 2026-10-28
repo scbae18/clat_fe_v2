@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import BodyScrollLock from '@/components/common/Modal/BodyScrollLock'
+import TutorialProvider from '@/features/tutorial/TutorialProvider'
 
 function makeQueryClient() {
   return new QueryClient({
@@ -21,8 +22,10 @@ export default function AppProviders({ children }: { children: React.ReactNode }
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BodyScrollLock />
-      {children}
+      <TutorialProvider>
+        <BodyScrollLock />
+        {children}
+      </TutorialProvider>
     </QueryClientProvider>
   )
 }

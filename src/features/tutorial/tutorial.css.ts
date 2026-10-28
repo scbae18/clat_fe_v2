@@ -40,6 +40,7 @@ export const tooltipBody = style({
   letterSpacing: '-0.03em',
   color: colors.gray700,
   margin: 0,
+  whiteSpace: 'pre-line',
 })
 
 export const tooltipNote = style({
@@ -77,6 +78,11 @@ export const primaryButton = style({
   fontWeight: 600,
   cursor: 'pointer',
   padding: '8px 12px',
+  ':disabled': {
+    background: colors.gray200,
+    color: colors.gray500,
+    cursor: 'default',
+  },
 })
 
 export const fallback = style({
@@ -94,6 +100,23 @@ export const fallback = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '8px',
+})
+
+export const replay = style({
+  border: `1px solid ${colors.gray200}`,
+  background: colors.white,
+  color: colors.gray600,
+  borderRadius: '999px',
+  padding: '4px 10px',
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 600,
+  lineHeight: '16px',
+  letterSpacing: '-0.02em',
+  cursor: 'pointer',
+  flexShrink: 0,
+  ':hover': {
+    background: colors.gray50,
+  },
 })
 
 export const chip = style({

@@ -133,8 +133,8 @@ export default function AlimtalkTestPage() {
       <AlimtalkTabs />
       <div className={styles.layout}>
         <div className={styles.stack}>
-          <div className={styles.card}>
-            <Text variant="titleMd">내 번호로 받아보기</Text>
+          <div className={styles.card} data-tour="alimtalk-test-phone">
+            <Text variant="titleMd">알림톡 테스트</Text>
             <Text variant="bodyMd" color="gray700">
               {phone ? `수신 번호 ${phone}` : '가입한 전화번호가 없어요.'}
             </Text>
@@ -144,7 +144,7 @@ export default function AlimtalkTestPage() {
                 : `오늘 ${remaining}/${limit}번 남았어요.`}
             </Text>
           </div>
-          <div className={styles.actions}>
+          <div className={styles.actions} data-tour="alimtalk-test-kinds">
             {KINDS.map((item) => (
               <Button
                 key={item.kind}

@@ -128,13 +128,7 @@ export const attendanceService = {
   },
 
   async endSession(sessionId: number): Promise<void> {
-    try {
-      await axiosInstance.post(`/attendance/sessions/${sessionId}/end`)
-      return
-    } catch {
-      // Compatibility fallback for servers using PATCH style endpoints.
-      await axiosInstance.patch(`/attendance/sessions/${sessionId}`, { is_active: false })
-    }
+    await axiosInstance.post(`/attendance/sessions/${sessionId}/end`)
   },
 
   async patchStudentStatus(

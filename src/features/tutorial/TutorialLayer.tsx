@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import type { TutorialBeat } from './tutorialSteps'
+import { isTutorialGateOpen, subscribeTutorialGate } from './tutorialEvents'
 import * as styles from './tutorial.css'
 
 interface TutorialLayerProps {
@@ -15,6 +16,12 @@ interface TutorialLayerProps {
 
 export function TutorialLayer({ beat, stepLabel, onNext, onSkip, onClose, onReopen }: TutorialLayerProps) {
   const [rect, setRect] = useState<DOMRect | null>(null)
+  const gateOpen = useSyncExternalStore(
+    subscribeTutorialGate,
+    () => (beat.gate ? isTutorialGateOpen(beat.gate) : true),
+    () => !beat.gate,
+  )
+  const waiting = Boolean(beat.gate) && !gateOpen
 
   useEffect(() => {
     let scrolled = false
@@ -96,7 +103,9 @@ export function TutorialLayer({ beat, stepLabel, onNext, onSkip, onClose, onReop
             <button type="button" className={styles.textButton} onClick={onSkip}>나중에 확인</button>
           ) : null}
           {beat.mode === 'next' ? (
-            <button type="button" className={styles.primaryButton} onClick={onNext}>다음</button>
+            <button type="button" className={styles.primaryButton} onClick={onNext} disabled={waiting}>
+              {waiting ? '준비 중' : '다음'}
+            </button>
           ) : null}
         </div>
       </div>

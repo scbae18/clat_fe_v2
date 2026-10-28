@@ -23,6 +23,7 @@ import {
 } from './lesson.css'
 import { useLessonList } from '@/hooks/lesson/useLessonList'
 import { formatCompletionRatePercent } from '@/lib/completionRate'
+import { useTutorial } from '@/features/tutorial/TutorialProvider'
 
 const DAYS_KO = ['월', '화', '수', '목', '금', '토', '일']
 type DateStatus = 'done' | 'inProgress' | 'none'
@@ -44,6 +45,7 @@ function LessonPageContent() {
   }, [searchParams])
 
   const list = useLessonList(selectedDate, currentWeek)
+  const tour = useTutorial()
 
   const getDateStatus = (date: Date): DateStatus => {
     const key = format(date, 'yyyy-MM-dd')
@@ -101,6 +103,7 @@ function LessonPageContent() {
             date={item.date}
             status={item.status}
             isSelected={isSameDay(item.fullDate, selectedDate)}
+            dataTour={isSameDay(item.fullDate, new Date()) ? 'lesson-today' : undefined}
             onClick={() => setSelectedDate(item.fullDate)}
           />
         ))}
@@ -130,6 +133,9 @@ function LessonPageContent() {
               isDone={recordId !== null}
               alimtalkSent={lesson.alimtalk_sent ?? false}
               alimtalkDeliveryMode={lesson.alimtalk_delivery_mode ?? null}
+              tourAnchor={
+                tour.step === 3 && tour.classId === lesson.class_id ? 'lesson-enter' : undefined
+              }
               onDelete={recordId != null ? () => list.setDeleteTarget(lesson) : undefined}
               onClick={() => {
                 if (recordId) {

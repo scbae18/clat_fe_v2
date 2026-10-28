@@ -17,6 +17,7 @@ interface DateCardProps {
   status: DateStatus
   isSelected: boolean
   onClick: () => void
+  dataTour?: string
 }
 
 const STATUS_LABEL: Record<DateStatus, string> = {
@@ -31,9 +32,9 @@ const STATUS_VARIANT: Record<DateStatus, 'done' | 'inProgress' | 'default'> = {
   none: 'default',
 }
 
-export default function DateCard({ day, date, status, isSelected, onClick }: DateCardProps) {
+export default function DateCard({ day, date, status, isSelected, onClick, dataTour }: DateCardProps) {
   return (
-    <div className={dateCardRecipe({ selected: isSelected })} onClick={onClick}>
+    <div className={dateCardRecipe({ selected: isSelected })} onClick={onClick} data-tour={dataTour}>
       <span className={dayStyle}>{day}</span>
       <span className={`${dateStyle} ${isSelected ? dateSelectedStyle : dateDefaultStyle}`}>
         {date}
