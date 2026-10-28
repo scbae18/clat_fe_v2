@@ -7,6 +7,7 @@ import Button from '@/components/common/Button'
 import Chip from '@/components/common/Chip'
 import CloseIcon from '@/assets/icons/icon-close.svg'
 import ConfirmModal from '@/components/common/ConfirmModal'
+import Modal from '@/components/common/Modal'
 import LessonMessageOrderModal from '../LessonMessageOrderModal/LessonMessageOrderModal'
 import ParentDashboardPreviewPanel from './ParentDashboardPreviewPanel'
 import AlimtalkMessagePreview from './AlimtalkMessagePreview'
@@ -69,6 +70,95 @@ function isRowSelectable(
   return false
 }
 
+const CHAR_LIMIT = 1000
+
+function channelOver(
+  row: LessonPreviewRow,
+  sendToParent: boolean,
+  sendToStudent: boolean,
+) {
+  const student =
+    sendToStudent &&
+    hasPhone(row.phone) &&
+    typeof row.student_char_count === 'number' &&
+    row.student_char_count > CHAR_LIMIT
+  const parent =
+    sendToParent &&
+    listParentPhones(row).some((phone) => hasPhone(phone)) &&
+    typeof row.parent_char_count === 'number' &&
+    row.parent_char_count > CHAR_LIMIT
+  return { student, parent }
+}
+
+function overRowLabel(
+  row: LessonPreviewRow,
+  sendToParent: boolean,
+  sendToStudent: boolean,
+): string | null {
+  const hit = channelOver(row, sendToParent, sendToStudent)
+  if (!hit.student && !hit.parent) return null
+  if (sendToParent && sendToStudent && hit.student !== hit.parent) {
+    return hit.parent ? '학부모 1,000자 초과' : '학생 1,000자 초과'
+  }
+  return '1,000자 초과'
+}
+
+function overSendLines(
+  previewRows: LessonPreviewRow[],
+  selectedIds: Set<number>,
+  sendToParent: boolean,
+  sendToStudent: boolean,
+): string[] {
+  const lines: string[] = []
+  for (const row of previewRows) {
+    if (!selectedIds.has(row.student_id)) continue
+    const hit = channelOver(row, sendToParent, sendToStudent)
+    if (!hit.student && !hit.parent) continue
+    if (sendToParent && sendToStudent && hit.student !== hit.parent) {
+      lines.push(`${row.student_name} · ${hit.parent ? '학부모' : '학생'}`)
+    } else {
+      lines.push(row.student_name)
+    }
+  }
+  return lines
+}
+
+function linesFromTooLongError(error: unknown, bothChannels: boolean): string[] | null {
+  const body = (
+    error as {
+      response?: {
+        data?: {
+          error?: {
+            code?: string
+            students?: Array<{
+              student_id?: number
+              student_name?: string
+              channel?: string
+            }>
+          }
+        }
+      }
+    }
+  ).response?.data?.error
+  if (body?.code !== 'MESSAGE_TOO_LONG') return null
+  const students = Array.isArray(body.students) ? body.students : []
+  const grouped = new Map<number, { name: string; student: boolean; parent: boolean }>()
+  students.forEach((row, index) => {
+    const id = typeof row.student_id === 'number' ? row.student_id : index
+    const cur = grouped.get(id) ?? { name: row.student_name || '학생', student: false, parent: false }
+    if (row.channel === 'STUDENT') cur.student = true
+    if (row.channel === 'PARENT') cur.parent = true
+    if (row.student_name) cur.name = row.student_name
+    grouped.set(id, cur)
+  })
+  return [...grouped.values()].map((hit) => {
+    if (bothChannels && hit.student !== hit.parent) {
+      return `${hit.name} · ${hit.parent ? '학부모' : '학생'}`
+    }
+    return hit.name
+  })
+}
+
 function channelAudienceLabel(sendToParent: boolean, sendToStudent: boolean) {
   if (sendToParent && sendToStudent) return '학생·학부모 번호'
   if (sendToParent) return '학부모 번호'
@@ -127,6 +217,8 @@ export default function AlimtalkSendModal({
   const [isClosing, setIsClosing] = useState(false)
   useRegisterModal(isOpen || isClosing)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [lengthOpen, setLengthOpen] = useState(false)
+  const [lengthNames, setLengthNames] = useState<string[]>([])
   const [emptySendOpen, setEmptySendOpen] = useState(false)
   const [emptySendCount, setEmptySendCount] = useState(0)
   const [feedbackMode, setFeedbackMode] = useState<'AUTO' | 'ASSIST' | 'MANUAL'>('AUTO')
@@ -370,6 +462,12 @@ export default function AlimtalkSendModal({
       })
       return
     }
+    const overLines = overSendLines(rows, selected, sendToParent, sendToStudent)
+    if (overLines.length > 0) {
+      setLengthNames(overLines)
+      setLengthOpen(true)
+      return
+    }
     const ids = Array.from(selected)
     try {
       const status = await lessonService.getParentPreviewStatus(lessonId, ids)
@@ -448,6 +546,12 @@ export default function AlimtalkSendModal({
       }
       setIsClosing(true)
     } catch (err) {
+      const tooLong = linesFromTooLongError(err, sendToParent && sendToStudent)
+      if (tooLong) {
+        setLengthNames(tooLong)
+        setLengthOpen(true)
+        return
+      }
       const apiMessage = isAxiosError(err)
         ? (err.response?.data as { error?: { message?: string } } | undefined)?.error
             ?.message
@@ -568,6 +672,7 @@ export default function AlimtalkSendModal({
                   const selectable = isRowSelectable(r, sendToParent, sendToStudent)
                   const checked = selected.has(r.student_id)
                   const isFocus = focusId === r.student_id
+                  const limitLabel = overRowLabel(r, sendToParent, sendToStudent)
                   return (
                     <div
                       key={r.student_id}
@@ -607,6 +712,11 @@ export default function AlimtalkSendModal({
                         >
                           {`학생 ${maskPhone(r.phone)} · ${parentAudienceLabel(r)}`}
                         </div>
+                        {limitLabel ? (
+                          <Text as="p" variant="labelSm" color="error500" className={styles.overLimit}>
+                            {limitLabel}
+                          </Text>
+                        ) : null}
                       </div>
                     </div>
                   )
@@ -753,6 +863,22 @@ export default function AlimtalkSendModal({
         cancelLabel={'\uCDE8\uC18C'}
         confirmTour="alimtalk-send"
       />
+
+      <Modal isOpen={lengthOpen} onClose={() => setLengthOpen(false)} size="sm">
+        <div className={styles.lengthBody}>
+          <Text variant="headingMd" as="h2" className={styles.lengthTitle}>
+            1000자를 넘어가는 문자가 있어요
+          </Text>
+          {lengthNames.map((name, index) => (
+            <Text key={`${name}-${index}`} variant="bodyLg" color="gray500">
+              {name}
+            </Text>
+          ))}
+        </div>
+        <Button variant="primary" size="md" fullWidth onClick={() => setLengthOpen(false)}>
+          확인
+        </Button>
+      </Modal>
 
       <ConfirmModal
         isOpen={emptySendOpen}

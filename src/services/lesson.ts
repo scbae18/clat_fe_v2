@@ -106,6 +106,8 @@ export interface LessonPreviewRow {
   parent_phone_2?: string
   message: string
   message_for_parent: string
+  student_char_count?: number
+  parent_char_count?: number
 }
 
 /** GET /lessons/:id/preview — envelope data field is { data: LessonPreviewRow[] } */

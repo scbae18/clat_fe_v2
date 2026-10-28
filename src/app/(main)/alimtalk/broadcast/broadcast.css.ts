@@ -309,6 +309,34 @@ export const bodyTextarea = style({
   minHeight: '132px',
 })
 
+export const studentMetaOver = style({
+  flexShrink: 0,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.labelSm.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.error500,
+  whiteSpace: 'nowrap',
+})
+
+export const lengthLine = style({
+  margin: '8px 0 0',
+})
+
+export const lengthBody = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  textAlign: 'center',
+  marginTop: '44px',
+  marginBottom: '36px',
+  gap: '4px',
+})
+
+export const lengthTitle = style({
+  marginBottom: '8px',
+})
+
 export const summaryBar = style({
   display: 'flex',
   alignItems: 'center',

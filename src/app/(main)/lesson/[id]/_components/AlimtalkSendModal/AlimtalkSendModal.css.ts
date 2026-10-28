@@ -283,6 +283,29 @@ export const studentName = style([
   truncateRules,
 ])
 
+export const lengthLine = style({
+  marginTop: '8px',
+})
+
+export const overLimit = style({
+  display: 'block',
+  margin: '2px 0 0',
+})
+
+export const lengthBody = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  textAlign: 'center',
+  marginTop: '44px',
+  marginBottom: '36px',
+  gap: '4px',
+})
+
+export const lengthTitle = style({
+  marginBottom: '8px',
+})
+
 export const phoneMuted = style({
   fontSize: fontStyles.labelSm.fontSize,
   fontWeight: 500,

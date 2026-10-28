@@ -31,6 +31,24 @@ export const BROADCAST_NOTICE_HINT: Record<BroadcastNoticeType, string> = {
   PROGRESS: '예: 오늘은 3단원까지 나갔습니다.',
 }
 
+export const BROADCAST_CHAR_LIMIT = 1000
+
+/** 서버 `renderBroadcastMessage`와 같은 본문. 버튼은 세지 않는다. */
+export function renderBroadcastMessage(
+  academyName: string,
+  teacherName: string,
+  studentName: string,
+  noticeType: BroadcastNoticeType,
+  body: string,
+): string {
+  const middle = BROADCAST_NOTICE_MIDDLE[noticeType]
+  return `안녕하세요. ${academyName} ${teacherName}입니다.\n${studentName} 학생의 ${middle}입니다.\n\n${body}`
+}
+
+export function broadcastCharCount(text: string): number {
+  return Array.from(text).length
+}
+
 export function renderBroadcastPreviewHeader(noticeType: BroadcastNoticeType): string {
   const middle = BROADCAST_NOTICE_MIDDLE[noticeType]
   return `안녕하세요. {학원명} {강사명}입니다.\n{학생이름} 학생의 ${middle}입니다.`

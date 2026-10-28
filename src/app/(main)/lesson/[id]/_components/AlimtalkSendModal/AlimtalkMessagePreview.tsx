@@ -7,6 +7,18 @@ import type { LessonPreviewRow } from '@/services/lesson'
 import { listParentPhones } from '@/lib/parentPhones'
 import * as styles from './AlimtalkSendModal.css'
 
+const CHAR_LIMIT = 1000
+
+function CharCount({ count }: { count: number | undefined }) {
+  if (typeof count !== 'number') return null
+  const over = count > CHAR_LIMIT
+  return (
+    <Text variant="labelSm" color={over ? 'error500' : 'gray500'} className={styles.lengthLine}>
+      {`${count.toLocaleString('ko-KR')}자 / 1,000자`}
+    </Text>
+  )
+}
+
 function hasPhone(value: string | null | undefined) {
   return Boolean(value && String(value).replace(/\D/g, '').length >= 8)
 }
@@ -45,6 +57,9 @@ export default function AlimtalkMessagePreview({
               '학생 연락처가 없어 이 채널로는 발송되지 않아요.'
             )}
           </div>
+          {hasPhone(focused.phone) ? (
+            <CharCount count={focused.student_char_count} />
+          ) : null}
         </div>
       ) : null}
       {sendToParent ? (
@@ -60,6 +75,9 @@ export default function AlimtalkMessagePreview({
               '학부모 연락처가 없어 이 채널로는 발송되지 않아요.'
             )}
           </div>
+          {listParentPhones(focused).some((phone) => hasPhone(phone)) ? (
+            <CharCount count={focused.parent_char_count} />
+          ) : null}
         </div>
       ) : null}
       {!sendToParent && !sendToStudent ? (

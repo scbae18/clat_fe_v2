@@ -4,11 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
+import Modal from '@/components/common/Modal'
 import Text from '@/components/common/Text'
 import Textarea from '@/components/common/Textarea'
 import { listItemRowStyle, listItemRowSelectedStyle } from '@/components/common/styles/listItem.css'
 import CheckIcon from '@/assets/icons/icon-check.svg'
 import useToast from '@/hooks/useToast'
+import { isAxiosError } from '@/lib/api/http'
+import { useUserStore } from '@/stores/userStore'
 import { classService, type Class } from '@/services/class'
 import { studentService } from '@/services/student'
 import type { Student } from '@/types/student'
@@ -22,9 +25,12 @@ import {
 } from '@/services/alimtalk'
 import { AlimtalkTabs } from '../_components/AlimtalkTabs'
 import {
+  BROADCAST_CHAR_LIMIT,
   BROADCAST_NOTICE_HINT,
   BROADCAST_NOTICE_LABEL,
   BROADCAST_NOTICE_TYPES,
+  broadcastCharCount,
+  renderBroadcastMessage,
   renderBroadcastPreviewHeader,
 } from './_lib/broadcastNotice'
 import { AlimtalkPreviewVarText } from '@/components/message/LessonAlimtalkFramePreview'
@@ -89,6 +95,7 @@ function estimateCount(
 export default function AlimtalkBroadcastPage() {
   const router = useRouter()
   const { success, error } = useToast()
+  const teacherName = useUserStore((s) => s.user?.name) ?? ''
 
   const [deliveryMode, setDeliveryMode] = useState<AlimtalkDeliveryMode>('mock')
   const [classes, setClasses] = useState<Class[]>([])
@@ -104,6 +111,8 @@ export default function AlimtalkBroadcastPage() {
   const [body, setBody] = useState('')
   const [sending, setSending] = useState(false)
   const [sendProgress, setSendProgress] = useState<{ sent: number; total: number } | null>(null)
+  const [lengthOpen, setLengthOpen] = useState(false)
+  const [lengthNames, setLengthNames] = useState<string[]>([])
 
   const channel = resolveChannel(sendToParent, sendToStudent)
 
@@ -231,6 +240,41 @@ export default function AlimtalkBroadcastPage() {
     [noticeType],
   )
 
+  const academyName = useMemo(() => {
+    if (classes.length === 0) return ''
+    return [...classes].sort((a, b) => a.id - b.id)[0]?.academy_name ?? ''
+  }, [classes])
+
+  const noticeBody = body.trim()
+
+  const charCountFor = useCallback(
+    (studentName: string) =>
+      broadcastCharCount(
+        renderBroadcastMessage(academyName, teacherName, studentName, noticeType, noticeBody),
+      ),
+    [academyName, teacherName, noticeType, noticeBody],
+  )
+
+  const overNames = useMemo(() => {
+    return students
+      .filter(
+        (student) =>
+          selectedIds.has(student.id) &&
+          isSelectable(student, sendToParent, sendToStudent) &&
+          charCountFor(student.name) > BROADCAST_CHAR_LIMIT,
+      )
+      .map((student) => student.name)
+  }, [students, selectedIds, sendToParent, sendToStudent, charCountFor])
+
+  const previewCount = useMemo(() => {
+    const selected = students.filter(
+      (student) =>
+        selectedIds.has(student.id) && isSelectable(student, sendToParent, sendToStudent),
+    )
+    const names = selected.length > 0 ? selected.map((student) => student.name) : ['']
+    return Math.max(...names.map((name) => charCountFor(name)))
+  }, [students, selectedIds, sendToParent, sendToStudent, charCountFor])
+
   const expectedCount = estimateCount(
     students.filter((student) => selectedIds.has(student.id)),
     sendToParent,
@@ -249,6 +293,11 @@ export default function AlimtalkBroadcastPage() {
     }
     if (!body.trim()) {
       error('안내사항을 입력해 주세요.')
+      return
+    }
+    if (overNames.length > 0) {
+      setLengthNames(overNames)
+      setLengthOpen(true)
       return
     }
 
@@ -273,7 +322,13 @@ export default function AlimtalkBroadcastPage() {
         success(`발송 완료 · ${res.success_count}건`)
       }
       router.push('/alimtalk/history')
-    } catch {
+    } catch (err) {
+      const tooLong = tooLongNames(err)
+      if (tooLong) {
+        setLengthNames(tooLong)
+        setLengthOpen(true)
+        return
+      }
       error('발송에 실패했어요. 발송 내역에서 결과를 확인해 주세요.')
     } finally {
       setSending(false)
@@ -385,6 +440,7 @@ export default function AlimtalkBroadcastPage() {
               filteredStudents.map((s) => {
                 const ok = isSelectable(s, sendToParent, sendToStudent)
                 const checked = selectedIds.has(s.id)
+                const over = ok && charCountFor(s.name) > BROADCAST_CHAR_LIMIT
                 return (
                   <button
                     key={s.id}
@@ -402,10 +458,12 @@ export default function AlimtalkBroadcastPage() {
                       <span className={styles.checkBox} aria-hidden />
                     )}
                     <span className={styles.studentName}>{s.name}</span>
-                    <span className={styles.studentMeta}>
-                      {ok
-                        ? s.classes?.map((c) => c.name).join(', ') || '—'
-                        : disableReason(s, sendToParent, sendToStudent)}
+                    <span className={over ? styles.studentMetaOver : styles.studentMeta}>
+                      {over
+                        ? '1,000자 초과'
+                        : ok
+                          ? s.classes?.map((c) => c.name).join(', ') || '—'
+                          : disableReason(s, sendToParent, sendToStudent)}
                     </span>
                   </button>
                 )
@@ -531,11 +589,46 @@ export default function AlimtalkBroadcastPage() {
                   />
                 )}
               </div>
+              <Text
+                as="p"
+                variant="labelSm"
+                color={previewCount > BROADCAST_CHAR_LIMIT ? 'error500' : 'gray500'}
+                className={styles.lengthLine}
+              >
+                {`${previewCount.toLocaleString('ko-KR')}자 / 1,000자`}
+              </Text>
               <p className={baseStyles.previewTime}>오후 09:54</p>
             </div>
           </div>
         </section>
       </div>
+      <Modal isOpen={lengthOpen} onClose={() => setLengthOpen(false)} size="sm">
+        <div className={styles.lengthBody}>
+          <Text variant="headingMd" as="h2" className={styles.lengthTitle}>
+            1000자를 넘어가는 문자가 있어요
+          </Text>
+          {lengthNames.map((name, index) => (
+            <Text key={`${name}-${index}`} variant="bodyLg" color="gray500">
+              {name}
+            </Text>
+          ))}
+        </div>
+        <Button variant="primary" size="md" fullWidth onClick={() => setLengthOpen(false)}>
+          확인
+        </Button>
+      </Modal>
     </div>
   )
+}
+
+function tooLongNames(error: unknown): string[] | null {
+  if (!isAxiosError(error)) return null
+  const body = (
+    error.response?.data as {
+      error?: { code?: string; students?: Array<{ student_name?: string }> }
+    }
+  )?.error
+  if (body?.code !== 'MESSAGE_TOO_LONG') return null
+  const students = Array.isArray(body.students) ? body.students : []
+  return students.map((student) => student.student_name || '학생')
 }
