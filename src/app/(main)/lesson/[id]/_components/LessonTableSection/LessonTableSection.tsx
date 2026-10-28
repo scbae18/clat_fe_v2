@@ -43,6 +43,8 @@ import {
 } from './LessonTableCells'
 import { DynamicColumnHeader } from './DynamicColumnHeader'
 import { AttendanceColumnHeader } from './AttendanceColumnHeader'
+import { reportTutorialAction } from '@/features/tutorial/tutorialEvents'
+import { useTutorial } from '@/features/tutorial/TutorialProvider'
 import {
   getScoreColumnMax,
   getTdClassName,
@@ -79,6 +81,7 @@ export default function LessonTable({
   onAddAttendanceOption,
   onRemoveAttendanceOption,
 }: LessonTableSectionProps) {
+  const tour = useTutorial()
   const tableRef = useRef<HTMLTableElement>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [focusedStudentId, setFocusedStudentId] = useState<number | null>(null)
@@ -116,6 +119,9 @@ export default function LessonTable({
 
   const updateAttendance = (studentId: number, value: Attendance) => {
     onChange(students.map((s) => (s.id === studentId ? { ...s, attendance: value } : s)))
+    if (value === '출석' || value === '지각' || value === '결석') {
+      reportTutorialAction('lesson-attend', studentId)
+    }
   }
 
   const updateItem = (
@@ -240,6 +246,9 @@ export default function LessonTable({
                       value={student.attendance}
                       extraLabels={extraAttendanceOptions.map((opt) => opt.label)}
                       onChange={(v) => updateAttendance(student.id, v)}
+                      tourAnchor={
+                        tour.step === 4 && tour.studentId === student.id ? 'lesson-attend' : undefined
+                      }
                     />
                   </td>
                   {dynamicItems.map((item) => {

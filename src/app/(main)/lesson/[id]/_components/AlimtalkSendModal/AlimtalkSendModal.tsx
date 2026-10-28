@@ -23,6 +23,7 @@ import {
 } from '@/services/lesson'
 import { useQueryClient } from '@tanstack/react-query'
 import { invalidateLessonLists } from '@/lib/queryKeys'
+import { reportTutorialAction } from '@/features/tutorial/tutorialEvents'
 import { useToastStore } from '@/stores/toastStore'
 import { useUserStore } from '@/stores/userStore'
 import { pollBatchUntilSettled } from '@/services/alimtalk'
@@ -429,6 +430,9 @@ export default function AlimtalkSendModal({
       if (result.success_count > 0) {
         invalidateLessonLists(queryClient)
       }
+      if (result.fail_count === 0 && (result.success_count > 0 || result.total_count > 0)) {
+        reportTutorialAction('alimtalk-send')
+      }
       setIsClosing(true)
     } catch (err) {
       const apiMessage = isAxiosError(err)
@@ -686,6 +690,7 @@ export default function AlimtalkSendModal({
             size="md"
             onClick={() => void requestSend()}
             disabled={sending || loading || selected.size === 0 || !sendChannel}
+            data-tour="alimtalk-send-open"
           >
             {sending ? '\uBCF4\uB0B4\uB294 \uC911\u2026' : `${selected.size}명에게 알림톡 보내기`}
           </Button>
@@ -731,6 +736,7 @@ export default function AlimtalkSendModal({
         }
         confirmLabel={'\uBC1C\uC1A1'}
         cancelLabel={'\uCDE8\uC18C'}
+        confirmTour="alimtalk-send"
       />
 
       <ConfirmModal
@@ -745,6 +751,7 @@ export default function AlimtalkSendModal({
         confirmLabel="무시하고 발송"
         cancelLabel="취소"
         confirmVariant="danger"
+        confirmTour="alimtalk-send"
       />
 
       <LessonMessageOrderModal

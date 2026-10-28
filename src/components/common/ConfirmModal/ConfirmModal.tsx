@@ -12,6 +12,7 @@ interface ConfirmModalProps {
   confirmLabel?: string
   cancelLabel?: string
   confirmVariant?: 'primary' | 'danger' | 'deleteClass' | 'endClass'
+  confirmTour?: string
 }
 
 export default function ConfirmModal({
@@ -23,6 +24,7 @@ export default function ConfirmModal({
   confirmLabel = '확인',
   cancelLabel = '취소',
   confirmVariant = 'primary',
+  confirmTour,
 }: ConfirmModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="sm">
@@ -41,7 +43,7 @@ export default function ConfirmModal({
         <Button variant="ghost" size="md" fullWidth onClick={onClose}>
           {cancelLabel}
         </Button>
-        <Button variant={confirmVariant} size="md" fullWidth onClick={onConfirm}>
+        <Button variant={confirmVariant} size="md" fullWidth onClick={onConfirm} data-tour={confirmTour}>
           {confirmLabel}
         </Button>
       </div>

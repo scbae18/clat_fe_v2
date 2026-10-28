@@ -4,6 +4,7 @@ import { CreateTemplateItemDto, templateService } from '@/services/template'
 import type { TemplateItem } from '@/app/(main)/template/_types/template'
 import { INITIAL_COMMON_ITEMS, INITIAL_INDIVIDUAL_ITEMS } from '@/mocks/template'
 import { useToastStore } from '@/stores/toastStore'
+import { reportTutorialAction } from '@/features/tutorial/tutorialEvents'
 
 interface InitialData {
   name?: string
@@ -146,7 +147,7 @@ export default function useTemplateEditor(initial: InitialData = {}) {
         deleted_item_ids: deletedItemIds,
       })
       addToast({ variant: 'success', message: '템플릿이 수정됐어요.' })
-      router.push('/template')
+      if (!reportTutorialAction('template-save')) router.push('/template')
     } catch (err) {
       console.error('템플릿 수정 실패', err)
       addToast({ variant: 'error', message: '템플릿 수정에 실패했어요.' })

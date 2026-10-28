@@ -7,6 +7,7 @@ import {
   resolveStudentCheckLinks,
   type ResolvedStudentCheckLink,
 } from '@/lib/attendanceUrls'
+import { reportTutorialAction } from '@/features/tutorial/tutorialEvents'
 
 export type AttendanceStudentRef = {
   id: number
@@ -52,6 +53,7 @@ export function useStartAttendanceSession({
         studentLinks,
       })
       addToast({ variant: 'success', message: '출결이 시작됐어요.' })
+      reportTutorialAction('attendance-start')
       onStarted?.()
       return true
     } catch {

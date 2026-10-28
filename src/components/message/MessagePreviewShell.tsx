@@ -26,6 +26,7 @@ export type MessagePreviewShellProps = {
   dateLabel: string
   emptyMessage: string
   items: MessagePreviewLineItem[]
+  dataTour?: string
 }
 
 export default function MessagePreviewShell({
@@ -35,9 +36,10 @@ export default function MessagePreviewShell({
   dateLabel,
   emptyMessage,
   items,
+  dataTour,
 }: MessagePreviewShellProps) {
   return (
-    <div>
+    <div data-tour={dataTour}>
       <div className={sectionHeaderStyle}>
         <Text variant="headingMd">문자 미리보기</Text>
         <Text variant="bodyMd" color="gray500">

@@ -47,6 +47,7 @@ export default function MessagePreview({ messageOrder, allItemsMap }: MessagePre
 
   return (
     <MessagePreviewShell
+      dataTour="template-preview"
       academyName={DUMMY_ACADEMY}
       teacherName={teacherName}
       className={DUMMY_CLASS}

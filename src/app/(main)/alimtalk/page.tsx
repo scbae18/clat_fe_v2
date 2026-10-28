@@ -9,6 +9,7 @@ import { AlimtalkTabs } from './_components/AlimtalkTabs'
 import { LESSON_ALIMTALK_FRAME_HEADER } from '@/lib/lessonAlimtalkFrame'
 import LessonAlimtalkFramePreview from '@/components/message/LessonAlimtalkFramePreview'
 import * as styles from './alimtalkSettings.css'
+import TutorialScreenHint from '@/features/tutorial/TutorialScreenHint'
 
 const PREVIEW_MIDDLE =
   '\u25A0 \uC624\uB298\uC758 \uD559\uC2B5 \uB0B4\uC6A9: {\uB0B4\uC6A9}\n' +
@@ -105,6 +106,7 @@ export default function AlimtalkSettingsPage() {
   return (
     <div className={styles.pageRoot}>
       <h1 className={styles.pageTitle}>{'\uC54C\uB9BC\uD1A1'}</h1>
+      <TutorialScreenHint screen="alimtalk" />
 
       {deliveryMode === 'mock' && (
         <div className={styles.deliveryBanner}>

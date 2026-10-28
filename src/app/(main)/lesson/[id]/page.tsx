@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Text from '@/components/common/Text'
 import Button from '@/components/common/Button'
@@ -38,6 +38,7 @@ import { ko } from 'date-fns/locale'
 import { useQueryClient } from '@tanstack/react-query'
 import { invalidateLessonLists } from '@/lib/queryKeys'
 import { useLessonAttendanceOnDetail } from '@/hooks/lesson/useLessonAttendanceOnDetail'
+import { useTutorial } from '@/features/tutorial/TutorialProvider'
 
 export default function LessonDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -94,6 +95,29 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     students,
     refetchAfterAttendanceEnd,
   })
+
+  const tour = useTutorial()
+  const openedCue = useRef<string | null>(null)
+  useEffect(() => {
+    if (tour.lessonId !== lessonId || tour.status !== 'in_progress') return
+    if (tour.step === 4 && attendanceStartModal.isOpen) attendanceStartModal.close()
+    if (!tour.cue || tour.hidden) return
+    const key = `${tour.cue}:${tour.reopenTick}`
+    if (openedCue.current === key) return
+    if (tour.cue === 'attendance') attendanceStartModal.open()
+    if (tour.cue === 'send') openAlimtalkSendModal()
+    openedCue.current = key
+  }, [
+    tour.lessonId,
+    tour.status,
+    tour.step,
+    tour.cue,
+    tour.hidden,
+    tour.reopenTick,
+    lessonId,
+    attendanceStartModal,
+    openAlimtalkSendModal,
+  ])
 
   const handleTemplateSelect = (templateId: number) => {
     setPendingTemplateId(templateId)

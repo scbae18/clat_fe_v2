@@ -93,7 +93,11 @@ export default function ContentSection({
         {items.map((item) => {
           const state = item.isActive ? 'active' : 'inactive'
           return (
-            <div key={item.id} className={itemVariants[state]}>
+            <div
+              key={item.id}
+              className={itemVariants[state]}
+              data-tour={item.itemType === 'attendance' ? 'template-attendance' : undefined}
+            >
               {item.id === editingId ? (
                 <input
                   className={itemInputVariants[state]}

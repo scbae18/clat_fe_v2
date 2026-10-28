@@ -5,6 +5,7 @@ import { MSG } from './_lib/meShared'
 import { useMyProfile } from './_hooks/useMyProfile'
 import { MeAccountSections } from './_components/MeAccountSections'
 import { MeAccountModals } from './_components/MeAccountModals'
+import TutorialScreenHint from '@/features/tutorial/TutorialScreenHint'
 
 export default function MyProfilePage() {
   const profile = useMyProfile()
@@ -21,6 +22,7 @@ export default function MyProfilePage() {
     <div className={styles.pageRoot}>
       <h1 className={styles.pageTitle}>{MSG.pageTitle}</h1>
       <p className={styles.pageDesc}>{MSG.pageDesc}</p>
+      <TutorialScreenHint screen="me" />
 
       <MeAccountSections
         user={profile.user}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import useToast from '@/hooks/useToast'
+import { reportTutorialAction } from '@/features/tutorial/tutorialEvents'
 import { aiSettingsService, type AiSettings } from '@/services/aiSettings'
 
 import {
@@ -125,6 +126,7 @@ export function useAiSettingsForm() {
       setSettings(next)
       setSavedSnapshot(settingsSnapshot(next))
       success('AI 조교 설정을 저장했어요.')
+      reportTutorialAction('ai-save')
     } catch (e: unknown) {
       error(extractApiErrorMessage(e, '저장에 실패했어요.'))
     } finally {

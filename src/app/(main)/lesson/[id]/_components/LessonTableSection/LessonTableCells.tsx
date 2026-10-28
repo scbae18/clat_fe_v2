@@ -18,10 +18,12 @@ export function AttendanceCell({
   value,
   extraLabels = [],
   onChange,
+  tourAnchor,
 }: {
   value: Attendance
   extraLabels?: string[]
   onChange: (v: Attendance) => void
+  tourAnchor?: string
 }) {
   const extras = extraLabels.filter((label) => label && !isCoreAttendanceLabel(label))
   const orphan =
@@ -34,6 +36,7 @@ export function AttendanceCell({
         type="button"
         className={cellButtonRecipe({ variant: value === '출석' ? 'attend' : 'default' })}
         onClick={() => onChange(value === '출석' ? null : '출석')}
+        data-tour={tourAnchor}
       >
         출석
       </button>

@@ -15,6 +15,8 @@ import { StudentIncompleteList } from './_components/StudentIncompleteList'
 import { StudentDashboardTabs } from './_components/StudentDashboardTabs'
 import { studentService } from '@/services/student'
 import { useToastStore } from '@/stores/toastStore'
+import { reportTutorialAction } from '@/features/tutorial/tutorialEvents'
+import TutorialScreenHint from '@/features/tutorial/TutorialScreenHint'
 
 export default function StudentDashboardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: idStr } = use(params)
@@ -31,6 +33,7 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
       const { token } = await studentService.openParentDashboard(studentId)
       const opened = window.open(`/parent/${token}`, '_blank', 'noopener,noreferrer')
       if (!opened) addToast({ variant: 'error', message: MSG.parentViewFail })
+      else reportTutorialAction('parent-open')
     } catch {
       addToast({ variant: 'error', message: MSG.parentViewFail })
     } finally {
@@ -65,10 +68,12 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
           className={styles.parentViewButton}
           onClick={() => void openParentDashboard()}
           disabled={openingParent}
+          data-tour="parent-dashboard"
         >
           {MSG.parentView}
         </button>
       </header>
+      <TutorialScreenHint screen="student" />
 
       <div className={styles.columns}>
         <div className={styles.leftCol}>

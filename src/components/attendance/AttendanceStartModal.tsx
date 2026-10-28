@@ -142,6 +142,7 @@ export default function AttendanceStartModal({
             className={`${actionHalfStyle} ${primaryBtnStyle}`}
             onClick={() => void start(effectiveMinutes)}
             disabled={submitting}
+            data-tour="attendance-start"
           >
             {MSG.startBtn} · {effectiveMinutes}
             {MSG.min}

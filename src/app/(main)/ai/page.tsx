@@ -25,6 +25,7 @@ export default function AiSettingsPage() {
             size="lg"
             onClick={() => void form.onSave()}
             disabled={form.saving}
+            data-tour="ai-save"
           >
             {form.saving ? '저장 중...' : '저장'}
           </Button>

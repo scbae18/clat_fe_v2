@@ -58,6 +58,7 @@ function TemplateEditForm({ id, initialData }: { id: number; initialData: Editor
           leftIcon={<SaveIcon width={16} height={16} />}
           onClick={() => editor.handleUpdate(id)}
           disabled={editor.isSaving}
+          data-tour="template-save"
         >
           {editor.isSaving ? '저장 중...' : '저장'}
         </Button>

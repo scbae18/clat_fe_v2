@@ -21,6 +21,7 @@ import {
   gridStyle,
 } from './management.css'
 import ClassFormModal from './_components/ClassFormModal/ClassFormModal'
+import TutorialScreenHint from '@/features/tutorial/TutorialScreenHint'
 import StudentTable, {
   renderStudentClasses,
   studentClassesTitle,
@@ -159,6 +160,7 @@ function ManagementContent() {
       <Text variant="display" as="h1">
         학생·반 관리
       </Text>
+      <TutorialScreenHint screen="management" />
       <div className={tabContainerStyle}>
         <div className={tabGroupStyle}>
           <button
