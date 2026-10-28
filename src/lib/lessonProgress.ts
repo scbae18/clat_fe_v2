@@ -7,7 +7,7 @@ export function canMarkLessonItemPartial(
   item: Pick<LessonItemDetail, 'is_common' | 'item_type'>,
 ): boolean {
   if (item.is_common) return false
-  if (item.item_type === 'ATTENDANCE' || item.item_type === 'COMPLETE') return false
+  if (item.item_type === 'ATTENDANCE') return false
   return true
 }
 
