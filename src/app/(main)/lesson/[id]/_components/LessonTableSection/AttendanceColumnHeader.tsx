@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { createPortal } from 'react-dom'
 import CheckIcon from '@/assets/icons/icon-check.svg'
 import CloseIcon from '@/assets/icons/icon-close.svg'
 import ConfirmModal from '@/components/common/ConfirmModal'
@@ -20,8 +21,11 @@ import {
   checkboxLabelStyle,
   colHeaderTitleBlockStyle,
   partialChipRecipe,
+  partialTooltipStyle,
   thInnerStyle,
 } from './LessonTable.css'
+
+const ADD_TIP = '이외의 다른 출결 내용을 추가합니다.'
 
 type ExtraOption = { id: number; label: string }
 
@@ -43,7 +47,10 @@ export function AttendanceColumnHeader({
   const [draft, setDraft] = useState('')
   const [isAdding, setIsAdding] = useState(false)
   const [pending, setPending] = useState<ExtraOption | null>(null)
+  const [tipOpen, setTipOpen] = useState(false)
+  const [tipPos, setTipPos] = useState({ x: 0, y: 0 })
   const inputRef = useRef<HTMLInputElement>(null)
+  const addButtonRef = useRef<HTMLButtonElement>(null)
   const confirmModal = useDisclosure()
   const canAdd = Boolean(onAddOption) && extraOptions.length < MAX_ATTENDANCE_EXTRA_OPTIONS
 
@@ -55,6 +62,29 @@ export function AttendanceColumnHeader({
     setIsAdding(false)
     setDraft('')
   }
+
+  const updateTipPos = () => {
+    const el = addButtonRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    setTipPos({ x: rect.left + rect.width / 2, y: rect.top })
+  }
+
+  const showTip = () => {
+    updateTipPos()
+    setTipOpen(true)
+  }
+
+  useEffect(() => {
+    if (!tipOpen) return
+    const onMove = () => updateTipPos()
+    window.addEventListener('scroll', onMove, true)
+    window.addEventListener('resize', onMove)
+    return () => {
+      window.removeEventListener('scroll', onMove, true)
+      window.removeEventListener('resize', onMove)
+    }
+  }, [tipOpen])
 
   const submitDraft = () => {
     const label = draft.trim()
@@ -68,6 +98,7 @@ export function AttendanceColumnHeader({
   }
 
   return (
+    <>
     <th className={attendanceThStyle}>
       <div className={attendanceThInnerStyle}>
         <div className={thInnerStyle}>
@@ -75,12 +106,18 @@ export function AttendanceColumnHeader({
             출결
             {canAdd ? (
               <button
+                ref={addButtonRef}
                 type="button"
                 className={partialChipRecipe({ on: isAdding })}
                 aria-pressed={isAdding}
-                aria-label="출결 선택지 추가"
+                aria-label={`출결 선택지 추가. ${ADD_TIP}`}
+                onMouseEnter={showTip}
+                onMouseLeave={() => setTipOpen(false)}
+                onFocus={showTip}
+                onBlur={() => setTipOpen(false)}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
+                  setTipOpen(false)
                   if (isAdding) {
                     closeAdd()
                     return
@@ -168,6 +205,24 @@ export function AttendanceColumnHeader({
         confirmLabel="삭제"
         confirmVariant="danger"
       />
-    </th>
+      </th>
+      {tipOpen
+        ? createPortal(
+            <span
+              className={partialTooltipStyle}
+              role="tooltip"
+              style={
+                {
+                  '--partial-tooltip-x': `${tipPos.x}px`,
+                  '--partial-tooltip-y': `${tipPos.y}px`,
+                } as CSSProperties
+              }
+            >
+              {ADD_TIP}
+            </span>,
+            document.body,
+          )
+        : null}
+    </>
   )
 }
