@@ -31,7 +31,6 @@ const GUIDE_MANUALS = [
 export default function HomePage() {
   return (
     <div className={styles.pageStyle}>
-      <TutorialHomeCard />
       {/* 웰컴 배너 */}
       <div className={styles.bannerStyle}>
         <div className={styles.bannerContentStyle}>
@@ -52,6 +51,8 @@ export default function HomePage() {
           />
         </div>
       </div>
+
+      <TutorialHomeCard />
 
       <HomeQuickMenu />
 

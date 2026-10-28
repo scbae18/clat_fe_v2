@@ -48,7 +48,7 @@ function readError(error: unknown): TutorialApiError {
     .response?.data?.error
   return {
     code: body?.code,
-    message: body?.message || '체험을 처리하지 못했어요.',
+    message: body?.message || '튜토리얼을 처리하지 못했어요.',
   }
 }
 

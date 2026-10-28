@@ -226,14 +226,14 @@ export const TUTORIAL_BEATS: Record<number, TutorialBeat[]> = {
     }),
     dates({
       anchor: 'lesson-enter',
-      title: '체험 수업 열기',
-      body: '체험 수업의 입력하기를 눌러 주세요.',
+      title: '튜토리얼 수업 열기',
+      body: '튜토리얼 수업의 입력하기를 눌러 주세요.',
       mode: 'click',
     }),
     lessonNew({
       anchor: 'lesson-template-modal',
       title: '템플릿 선택',
-      body: '체험 템플릿을 고른 뒤 수업 입력하기를 눌러 주세요.',
+      body: '튜토리얼 템플릿을 고른 뒤 수업 입력하기를 눌러 주세요.',
       mode: 'action',
       action: 'lesson-create',
     }),
@@ -248,7 +248,7 @@ export const TUTORIAL_BEATS: Record<number, TutorialBeat[]> = {
     lesson({
       anchor: 'attendance-start',
       title: '출결 문자 발송',
-      body: '시간을 고르고 출결 시작을 눌러 주세요. 체험버전은 선생님 번호로 문자가 갑니다.',
+      body: '시간을 고르고 출결 시작을 눌러 주세요. 튜토리얼버전은 선생님 번호로 문자가 갑니다.',
       mode: 'action',
       action: 'attendance-opened',
       local: true,
@@ -432,7 +432,7 @@ export const PARENT_BEATS: TutorialBeat[] = [
   {
     anchor: 'parent-notices',
     title: '받은 공지',
-    body: '선생님이 보낸 공지가 여기에 모입니다. 체험은 여기까지입니다.',
+    body: '선생님이 보낸 공지가 여기에 모입니다. 튜토리얼은 여기까지입니다.',
     mode: 'next',
     finish: true,
   },

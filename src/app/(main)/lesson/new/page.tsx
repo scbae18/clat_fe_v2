@@ -27,7 +27,7 @@ function LessonNewContent() {
       tour.templateId &&
       templateId !== tour.templateId
     ) {
-      addToast({ variant: 'error', message: '체험 틀을 골라 주세요.' })
+      addToast({ variant: 'error', message: '튜토리얼 틀을 골라 주세요.' })
       return
     }
     try {

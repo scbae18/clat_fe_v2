@@ -27,13 +27,13 @@ function tutorialPastLessons(className: string, lessonDate: string): ParentLesso
       lesson_id: -2,
       lesson_date: shiftDay(lessonDate, 14),
       class_name: className,
-      template_name: '체험 틀',
+      template_name: '튜토리얼 틀',
     },
     {
       lesson_id: -1,
       lesson_date: shiftDay(lessonDate, 7),
       class_name: className,
-      template_name: '체험 틀',
+      template_name: '튜토리얼 틀',
     },
   ]
 }

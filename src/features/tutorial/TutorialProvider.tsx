@@ -14,6 +14,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import Modal from '@/components/common/Modal'
 import Button from '@/components/common/Button'
 import Text from '@/components/common/Text'
+import ConfirmModal from '@/components/common/ConfirmModal'
 import { useToastStore } from '@/stores/toastStore'
 import { isTutorialGateOpen, setTutorialActionHandler, type TutorialAction } from './tutorialEvents'
 import { tutorialApi, type TutorialScreen, type TutorialState } from './tutorialApi'
@@ -101,8 +102,12 @@ export default function TutorialProvider({ children }: { children: ReactNode }) 
   const [dismissTick, setDismissTick] = useState(0)
   const [replayScreen, setReplayScreen] = useState<ScreenTourId | null>(null)
   const [closedScreen, setClosedScreen] = useState<string | null>(null)
-  const [forceKind, setForceKind] = useState<'restart' | null>(null)
+  const [forceKind, setForceKind] = useState<'restart' | 'finish' | null>(null)
+  const [leaveOpen, setLeaveOpen] = useState(false)
   const lastPush = useRef<{ href: string; at: number } | null>(null)
+  const followedHref = useRef<string | null>(null)
+  const returning = useRef(false)
+  const pendingLeaveHref = useRef<string | null>(null)
 
   const onParent = pathname.startsWith('/parent')
   const beats =
@@ -183,44 +188,57 @@ export default function TutorialProvider({ children }: { children: ReactNode }) 
 
   useEffect(() => {
     if (state.status !== 'in_progress') {
+      followedHref.current = null
+      returning.current = false
       setLocated(false)
       return
     }
     const sync = () => {
+      if (!follow || leaveOpen) {
+        if (!follow) {
+          followedHref.current = null
+          setLocated(false)
+        }
+        return
+      }
       const path = window.location.pathname
-      if (path.startsWith('/parent') && state.step === TOTAL_STEPS) {
+      const search = window.location.search
+      const parentOk = path.startsWith('/parent') && state.step === TOTAL_STEPS
+      const mainBeats = TUTORIAL_BEATS[state.step] ?? []
+      const mainBeat = mainBeats[Math.min(beatIndex, Math.max(mainBeats.length - 1, 0))] ?? null
+      const href = mainBeat?.place ? placeHref(mainBeat.place, state) : null
+      const here = parentOk || (href ? isOnPlace(path, search, href) : false)
+      if (here) {
+        if (href) followedHref.current = href
+        returning.current = false
+        lastPush.current = null
         setLocated(true)
         return
       }
-      if (!follow) {
-        setLocated(false)
-        return
-      }
-      const current = (TUTORIAL_BEATS[state.step] ?? [])[beatIndex]
-      const href = current?.place ? placeHref(current.place, state) : null
       if (!href) {
         setLocated(false)
         return
       }
-      if (!isOnPlace(path, window.location.search, href)) {
-        setLocated(false)
+      if (returning.current || followedHref.current !== href) {
+        followedHref.current = href
+        returning.current = true
         const now = Date.now()
         if (!lastPush.current || lastPush.current.href !== href || now - lastPush.current.at > 1500) {
           lastPush.current = { href, at: now }
           router.push(href)
         }
+        setLocated(false)
         return
       }
-      lastPush.current = null
-      setLocated(true)
+      setLocated(false)
     }
     sync()
     const timer = window.setInterval(sync, 400)
     return () => window.clearInterval(timer)
-  }, [beatIndex, follow, router, state])
+  }, [beatIndex, follow, leaveOpen, pathname, router, state])
 
   const fail = useCallback(
-    (error: unknown, retry: 'restart' | null = null) => {
+    (error: unknown, retry: 'restart' | 'finish' | null = null) => {
       const parsed = tutorialApi.readError(error)
       if (parsed.code === 'TUTORIAL_HAS_OTHER_STUDENTS' && retry) {
         setForceKind(retry)
@@ -246,7 +264,7 @@ export default function TutorialProvider({ children }: { children: ReactNode }) 
   }, [])
 
   const run = useCallback(
-    async (work: () => Promise<TutorialState>, retry: 'restart' | null = null) => {
+    async (work: () => Promise<TutorialState>, retry: 'restart' | 'finish' | null = null) => {
       if (busy) return
       setBusy(true)
       try {
@@ -308,9 +326,59 @@ export default function TutorialProvider({ children }: { children: ReactNode }) 
     return () => setTutorialActionHandler(null)
   }, [beatIndex, beats, hidden, onParent, run, state.status, state.student_id])
 
-  const closeTour = () => {
-    setHidden(true)
+  const askLeave = () => {
+    pendingLeaveHref.current = null
+    setLeaveOpen(true)
+  }
+
+  useEffect(() => {
+    if (state.status !== 'in_progress' || !follow) return
+    const onClick = (event: MouseEvent) => {
+      if (leaveOpen || event.defaultPrevented || event.button !== 0) return
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+      const target = event.target
+      if (!(target instanceof Element)) return
+      const anchor = target.closest('a')
+      if (!(anchor instanceof HTMLAnchorElement)) return
+      if ((anchor.target && anchor.target !== '_self') || anchor.hasAttribute('download')) return
+      const raw = anchor.getAttribute('href')
+      if (!raw || raw.startsWith('#') || raw.startsWith('mailto:') || raw.startsWith('tel:')) return
+      const url = new URL(anchor.href, window.location.href)
+      if (url.origin !== window.location.origin) return
+      if (beat?.anchor && target.closest(`[data-tour="${beat.anchor}"]`)) return
+      const parentOk = url.pathname.startsWith('/parent') && state.step === TOTAL_STEPS
+      const mainBeats = TUTORIAL_BEATS[state.step] ?? []
+      const mainBeat = mainBeats[Math.min(beatIndex, Math.max(mainBeats.length - 1, 0))] ?? null
+      const href = mainBeat?.place ? placeHref(mainBeat.place, state) : null
+      if (parentOk || (href && isOnPlace(url.pathname, url.search, href))) return
+      event.preventDefault()
+      event.stopPropagation()
+      pendingLeaveHref.current = `${url.pathname}${url.search}`
+      setLeaveOpen(true)
+    }
+    document.addEventListener('click', onClick, true)
+    return () => document.removeEventListener('click', onClick, true)
+  }, [beat?.anchor, beatIndex, follow, leaveOpen, state])
+
+  const stayInTour = () => {
+    pendingLeaveHref.current = null
+    setLeaveOpen(false)
+    setHidden(false)
+    setFollow(true)
+  }
+
+  const finishFromLeave = () => {
+    const next = pendingLeaveHref.current
+    pendingLeaveHref.current = null
+    setLeaveOpen(false)
     setFollow(false)
+    followedHref.current = null
+    returning.current = false
+    void run(async () => {
+      const done = await tutorialApi.complete()
+      if (next) router.push(next)
+      return done
+    }, 'finish')
   }
 
   const dismissScreen = useCallback(
@@ -359,10 +427,8 @@ export default function TutorialProvider({ children }: { children: ReactNode }) 
     [beat?.anchor, dismissScreen, dismissTick, hidden, ready, reopenTick, replay, run, screenTour, state],
   )
 
-  const showLayer = state.status === 'in_progress' && !hidden && located && Boolean(beat)
-  const showChip =
-    state.status === 'in_progress' && pathname !== '/home' && (hidden || !located)
-  const showScreen = Boolean(screenBeat) && state.status === 'completed'
+  const showLayer = state.status === 'in_progress' && !hidden && located && Boolean(beat) && !leaveOpen && !forceKind
+  const showScreen = Boolean(screenBeat) && state.status === 'completed' && !leaveOpen && !forceKind
 
   return (
     <TutorialContext.Provider value={value}>
@@ -373,7 +439,7 @@ export default function TutorialProvider({ children }: { children: ReactNode }) 
           stepLabel={onParent ? `학부모 ${beatIndex + 1}/${beats.length}` : `${state.step}/${TOTAL_STEPS}`}
           onNext={goNext}
           onSkip={skipBeat}
-          onClose={closeTour}
+          onClose={askLeave}
           onReopen={() => setReopenTick((tick) => tick + 1)}
         />
       ) : null}
@@ -390,24 +456,6 @@ export default function TutorialProvider({ children }: { children: ReactNode }) 
           onReopen={() => setScreenIndex(0)}
         />
       ) : null}
-      {showChip ? (
-        <button
-          type="button"
-          className={styles.chip}
-          onClick={() => {
-            if (onParent && state.step === TOTAL_STEPS) {
-              setHidden(false)
-              setFollow(true)
-              setBeatIndex(0)
-              return
-            }
-            void run(() => tutorialApi.resume())
-          }}
-        >
-          체험 이어하기
-        </button>
-      ) : null}
-
       <Modal
         isOpen={startOpen}
         onClose={() => {
@@ -421,12 +469,12 @@ export default function TutorialProvider({ children }: { children: ReactNode }) 
             수업 문자를 받아 봐요
           </Text>
           <Text variant="bodyLg" color="gray500">
-            체험 수업으로 틀, 출결, 결과 문자까지 해 봐요. 체험 학생은 끝나면 지워져요.
+            튜토리얼 수업으로 틀, 출결, 결과 문자까지 해 봐요. 튜토리얼 학생은 끝나면 지워져요.
           </Text>
           <div className={styles.dialogActions}>
             <Button
               variant="ghost"
-              size="lg"
+              size="md"
               fullWidth
               onClick={() => {
                 setStartOpen(false)
@@ -437,7 +485,7 @@ export default function TutorialProvider({ children }: { children: ReactNode }) 
             </Button>
             <Button
               variant="primary"
-              size="lg"
+              size="md"
               fullWidth
               disabled={busy}
               onClick={() => {
@@ -455,15 +503,15 @@ export default function TutorialProvider({ children }: { children: ReactNode }) 
       <Modal isOpen={doneOpen} onClose={() => setDoneOpen(false)} size="sm">
         <div className={styles.dialogBody}>
           <Text variant="headingMd" as="h2">
-            체험을 끝냈어요
+            튜토리얼이 끝났습니다.
           </Text>
           <Text variant="bodyLg" color="gray500">
-            체험 학생은 지웠어요. 이제 진짜 학생을 등록해 주세요.
+            학생을 등록해주세요
           </Text>
           <div className={styles.dialogActions}>
             <Button
               variant="ghost"
-              size="lg"
+              size="md"
               fullWidth
               onClick={() => {
                 setDoneOpen(false)
@@ -474,7 +522,7 @@ export default function TutorialProvider({ children }: { children: ReactNode }) 
             </Button>
             <Button
               variant="primary"
-              size="lg"
+              size="md"
               fullWidth
               onClick={() => {
                 setDoneOpen(false)
@@ -487,32 +535,33 @@ export default function TutorialProvider({ children }: { children: ReactNode }) 
         </div>
       </Modal>
 
-      <Modal isOpen={forceKind !== null} onClose={() => setForceKind(null)} size="sm">
-        <div className={styles.dialogBody}>
-          <Text variant="headingMd" as="h2">
-            체험 수업에 다른 학생이 있어요
-          </Text>
-          <Text variant="bodyLg" color="gray500">
-            지우고 처음부터 다시 할까요?
-          </Text>
-          <div className={styles.dialogActions}>
-            <Button variant="ghost" size="lg" fullWidth onClick={() => setForceKind(null)}>
-              취소
-            </Button>
-            <Button
-              variant="danger"
-              size="lg"
-              fullWidth
-              onClick={() => {
-                setForceKind(null)
-                void run(() => tutorialApi.restart(true))
-              }}
-            >
-              지우고 다시
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      <ConfirmModal
+        isOpen={leaveOpen}
+        onClose={stayInTour}
+        onConfirm={finishFromLeave}
+        title="벗어나면 튜토리얼이 끝나요"
+        confirmLabel="끝내기"
+        cancelLabel="계속하기"
+        confirmVariant="danger"
+      />
+
+      <ConfirmModal
+        isOpen={forceKind !== null}
+        onClose={() => setForceKind(null)}
+        onConfirm={() => {
+          const kind = forceKind
+          setForceKind(null)
+          if (kind === 'finish') void run(() => tutorialApi.complete(true))
+          else void run(() => tutorialApi.restart(true))
+        }}
+        title="튜토리얼 수업에 다른 학생이 있어요"
+        descriptions={[
+          forceKind === 'finish' ? '같이 지우고 튜토리얼을 끝낼까요?' : '지우고 처음부터 다시 할까요?',
+        ]}
+        confirmLabel={forceKind === 'finish' ? '지우고 끝내기' : '지우고 다시'}
+        cancelLabel="취소"
+        confirmVariant="danger"
+      />
     </TutorialContext.Provider>
   )
 }
@@ -521,9 +570,9 @@ export function TutorialReplayButton({ screen }: { screen: ScreenTourId }) {
   const tour = useTutorial()
   if (!tour.ready || tour.status !== 'completed') return null
   return (
-    <button type="button" className={styles.replay} onClick={() => tour.replay(screen)}>
+    <Button variant="outlined" size="sm" onClick={() => tour.replay(screen)}>
       안내 다시 보기
-    </button>
+    </Button>
   )
 }
 
@@ -534,13 +583,17 @@ export function TutorialHomeCard() {
   if (tour.status === 'completed') {
     return (
       <section className={styles.homeCard}>
-        <div>
-          <p className={styles.homeTitle}>체험을 끝냈어요</p>
-          <p className={styles.homeBody}>다시 보려면 체험 학생을 새로 만들어요.</p>
+        <div className={styles.homeCopy}>
+          <Text variant="titleMd" as="p" className={styles.plainText}>
+            튜토리얼을 끝냈어요
+          </Text>
+          <Text variant="bodyMd" color="gray700" as="p" className={styles.plainText}>
+            다시하기 버튼으로 다시할 수 있습니다.
+          </Text>
         </div>
         <div className={styles.homeActions}>
           <Button variant="secondary" size="md" onClick={tour.restart}>
-            체험 다시 해보기
+            튜토리얼 다시 해보기
           </Button>
         </div>
       </section>
@@ -550,9 +603,13 @@ export function TutorialHomeCard() {
   if (tour.status === 'in_progress') {
     return (
       <section className={styles.homeCard}>
-        <div>
-          <p className={styles.homeTitle}>체험이 진행 중이에요</p>
-          <p className={styles.homeBody}>{`${tour.step}/${TOTAL_STEPS}단계예요.`}</p>
+        <div className={styles.homeCopy}>
+          <Text variant="titleMd" as="p" className={styles.plainText}>
+            튜토리얼을 진행 중이에요
+          </Text>
+          <Text variant="bodyMd" color="gray700" as="p" className={styles.plainText}>
+            {`${tour.step}/${TOTAL_STEPS}단계`}
+          </Text>
         </div>
         <div className={styles.homeActions}>
           <Button variant="ghost" size="md" onClick={tour.restart}>
@@ -568,13 +625,17 @@ export function TutorialHomeCard() {
 
   return (
     <section className={styles.homeCard}>
-      <div>
-        <p className={styles.homeTitle}>수업 문자를 받아 봐요</p>
-        <p className={styles.homeBody}>수업 틀부터 학부모 화면까지 한 바퀴 돌아요.</p>
+      <div className={styles.homeCopy}>
+        <Text variant="titleMd" as="p" className={styles.plainText}>
+          튜토리얼을 시작해보세요
+        </Text>
+        <Text variant="bodyMd" color="gray700" as="p" className={styles.plainText}>
+          전반적인 플로우를 따라갑니다.
+        </Text>
       </div>
       <div className={styles.homeActions}>
         <Button variant="primary" size="md" onClick={tour.start}>
-          체험 시작
+          튜토리얼 시작
         </Button>
       </div>
     </section>

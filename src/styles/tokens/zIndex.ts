@@ -7,5 +7,6 @@ export const zIndex = {
   moreSheet: 1250,
   bottomNav: 1260,
   modal: 1300,
+  tour: 1350,
   toast: 1400,
 } as const
