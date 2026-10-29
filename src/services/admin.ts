@@ -12,6 +12,7 @@ import type {
   AdminActionLogList,
   AdminUserDetail,
   AdminUserList,
+  AdminUserTab,
 } from '@/types/admin'
 import type { UpdateNotice, UpdateNoticeItem } from '@/lib/whatsNew'
 
@@ -47,6 +48,7 @@ export const admin = {
   async listUsers(params?: {
     page?: number
     limit?: number
+    tab?: AdminUserTab
     approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED'
     withdrawal?: boolean
     q?: string
@@ -55,6 +57,7 @@ export const admin = {
       params: {
         page: params?.page ?? 1,
         limit: params?.limit ?? 50,
+        tab: params?.tab,
         approval_status: params?.approvalStatus,
         withdrawal: params?.withdrawal ? '1' : undefined,
         q: params?.q || undefined,

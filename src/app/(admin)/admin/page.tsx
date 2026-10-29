@@ -41,11 +41,11 @@ export default function AdminDashboardPage() {
       <AdminHeader title="대시보드" subtitle={`${formatLong(data.generated_at)} · 베타 테스트 현황`} />
 
       <div className={styles.kpiGrid}>
-        <Link href="/admin/users?approval_status=PENDING" className={styles.statCard}>
+        <Link href="/admin/users?tab=pending" className={styles.statCard}>
           <p className={styles.statLabel}>승인 대기</p>
           <p className={styles.statValue}>{data.today.pending_approvals}</p>
         </Link>
-        <Link href="/admin/users?withdrawal=1" className={styles.statCard}>
+        <Link href="/admin/users?tab=pending&withdrawal=1" className={styles.statCard}>
           <p className={styles.statLabel}>탈퇴 요청</p>
           <p className={styles.statValue}>{data.today.withdrawal_requests}</p>
         </Link>

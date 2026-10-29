@@ -17,6 +17,7 @@ type Props = {
   email: string
   name: string
   variant?: 'compact' | 'danger-zone'
+  returnTo?: string
 }
 
 export default function DeleteTeacherDialog({
@@ -24,6 +25,7 @@ export default function DeleteTeacherDialog({
   email,
   name,
   variant = 'compact',
+  returnTo = '/admin/users',
 }: Props) {
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -43,7 +45,7 @@ export default function DeleteTeacherDialog({
       addToast({ variant: 'success', message: `${name} 계정을 삭제했습니다.` })
       setOpen(false)
       await queryClient.invalidateQueries({ queryKey: ['admin'] })
-      if (variant === 'danger-zone') router.push('/admin/users')
+      if (variant === 'danger-zone') router.push(returnTo)
     } catch (err) {
       setError(adminErrorMessage(err))
     } finally {

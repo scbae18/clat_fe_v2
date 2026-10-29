@@ -55,10 +55,13 @@ export type AdminDashboard = {
   }>
 }
 
+export type AdminUserTab = 'pending' | 'active' | 'inactive'
+
 export type AdminUserListItem = {
   id: number
   email: string
   name: string
+  phone: string | null
   created_at: string
   withdrawal_requested_at: string | null
   approval_status?: 'PENDING' | 'APPROVED' | 'REJECTED'
@@ -74,11 +77,16 @@ export type AdminUserListItem = {
 
 export type AdminUserList = {
   summary: {
-    total: number
-    active_7d: number
-    inactive_14d: number
+    pending: number
+    active: number
+    inactive: number
     withdrawal: number
-    pending?: number
+    rejected: number
+  }
+  phones: string[]
+  phones_skipped: {
+    missing: number
+    suspended: number
   }
   items: AdminUserListItem[]
   meta: AdminMeta

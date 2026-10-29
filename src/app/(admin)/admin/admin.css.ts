@@ -346,6 +346,15 @@ export const grid2 = style({
   },
 })
 
+export const boxLink = style({
+  textDecoration: 'none',
+  color: 'inherit',
+})
+
+export const scrollAnchor = style({
+  scrollMarginTop: '24px',
+})
+
 export const statCard = style({
   borderRadius: '16px',
   border: `1px solid ${vars.color.gray[100]}`,

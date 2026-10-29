@@ -18,7 +18,7 @@ import * as styles from '../admin.css'
 
 const NAV = [
   { href: '/admin', label: '대시보드', icon: LayoutDashboard, exact: true },
-  { href: '/admin/users', label: '선생님', icon: Users },
+  { href: '/admin/users', label: '사용자 관리', icon: Users },
   { href: '/admin/alimtalk', label: '알림톡', icon: MessageSquare },
   { href: '/admin/updates', label: '업데이트 모달', icon: Megaphone },
   { href: '/admin/actions', label: '기록', icon: ScrollText },

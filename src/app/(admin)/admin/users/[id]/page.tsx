@@ -2,7 +2,7 @@
 
 import { use, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
@@ -36,6 +36,9 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
   const enabled = Number.isInteger(id) && id > 0
 
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const tabParam = searchParams.get('tab')
+  const backTab = tabParam === 'active' || tabParam === 'inactive' || tabParam === 'pending' ? tabParam : 'pending'
   const [alimtalkPage, setAlimtalkPage] = useState(1)
   const queryClient = useQueryClient()
   const addToast = useToastStore((s) => s.addToast)
@@ -95,9 +98,9 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
   return (
     <div className={styles.stack}>
       <div>
-        <Link href="/admin/users" className={styles.backLink}>
+        <Link href={`/admin/users?tab=${backTab}`} className={styles.backLink}>
           <ArrowLeft size={16} />
-          선생님 목록으로
+          사용자 관리로
         </Link>
         <div className={styles.headerRow}>
           <div>
@@ -424,7 +427,13 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
               </p>
             </div>
           </div>
-          <DeleteTeacherDialog userId={data.id} email={data.email} name={data.name} variant="danger-zone" />
+          <DeleteTeacherDialog
+            userId={data.id}
+            email={data.email}
+            name={data.name}
+            variant="danger-zone"
+            returnTo={`/admin/users?tab=${backTab}`}
+          />
         </div>
       </div>
     </div>
