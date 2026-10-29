@@ -50,6 +50,9 @@ export interface LessonDetail {
   excluded_student_ids?: number[]
   roster_student_ids?: number[]
   items: LessonItemDetail[]
+  send_schedule?: LessonSendSchedule | null
+  send_schedule_cancel_notice?: boolean
+  send_schedule_cancelled?: boolean
   updated_at?: string
 }
 
@@ -116,6 +119,21 @@ export interface LessonPreviewResult {
 }
 
 export type LessonSendChannel = 'STUDENT' | 'PARENT' | 'BOTH'
+
+export interface LessonSendSchedule {
+  scheduled_at: string
+  channel: LessonSendChannel
+  student_ids: number[]
+}
+
+export interface LessonSendScheduleCard {
+  lesson_record_id: number
+  class_name: string
+  lesson_date: string
+  scheduled_at: string
+  channel: LessonSendChannel
+  student_count: number
+}
 
 export interface SendLessonResult {
   batch_id: number
@@ -274,6 +292,45 @@ export const lessonService = {
       channel,
     })
     return unwrapSendLessonResult(data)
+  },
+
+  async listSendSchedules(): Promise<LessonSendScheduleCard[]> {
+    const { data } = await axiosInstance.get('/lessons/send-schedules')
+    const body = data.data as { data?: LessonSendScheduleCard[] } | LessonSendScheduleCard[]
+    if (Array.isArray(body)) return body
+    return body.data ?? []
+  },
+
+  async createSendSchedule(
+    lessonId: number,
+    studentIds: number[],
+    channel: LessonSendChannel,
+    scheduledAt: string,
+  ): Promise<{ send_schedule: LessonSendSchedule; updated_at: string }> {
+    const { data } = await axiosInstance.post(`/lessons/${lessonId}/send-schedule`, {
+      student_ids: studentIds,
+      channel,
+      scheduled_at: scheduledAt,
+    })
+    return data.data as { send_schedule: LessonSendSchedule; updated_at: string }
+  },
+
+  async cancelSendSchedule(
+    lessonId: number,
+  ): Promise<{ send_schedule: null; updated_at: string }> {
+    const { data } = await axiosInstance.delete(`/lessons/${lessonId}/send-schedule`, {
+      data: {},
+    })
+    return data.data as { send_schedule: null; updated_at: string }
+  },
+
+  async dismissSendScheduleNotice(
+    lessonId: number,
+  ): Promise<{ send_schedule_cancel_notice: false; updated_at: string }> {
+    const { data } = await axiosInstance.delete(`/lessons/${lessonId}/send-schedule-notice`, {
+      data: {},
+    })
+    return data.data as { send_schedule_cancel_notice: false; updated_at: string }
   },
 
   async enqueueParentPreview(

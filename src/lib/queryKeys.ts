@@ -4,6 +4,7 @@ export const queryKeys = {
   lessons: {
     all: ['lessons'] as const,
     day: (date: string) => ['lessons', 'day', date] as const,
+    sendSchedules: ['lessons', 'send-schedules'] as const,
   },
 } as const
 

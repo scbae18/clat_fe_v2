@@ -101,6 +101,17 @@ globalStyle(`${headerButtonGroupStyle} > *`, {
   },
 })
 
+export const scheduleNoticeStyle = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '12px',
+  padding: '12px 16px',
+  borderRadius: '12px',
+  backgroundColor: colors.warning50,
+  border: `1px solid ${colors.warning200}`,
+})
+
 export const autoSaveHintStyle = style({
   fontSize: fontStyles.labelSm.fontSize,
   fontWeight: fontStyles.labelSm.fontWeight,

@@ -191,9 +191,137 @@ export const logoutButtonStyle = styleVariants({
   },
 })
 
-export const userCardStyle = styleVariants({
+export const sidebarBottomStyle = styleVariants({
   expanded: {
     marginTop: 'auto',
+    display: 'flex',
+    flexDirection: 'column',
+    padding: '0 24px',
+    minHeight: 0,
+  },
+  collapsed: {
+    marginTop: 'auto',
+    display: 'flex',
+    flexDirection: 'column',
+    padding: '0 8px',
+    minHeight: 0,
+  },
+})
+
+export const scheduleStackStyle = styleVariants({
+  expanded: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    maxHeight: '220px',
+    overflowY: 'auto',
+    marginBottom: '8px',
+  },
+  collapsed: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    maxHeight: '160px',
+    overflowY: 'auto',
+    marginBottom: '8px',
+  },
+})
+
+export const scheduleCardStyle = styleVariants({
+  expanded: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+    width: '100%',
+    padding: '10px 12px',
+    border: 'none',
+    borderRadius: '12px',
+    textAlign: 'left',
+    font: 'inherit',
+    cursor: 'pointer',
+    background: 'rgba(255,255,255,0.08)',
+    color: colors.white,
+    flexShrink: 0,
+    selectors: {
+      '&:hover': {
+        background: 'rgba(255,255,255,0.14)',
+      },
+    },
+  },
+  collapsed: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    minHeight: '36px',
+    padding: '6px 2px',
+    border: 'none',
+    borderRadius: '10px',
+    font: 'inherit',
+    cursor: 'pointer',
+    background: 'rgba(255,255,255,0.08)',
+    color: colors.white,
+    flexShrink: 0,
+    selectors: {
+      '&:hover': {
+        background: 'rgba(255,255,255,0.14)',
+      },
+    },
+  },
+})
+
+export const scheduleBadgeStyle = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 700,
+  letterSpacing: '-0.03em',
+  lineHeight: 1.3,
+  color: colors.primary300,
+})
+
+export const scheduleTimeStyle = style({
+  fontSize: '13px',
+  fontWeight: 700,
+  letterSpacing: '-0.03em',
+  lineHeight: 1.3,
+  color: colors.primary300,
+})
+
+export const scheduleClassStyle = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 600,
+  lineHeight: 1.3,
+  letterSpacing: '-0.03em',
+  color: colors.white,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+})
+
+export const scheduleDateStyle = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 500,
+  lineHeight: 1.3,
+  letterSpacing: '-0.03em',
+  color: colors.gray500,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+})
+
+export const scheduleDetailStyle = styleVariants({
+  expanded: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+    minWidth: 0,
+  },
+  collapsed: {
+    display: 'none',
+  },
+})
+
+export const userCardStyle = styleVariants({
+  expanded: {
     marginBottom: '8px',
     display: 'flex',
     alignItems: 'center',
@@ -211,7 +339,6 @@ export const userCardStyle = styleVariants({
     },
   },
   collapsed: {
-    marginTop: 'auto',
     marginBottom: '8px',
     display: 'flex',
     alignItems: 'center',

@@ -366,6 +366,33 @@ export const footerHint = style({
   paddingRight: '12px',
 })
 
+export const schedulePick = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: '8px',
+  padding: '12px 24px',
+  borderTop: `1px solid ${colors.gray100}`,
+  backgroundColor: colors.white,
+  flexWrap: 'wrap',
+  '@media': {
+    [media.phone]: {
+      paddingLeft: '16px',
+      paddingRight: '16px',
+    },
+  },
+})
+
+export const scheduleInput = style({
+  height: '40px',
+  padding: '0 12px',
+  borderRadius: '8px',
+  border: `1px solid ${colors.gray200}`,
+  backgroundColor: colors.white,
+  color: colors.gray900,
+  fontSize: fontStyles.bodyMd.fontSize,
+})
+
 export const sendingOverlay = style({
   position: 'absolute',
   inset: 0,

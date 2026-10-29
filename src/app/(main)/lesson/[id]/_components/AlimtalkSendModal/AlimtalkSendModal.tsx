@@ -19,6 +19,7 @@ import {
   lessonService,
   type LessonPreviewRow,
   type LessonSendChannel,
+  type LessonSendSchedule,
   type ParentPreviewResult,
   type ParentPreviewStatusItem,
 } from '@/services/lesson'
@@ -178,6 +179,37 @@ function isAiReady(item?: Pick<ParentPreviewStatusItem, 'status' | 'stale'>) {
   return Boolean(item && item.status === 'ready' && !item.stale)
 }
 
+function seoulWallClock(date: Date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date)
+  const read = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? ''
+  const hour = read('hour') === '24' ? '00' : read('hour')
+  return { year: read('year'), month: read('month'), day: read('day'), hour, minute: read('minute') }
+}
+
+function seoulDatetimeLocal(date: Date): string {
+  const clock = seoulWallClock(date)
+  return `${clock.year}-${clock.month}-${clock.day}T${clock.hour}:${clock.minute}`
+}
+
+function formatScheduleLabel(iso: string): string {
+  const clock = seoulWallClock(new Date(iso))
+  return `${Number(clock.month)}월 ${Number(clock.day)}일 ${clock.hour}:${clock.minute}`
+}
+
+function apiErrorMessage(err: unknown): string | undefined {
+  if (!isAxiosError(err)) return undefined
+  return (err.response?.data as { error?: { message?: string } } | undefined)?.error?.message
+}
+
 interface AlimtalkSendModalProps {
   isOpen: boolean
   onClose: () => void
@@ -190,6 +222,12 @@ interface AlimtalkSendModalProps {
   }
   commonValues: Record<string, string>
   students: LessonStudent[]
+  sendSchedule: LessonSendSchedule | null
+  onSendScheduleChange: (patch: {
+    send_schedule: LessonSendSchedule | null
+    updated_at: string
+    send_schedule_cancel_notice?: boolean
+  }) => void
   onSaveMessageOrder: (
     items: Array<{ source: 'template' | 'adhoc'; id: number }>,
   ) => Promise<void>
@@ -202,6 +240,8 @@ export default function AlimtalkSendModal({
   lesson,
   commonValues,
   students,
+  sendSchedule,
+  onSendScheduleChange,
   onSaveMessageOrder,
 }: AlimtalkSendModalProps) {
   const queryClient = useQueryClient()
@@ -217,6 +257,10 @@ export default function AlimtalkSendModal({
   const [isClosing, setIsClosing] = useState(false)
   useRegisterModal(isOpen || isClosing)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [pickingTime, setPickingTime] = useState(false)
+  const [timeValue, setTimeValue] = useState('')
+  const [scheduling, setScheduling] = useState(false)
+  const [cancelScheduleOpen, setCancelScheduleOpen] = useState(false)
   const [lengthOpen, setLengthOpen] = useState(false)
   const [lengthNames, setLengthNames] = useState<string[]>([])
   const [emptySendOpen, setEmptySendOpen] = useState(false)
@@ -435,8 +479,66 @@ export default function AlimtalkSendModal({
     : ''
 
   const handleClose = () => {
-    if (sending) return
+    if (sending || scheduling) return
+    setPickingTime(false)
     setIsClosing(true)
+  }
+
+  const openSchedulePicker = () => {
+    setTimeValue(seoulDatetimeLocal(new Date()))
+    setPickingTime(true)
+  }
+
+  const confirmSchedule = async () => {
+    if (!sendChannel || selected.size === 0 || !timeValue) return
+    setScheduling(true)
+    try {
+      const saved = await lessonService.createSendSchedule(
+        lessonId,
+        [...selected],
+        sendChannel,
+        `${timeValue}:00+09:00`,
+      )
+      onSendScheduleChange({
+        send_schedule: saved.send_schedule,
+        updated_at: saved.updated_at,
+        send_schedule_cancel_notice: false,
+      })
+      invalidateLessonLists(queryClient)
+      setPickingTime(false)
+      addToast({
+        variant: 'success',
+        message: `${formatScheduleLabel(saved.send_schedule.scheduled_at)}에 예약했어요.`,
+      })
+    } catch (err) {
+      addToast({
+        variant: 'error',
+        message: apiErrorMessage(err) ?? '문자 예약에 실패했어요.',
+      })
+    } finally {
+      setScheduling(false)
+    }
+  }
+
+  const confirmCancelSchedule = async () => {
+    setCancelScheduleOpen(false)
+    setScheduling(true)
+    try {
+      const saved = await lessonService.cancelSendSchedule(lessonId)
+      onSendScheduleChange({
+        send_schedule: null,
+        updated_at: saved.updated_at,
+      })
+      invalidateLessonLists(queryClient)
+      addToast({ variant: 'success', message: '예약을 취소했어요.' })
+    } catch (err) {
+      addToast({
+        variant: 'error',
+        message: apiErrorMessage(err) ?? '예약 취소에 실패했어요.',
+      })
+    } finally {
+      setScheduling(false)
+    }
   }
 
   const handleAnimationEnd = () => {
@@ -795,6 +897,29 @@ export default function AlimtalkSendModal({
           </div>
         </div>
 
+        {pickingTime && !sendSchedule && (
+          <div className={styles.schedulePick}>
+            <Text variant="bodyMd" color="gray500">
+              한국 시간
+            </Text>
+            <input
+              type="datetime-local"
+              className={styles.scheduleInput}
+              min={seoulDatetimeLocal(new Date())}
+              value={timeValue}
+              onChange={(event) => setTimeValue(event.target.value)}
+            />
+            <Button
+              variant="outlined"
+              size="md"
+              onClick={() => void confirmSchedule()}
+              disabled={scheduling || !timeValue || selected.size === 0 || !sendChannel}
+            >
+              {scheduling ? '예약하는 중…' : '이 시각에 예약'}
+            </Button>
+          </div>
+        )}
+
         <div className={styles.footer}>
           <div className={styles.footerHint}>
             <Text variant="bodyMd" color="gray500">
@@ -807,8 +932,31 @@ export default function AlimtalkSendModal({
                   : `선택한 ${selected.size}명에게 바로 보낼 수 있어요. 피드백을 적지 않은 학생은 빈 칸으로 보내요.`}
             </Text>
           </div>
-          <Button variant="ghost" size="md" onClick={handleClose} disabled={sending}>
+          <Button variant="ghost" size="md" onClick={handleClose} disabled={sending || scheduling}>
             {'\uCDE8\uC18C'}
+          </Button>
+          <Button
+            variant="outlined"
+            size="md"
+            onClick={() => {
+              if (sendSchedule) {
+                setCancelScheduleOpen(true)
+                return
+              }
+              if (pickingTime) {
+                setPickingTime(false)
+                return
+              }
+              openSchedulePicker()
+            }}
+            disabled={
+              sending ||
+              loading ||
+              scheduling ||
+              (!sendSchedule && (selected.size === 0 || !sendChannel))
+            }
+          >
+            {sendSchedule ? `${formatScheduleLabel(sendSchedule.scheduled_at)} 예약 취소` : '문자 예약'}
           </Button>
           <Button
             variant="primary"
@@ -879,6 +1027,17 @@ export default function AlimtalkSendModal({
           확인
         </Button>
       </Modal>
+
+      <ConfirmModal
+        isOpen={cancelScheduleOpen}
+        onClose={() => setCancelScheduleOpen(false)}
+        onConfirm={() => void confirmCancelSchedule()}
+        title="예약을 취소할까요?"
+        descriptions={['예약 알림톡이 발송되지 않습니다. 다시 예약할 수 있어요.']}
+        confirmLabel="예약 취소"
+        cancelLabel="닫기"
+        confirmVariant="danger"
+      />
 
       <ConfirmModal
         isOpen={emptySendOpen}

@@ -6,6 +6,7 @@ import {
   type Dispatch,
   type SetStateAction,
 } from 'react'
+import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 
 import type { LessonStudent } from '@/types/lessonStudent'
 import { lessonService, type LessonDetail } from '@/services/lesson'
@@ -23,6 +24,7 @@ import {
   studentCellKey,
 } from '@/lib/lessonPartialSave'
 import { itemRef } from '@/lib/lessonItemRef'
+import { queryKeys } from '@/lib/queryKeys'
 
 type SetState<T> = Dispatch<SetStateAction<T>>
 
@@ -33,6 +35,34 @@ export type LessonDirtyFormBinding = {
   setCommonValues: SetState<Record<string, string>>
   students: LessonStudent[]
   setStudents: SetState<LessonStudent[]>
+}
+
+const SCHEDULE_CANCELLED_MESSAGE =
+  '내용이 바뀌어 예약 발송을 취소했어요. 다시 예약해 주세요.'
+
+function applySavedLesson(
+  saved: LessonDetail,
+  setLesson: SetState<LessonDetail | null>,
+  addToast: (toast: { variant: 'warning'; message: string }) => void,
+  queryClient: QueryClient,
+) {
+  if (saved.send_schedule_cancelled) {
+    addToast({ variant: 'warning', message: SCHEDULE_CANCELLED_MESSAGE })
+    void queryClient.invalidateQueries({ queryKey: queryKeys.lessons.sendSchedules })
+  }
+  setLesson((prev) => {
+    if (!prev) return prev
+    return {
+      ...prev,
+      status: 'SAVED',
+      updated_at: saved.updated_at ?? prev.updated_at,
+      send_schedule: saved.send_schedule === undefined ? prev.send_schedule : saved.send_schedule,
+      send_schedule_cancel_notice:
+        saved.send_schedule_cancel_notice === undefined
+          ? prev.send_schedule_cancel_notice
+          : saved.send_schedule_cancel_notice,
+    }
+  })
 }
 
 function clearDirtyFromBody(
@@ -70,6 +100,7 @@ export function useLessonDirtySave(lessonId: number) {
   const [dirtyStudentCells, setDirtyStudentCells] = useState<Set<string>>(() => new Set())
   const [autoSavingCount, setAutoSavingCount] = useState(0)
   const addToast = useToastStore((s) => s.addToast)
+  const queryClient = useQueryClient()
 
   const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
   const dirtyStudentCellsRef = useRef(dirtyStudentCells)
@@ -85,6 +116,14 @@ export function useLessonDirtySave(lessonId: number) {
   const setLessonRef = useRef<SetState<LessonDetail | null>>(() => {})
   const setCommonValuesRef = useRef<SetState<Record<string, string>>>(() => {})
   const setStudentsRef = useRef<SetState<LessonStudent[]>>(() => {})
+  const scheduleEditAllowedRef = useRef(false)
+  const scheduleGateRef = useRef<{
+    promise: Promise<boolean>
+    resolve: (ok: boolean) => void
+  } | null>(null)
+  const baselineCommonRef = useRef<Record<string, string>>({})
+  const baselineStudentsRef = useRef<LessonStudent[]>([])
+  const [scheduleEditOpen, setScheduleEditOpen] = useState(false)
 
   const bindFormState = (form: LessonDirtyFormBinding) => {
     lessonRef.current = form.lesson
@@ -93,6 +132,15 @@ export function useLessonDirtySave(lessonId: number) {
     setLessonRef.current = form.setLesson
     setCommonValuesRef.current = form.setCommonValues
     setStudentsRef.current = form.setStudents
+    if (!form.lesson?.send_schedule) scheduleEditAllowedRef.current = false
+    if (
+      dirtyCommonIdsRef.current.size === 0 &&
+      dirtyStudentCellsRef.current.size === 0 &&
+      !scheduleGateRef.current
+    ) {
+      baselineCommonRef.current = form.commonValues
+      baselineStudentsRef.current = form.students
+    }
   }
 
   const clearDirty = useCallback(() => {
@@ -177,6 +225,39 @@ export function useLessonDirtySave(lessonId: number) {
     })
   }, [])
 
+  const confirmScheduleEdit = useCallback((): Promise<boolean> => {
+    const lesson = lessonRef.current
+    if (!lesson?.send_schedule || scheduleEditAllowedRef.current) return Promise.resolve(true)
+    if (scheduleGateRef.current) return scheduleGateRef.current.promise
+    let resolve: (ok: boolean) => void = () => {}
+    const promise = new Promise<boolean>((res) => {
+      resolve = res
+    })
+    scheduleGateRef.current = { promise, resolve }
+    setScheduleEditOpen(true)
+    return promise
+  }, [])
+
+  const acceptScheduleEdit = useCallback(() => {
+    scheduleEditAllowedRef.current = true
+    setScheduleEditOpen(false)
+    const gate = scheduleGateRef.current
+    scheduleGateRef.current = null
+    gate?.resolve(true)
+  }, [])
+
+  const rejectScheduleEdit = useCallback(() => {
+    clearAllDebounceTimers()
+    setCommonValuesRef.current(baselineCommonRef.current)
+    setStudentsRef.current(baselineStudentsRef.current)
+    setDirtyCommonIds(new Set())
+    setDirtyStudentCells(new Set())
+    setScheduleEditOpen(false)
+    const gate = scheduleGateRef.current
+    scheduleGateRef.current = null
+    gate?.resolve(false)
+  }, [clearAllDebounceTimers])
+
   const persistTargets = useCallback(
     async (options: {
       commonIds?: string[]
@@ -189,6 +270,9 @@ export function useLessonDirtySave(lessonId: number) {
       const commonIds = options.commonIds ?? []
       const studentCells = options.studentCells ?? []
       if (commonIds.length === 0 && studentCells.length === 0) return true
+
+      const allowed = await confirmScheduleEdit()
+      if (!allowed) return false
 
       const body = buildLessonUpdateBodyForTargets({
         commonIds,
@@ -203,9 +287,9 @@ export function useLessonDirtySave(lessonId: number) {
 
       setAutoSavingCount((c) => c + 1)
       try {
-        await lessonService.updateLesson(lessonId, body)
+        const saved = await lessonService.updateLesson(lessonId, body)
         clearDirtyFromBody(body, removeDirtyCommon, removeDirtyCells)
-        setLessonRef.current((prev) => (prev ? { ...prev, status: 'SAVED' } : prev))
+        applySavedLesson(saved, setLessonRef.current, addToast, queryClient)
         return true
       } catch {
         if (!options.silent) {
@@ -221,7 +305,7 @@ export function useLessonDirtySave(lessonId: number) {
         setAutoSavingCount((c) => Math.max(0, c - 1))
       }
     },
-    [lessonId, addToast, removeDirtyCommon, removeDirtyCells],
+    [lessonId, addToast, confirmScheduleEdit, queryClient, removeDirtyCommon, removeDirtyCells],
   )
 
   const scheduleDebouncedSave = useCallback(
@@ -338,11 +422,14 @@ export function useLessonDirtySave(lessonId: number) {
       return true
     }
 
+    const allowed = await confirmScheduleEdit()
+    if (!allowed) return false
+
     setAutoSavingCount((c) => c + 1)
     try {
-      await lessonService.updateLesson(lessonId, body)
+      const saved = await lessonService.updateLesson(lessonId, body)
       clearDirtyFromBody(body, removeDirtyCommon, removeDirtyCells)
-      setLessonRef.current((prev) => (prev ? { ...prev, status: 'SAVED' } : prev))
+      applySavedLesson(saved, setLessonRef.current, addToast, queryClient)
       addToast({ variant: 'success', message: '저장됐어요.' })
       return true
     } catch {
@@ -356,6 +443,8 @@ export function useLessonDirtySave(lessonId: number) {
     dirtyCommonIds,
     dirtyStudentCells,
     addToast,
+    confirmScheduleEdit,
+    queryClient,
     clearAllDebounceTimers,
     removeDirtyCommon,
     removeDirtyCells,
@@ -377,11 +466,17 @@ export function useLessonDirtySave(lessonId: number) {
       status: 'SAVED',
     })
 
+    if (body) {
+      const allowed = await confirmScheduleEdit()
+      if (!allowed) return false
+    }
+
     setAutoSavingCount((c) => c + 1)
     try {
       if (body) {
-        await lessonService.updateLesson(lessonId, body)
+        const saved = await lessonService.updateLesson(lessonId, body)
         clearDirtyFromBody(body, removeDirtyCommon, removeDirtyCells)
+        applySavedLesson(saved, setLessonRef.current, addToast, queryClient)
       } else if (lesson.status === 'DRAFT') {
         await lessonService.saveLesson(lessonId)
       }
@@ -401,6 +496,8 @@ export function useLessonDirtySave(lessonId: number) {
     dirtyCommonIds,
     dirtyStudentCells,
     addToast,
+    confirmScheduleEdit,
+    queryClient,
     clearAllDebounceTimers,
     removeDirtyCommon,
     removeDirtyCells,
@@ -433,5 +530,9 @@ export function useLessonDirtySave(lessonId: number) {
     isAutoSaving: autoSavingCount > 0,
     getDirtySnapshot,
     isBusy,
+    confirmScheduleEdit,
+    scheduleEditOpen,
+    acceptScheduleEdit,
+    rejectScheduleEdit,
   }
 }

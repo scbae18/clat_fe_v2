@@ -3,9 +3,13 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useUserStore } from '@/stores/userStore'
 import { useUiStore } from '@/stores/uiStore'
 import { useLogout } from '@/hooks/useLogout'
+import { invalidateLessonLists, queryKeys } from '@/lib/queryKeys'
+import { useToastStore } from '@/stores/toastStore'
+import { lessonService, type LessonSendScheduleCard } from '@/services/lesson'
 import {
   sidebarStyle,
   sidebarTopStyle,
@@ -15,6 +19,14 @@ import {
   navItemActiveStyle,
   navLabelStyle,
   logoutButtonStyle,
+  sidebarBottomStyle,
+  scheduleStackStyle,
+  scheduleCardStyle,
+  scheduleTimeStyle,
+  scheduleBadgeStyle,
+  scheduleClassStyle,
+  scheduleDateStyle,
+  scheduleDetailStyle,
   userCardStyle,
   userCardActiveStyle,
   userAvatarStyle,
@@ -43,6 +55,64 @@ const NAV_ITEMS = [
   { href: '/ai', label: 'AI \uC870\uAD50', icon: StarIcon },
 ]
 
+function seoulClock(iso: string): { month: string; day: string; hour: string; minute: string } {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul',
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date(iso))
+  const read = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? ''
+  const hour = read('hour') === '24' ? '00' : read('hour')
+  return { month: read('month'), day: read('day'), hour, minute: read('minute') }
+}
+
+function lessonDayLabel(lessonDate: string): string {
+  const [, month, day] = lessonDate.split('-')
+  return `${Number(month)}월 ${Number(day)}일 수업`
+}
+
+function ScheduleCards({
+  items,
+  collapsed,
+  onSelect,
+}: {
+  items: LessonSendScheduleCard[]
+  collapsed: boolean
+  onSelect: (item: LessonSendScheduleCard) => void
+}) {
+  if (items.length === 0) return null
+  const mode = collapsed ? 'collapsed' : 'expanded'
+  return (
+    <div className={scheduleStackStyle[mode]}>
+      {items.map((item) => {
+        const clock = seoulClock(item.scheduled_at)
+        const time = `${clock.hour}:${clock.minute}`
+        const day = lessonDayLabel(item.lesson_date)
+        return (
+          <button
+            key={item.lesson_record_id}
+            type="button"
+            className={scheduleCardStyle[mode]}
+            title={`${item.class_name} ${day} ${time} 예약 취소`}
+            onClick={() => onSelect(item)}
+          >
+            <span className={scheduleTimeStyle}>{time}</span>
+            <span className={scheduleDetailStyle[mode]}>
+              <span className={scheduleBadgeStyle}>알림톡 발송 예약</span>
+              <span className={scheduleClassStyle}>{item.class_name}</span>
+              <span className={scheduleDateStyle}>{day}</span>
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 function avatarInitial(name: string | undefined): string {
   const t = (name ?? '').trim()
   if (!t) return '?'
@@ -57,9 +127,20 @@ export default function Sidebar() {
   const logout = useLogout()
 
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
+  const [cancelTarget, setCancelTarget] = useState<LessonSendScheduleCard | null>(null)
+  const [cancelling, setCancelling] = useState(false)
+  const queryClient = useQueryClient()
+  const addToast = useToastStore((s) => s.addToast)
 
   const meActive = pathname.startsWith('/me')
   const mode = collapsed ? 'collapsed' : 'expanded'
+  const schedulesQuery = useQuery({
+    queryKey: queryKeys.lessons.sendSchedules,
+    queryFn: () => lessonService.listSendSchedules(),
+    enabled: Boolean(user),
+    refetchInterval: 15_000,
+  })
+  const schedules = schedulesQuery.data ?? []
 
   return (
     <aside className={sidebarStyle[mode]} aria-expanded={!collapsed}>
@@ -95,7 +176,10 @@ export default function Sidebar() {
             </Link>
           )
         })}
+      </nav>
 
+      <div className={sidebarBottomStyle[mode]}>
+        <ScheduleCards items={schedules} collapsed={collapsed} onSelect={setCancelTarget} />
         <Link
           href="/me"
           title={collapsed ? '\uB0B4 \uC815\uBCF4' : undefined}
@@ -119,7 +203,41 @@ export default function Sidebar() {
           <LogoutIcon width={20} height={20} />
           {!collapsed && '\uB85C\uADF8\uC544\uC6C3'}
         </button>
-      </nav>
+      </div>
+
+      <ConfirmModal
+        isOpen={cancelTarget != null}
+        onClose={() => {
+          if (!cancelling) setCancelTarget(null)
+        }}
+        onConfirm={() => {
+          if (!cancelTarget || cancelling) return
+          setCancelling(true)
+          void lessonService
+            .cancelSendSchedule(cancelTarget.lesson_record_id)
+            .then(() => {
+              invalidateLessonLists(queryClient)
+              addToast({ variant: 'success', message: '예약을 취소했어요.' })
+              setCancelTarget(null)
+            })
+            .catch(() => {
+              addToast({ variant: 'error', message: '예약 취소에 실패했어요.' })
+            })
+            .finally(() => setCancelling(false))
+        }}
+        title="예약을 취소할까요?"
+        descriptions={
+          cancelTarget
+            ? [
+                `${cancelTarget.class_name} · ${lessonDayLabel(cancelTarget.lesson_date)} ${seoulClock(cancelTarget.scheduled_at).hour}:${seoulClock(cancelTarget.scheduled_at).minute}`,
+                '예약 알림톡이 발송되지 않습니다.',
+              ]
+            : []
+        }
+        confirmLabel={cancelling ? '취소하는 중…' : '예약 취소'}
+        cancelLabel="닫기"
+        confirmVariant="danger"
+      />
 
       <ConfirmModal
         isOpen={isLogoutModalOpen}

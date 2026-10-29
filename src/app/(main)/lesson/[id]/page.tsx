@@ -26,6 +26,7 @@ import {
   headerButtonGroupStyle,
   autoSaveHintStyle,
   templateChipButtonStyle,
+  scheduleNoticeStyle,
 } from './lessonDetail.css'
 import useLessonDetail from '@/hooks/useLessonDetail'
 import useDisclosure from '@/hooks/useDisclosure'
@@ -50,6 +51,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
 
   const {
     lesson,
+    setLesson,
     error,
     commonValues,
     updateCommonValue,
@@ -63,6 +65,10 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     isAutoSaving,
     hasUnsavedChanges,
     saveDirtyChanges,
+    confirmScheduleEdit,
+    scheduleEditOpen,
+    acceptScheduleEdit,
+    rejectScheduleEdit,
     handleExcelDownload,
     refetch,
     refetchAfterAttendanceEnd,
@@ -137,6 +143,10 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     if (!lesson || !targetId) return
     templateConfirmModal.close()
     templateModal.close()
+    if (!(await confirmScheduleEdit())) {
+      setPendingTemplateId(null)
+      return
+    }
     try {
       await lessonService.updateLesson(lessonId, {
         template_id: targetId,
@@ -294,6 +304,35 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
+      {lesson.send_schedule_cancel_notice && (
+        <div className={scheduleNoticeStyle} role="status">
+          <Text variant="bodyMd">
+            내용이 바뀌어 예약 발송을 취소했어요. 다시 예약해 주세요.
+          </Text>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              void lessonService.dismissSendScheduleNotice(lessonId).then((saved) => {
+                setLesson((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        send_schedule_cancel_notice: false,
+                        updated_at: saved.updated_at,
+                      }
+                    : prev,
+                )
+              }).catch(() => {
+                addToast({ variant: 'error', message: '안내를 닫지 못했어요.' })
+              })
+            }}
+          >
+            닫기
+          </Button>
+        </div>
+      )}
+
       <div className={sectionStyle}>
         <Text variant="headingMd">공통 내용</Text>
         <CommonContent
@@ -359,6 +398,20 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
       />
 
       <ConfirmModal
+        isOpen={scheduleEditOpen}
+        onClose={rejectScheduleEdit}
+        onConfirm={acceptScheduleEdit}
+        title="수정하면 예약이 취소돼요"
+        descriptions={[
+          '수업 내용을 바꾸면 예약 발송이 취소됩니다.',
+          '다시 예약할 수 있어요.',
+        ]}
+        confirmLabel="수정하기"
+        cancelLabel="취소"
+        confirmVariant="danger"
+      />
+
+      <ConfirmModal
         isOpen={templateConfirmModal.isOpen}
         onClose={() => {
           templateConfirmModal.close()
@@ -378,6 +431,10 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
         lesson={lesson}
         commonValues={commonValues}
         students={students}
+        sendSchedule={lesson.send_schedule ?? null}
+        onSendScheduleChange={(patch) => {
+          setLesson((prev) => (prev ? { ...prev, ...patch } : prev))
+        }}
         onSaveMessageOrder={updateLessonItemOrder}
       />
 

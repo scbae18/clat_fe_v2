@@ -30,6 +30,10 @@ export default function useLessonDetail(lessonId: number) {
     isAutoSaving,
     getDirtySnapshot,
     isBusy,
+    confirmScheduleEdit,
+    scheduleEditOpen,
+    acceptScheduleEdit,
+    rejectScheduleEdit,
   } = useLessonDirtySave(lessonId)
 
   const {
@@ -88,8 +92,65 @@ export default function useLessonDetail(lessonId: number) {
     setStudents,
   })
 
+  const addAdhocItemGuarded = useCallback<typeof addAdhocItem>(
+    async (body) => {
+      if (!(await confirmScheduleEdit())) return
+      return addAdhocItem(body)
+    },
+    [addAdhocItem, confirmScheduleEdit],
+  )
+
+  const removeAdhocItemGuarded = useCallback(
+    async (itemId: number) => {
+      if (!(await confirmScheduleEdit())) return
+      return removeAdhocItem(itemId)
+    },
+    [confirmScheduleEdit, removeAdhocItem],
+  )
+
+  const excludeTemplateItemGuarded = useCallback(
+    async (templateItemId: number) => {
+      if (!(await confirmScheduleEdit())) return
+      return excludeTemplateItem(templateItemId)
+    },
+    [confirmScheduleEdit, excludeTemplateItem],
+  )
+
+  const updateLessonItemOrderGuarded = useCallback<typeof updateLessonItemOrder>(
+    async (items) => {
+      if (!(await confirmScheduleEdit())) return
+      return updateLessonItemOrder(items)
+    },
+    [confirmScheduleEdit, updateLessonItemOrder],
+  )
+
+  const setItemPartialGuarded = useCallback<typeof setItemPartial>(
+    async (item, isPartial) => {
+      if (!(await confirmScheduleEdit())) return
+      return setItemPartial(item, isPartial)
+    },
+    [confirmScheduleEdit, setItemPartial],
+  )
+
+  const addAttendanceOptionGuarded = useCallback(
+    async (label: string) => {
+      if (!(await confirmScheduleEdit())) return
+      return addAttendanceOption(label)
+    },
+    [addAttendanceOption, confirmScheduleEdit],
+  )
+
+  const removeAttendanceOptionGuarded = useCallback(
+    async (optionId: number, label: string) => {
+      if (!(await confirmScheduleEdit())) return
+      return removeAttendanceOption(optionId, label)
+    },
+    [confirmScheduleEdit, removeAttendanceOption],
+  )
+
   const addStudentsToLesson = useCallback(
     async (studentIds: number[]) => {
+      if (!(await confirmScheduleEdit())) return
       if (!lesson) return
       try {
         const result = await lessonService.addLessonStudents(lessonId, studentIds)
@@ -131,11 +192,12 @@ export default function useLessonDetail(lessonId: number) {
         addToast({ variant: 'error', message: '학생 추가에 실패했어요.' })
       }
     },
-    [addToast, lesson, lessonId, setLesson, setStudents],
+    [addToast, confirmScheduleEdit, lesson, lessonId, setLesson, setStudents],
   )
 
   const removeStudentFromLesson = useCallback(
     async (studentId: number) => {
+      if (!(await confirmScheduleEdit())) return
       forgetDirtyStudent(studentId)
       try {
         const result = await lessonService.removeLessonStudent(lessonId, studentId)
@@ -159,7 +221,7 @@ export default function useLessonDetail(lessonId: number) {
         addToast({ variant: 'error', message: '학생을 빼지 못했어요.' })
       }
     },
-    [addToast, forgetDirtyStudent, lessonId, setLesson, setStudents],
+    [addToast, confirmScheduleEdit, forgetDirtyStudent, lessonId, setLesson, setStudents],
   )
 
   const handleExcelDownload = async () => {
@@ -202,17 +264,21 @@ export default function useLessonDetail(lessonId: number) {
     isAutoSaving,
     saveDirtyChanges,
     ensureSavedForAlimtalk,
+    confirmScheduleEdit,
+    scheduleEditOpen,
+    acceptScheduleEdit,
+    rejectScheduleEdit,
     handleExcelDownload,
     refetch,
     refetchAfterAttendanceEnd,
-    addAdhocItem,
-    removeAdhocItem,
-    excludeTemplateItem,
-    updateLessonItemOrder,
-    setItemPartial,
+    addAdhocItem: addAdhocItemGuarded,
+    removeAdhocItem: removeAdhocItemGuarded,
+    excludeTemplateItem: excludeTemplateItemGuarded,
+    updateLessonItemOrder: updateLessonItemOrderGuarded,
+    setItemPartial: setItemPartialGuarded,
     addStudentsToLesson,
     removeStudentFromLesson,
-    addAttendanceOption,
-    removeAttendanceOption,
+    addAttendanceOption: addAttendanceOptionGuarded,
+    removeAttendanceOption: removeAttendanceOptionGuarded,
   }
 }

@@ -33,6 +33,7 @@ export function useLessonList(selectedDate: Date, currentWeek: Date) {
       queryKey: queryKeys.lessons.day(date),
       queryFn: () => fetchDayLessons(date),
       refetchOnMount: 'always' as const,
+      refetchInterval: 15_000,
     })),
   })
 
@@ -40,6 +41,7 @@ export function useLessonList(selectedDate: Date, currentWeek: Date) {
     queryKey: queryKeys.lessons.day(selectedDateKey),
     queryFn: () => fetchDayLessons(selectedDateKey),
     refetchOnMount: 'always',
+    refetchInterval: 15_000,
   })
 
   const weekLessons = useMemo(() => {
