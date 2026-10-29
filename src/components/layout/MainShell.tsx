@@ -7,6 +7,7 @@ import { ToastContainer } from '@/components/common/Toast'
 import UserInitializer from '@/components/common/UserInitializer'
 import AttendanceFloatingBarHost from '@/components/attendance/AttendanceFloatingBarHost'
 import WhatsNewModalHost from '@/components/whats-new/WhatsNewModal/WhatsNewModalHost'
+import HelpChat from '@/components/help/HelpChat/HelpChat'
 import { useUiStore } from '@/stores/uiStore'
 import { useAttendanceSessionStore } from '@/stores/attendanceSessionStore'
 import { isLessonDetailPath } from '@/lib/mobileNav'
@@ -43,6 +44,7 @@ export default function MainShell({ children }: { children: React.ReactNode }) {
       <main className={mainStyle}>{children}</main>
       <BottomNav moreOpen={moreOpen} onMoreToggle={() => setMoreOpen((v) => !v)} />
       <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} />
+      <HelpChat />
       <ToastContainer />
       <AttendanceFloatingBarHost />
       <WhatsNewModalHost />
