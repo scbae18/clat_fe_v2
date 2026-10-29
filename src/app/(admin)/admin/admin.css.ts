@@ -696,6 +696,7 @@ export const badge = styleVariants({
 export const ghostBtn = style({
   display: 'inline-flex',
   alignItems: 'center',
+  gap: '4px',
   borderRadius: '8px',
   border: `1px solid ${vars.color.gray[75]}`,
   backgroundColor: vars.color.gray[50],

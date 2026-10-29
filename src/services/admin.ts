@@ -84,6 +84,13 @@ export const admin = {
     return unwrap(data)
   },
 
+  async resetUserPassword(id: number, password: string) {
+    const { data } = await axiosInstance.patch<
+      Envelope<{ id: number; email: string; name: string }>
+    >(`/admin/users/${id}/password`, { password })
+    return unwrap(data)
+  },
+
   async setUserApproval(id: number, status: 'APPROVED' | 'REJECTED' | 'SUSPENDED') {
     const { data } = await axiosInstance.patch<
       Envelope<{

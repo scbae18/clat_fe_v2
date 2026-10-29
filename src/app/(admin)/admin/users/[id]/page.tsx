@@ -25,6 +25,7 @@ import { useToastStore } from '@/stores/toastStore'
 import { AdminPager, StatCard } from '../../_components/AdminUi'
 import { BarChart, TrendChart } from '../../_components/AdminCharts'
 import DeleteTeacherDialog from '../../_components/DeleteTeacherDialog'
+import ResetPasswordDialog from '../../_components/ResetPasswordDialog'
 import { daysLabel, formatMdE, formatMdHm, formatYmd, fromNow } from '../../_lib/format'
 import { batchTitle, batchTypeLabel } from '../../_lib/alimtalk'
 import { colors } from '@/styles/tokens/colors'
@@ -172,6 +173,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
                 정지
               </button>
             ) : null}
+            <ResetPasswordDialog userId={data.id} email={data.email} name={data.name} />
           </div>
         </div>
       </div>

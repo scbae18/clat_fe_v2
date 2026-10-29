@@ -13,6 +13,7 @@ const ACTION_LABEL: Record<AdminActionType, string> = {
   REJECT: '거절',
   DELETE: '삭제',
   SUSPEND: '정지',
+  RESET_PASSWORD: '비밀번호 재설정',
 }
 
 export default function AdminActionsPage() {
@@ -28,7 +29,7 @@ export default function AdminActionsPage() {
 
   return (
     <div className={styles.stack}>
-      <AdminHeader title="기록" subtitle="승인, 거절, 삭제, 정지를 누가 언제 했는지 남깁니다." />
+      <AdminHeader title="기록" subtitle="승인, 거절, 삭제, 정지, 비밀번호 재설정을 누가 언제 했는지 남깁니다." />
       <section className={styles.card}>
         {data.items.length === 0 ? (
           <p className={styles.empty}>아직 기록이 없습니다.</p>
