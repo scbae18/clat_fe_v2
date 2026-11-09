@@ -1409,3 +1409,79 @@ export const recipientList = style({
   gap: '12px',
 })
 
+export const noticeComposeGrid = style({
+  display: 'grid',
+  gridTemplateColumns: '1fr',
+  gap: '20px',
+  '@media': {
+    '(min-width: 960px)': {
+      gridTemplateColumns: '1fr 1fr',
+    },
+  },
+})
+
+export const noticePreviewCard = style({
+  borderRadius: '16px',
+  border: `1px solid ${vars.color.gray[100]}`,
+  backgroundColor: vars.color.gray[50],
+  padding: '20px',
+  whiteSpace: 'pre-wrap',
+  wordBreak: 'break-word',
+  fontSize: '14px',
+  fontWeight: 500,
+  lineHeight: 1.7,
+  color: vars.color.gray[800],
+})
+
+export const noticeToolbar = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: '8px',
+  marginBottom: '12px',
+})
+
+export const noticeRecipientRow = style({
+  display: 'grid',
+  gridTemplateColumns: 'auto 1fr auto',
+  gap: '12px',
+  alignItems: 'center',
+  padding: '10px 4px',
+  borderBottom: `1px solid ${vars.color.gray[75]}`,
+})
+
+export const noticeRecipientMeta = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  minWidth: 0,
+})
+
+export const noticeRecipientList = style({
+  maxHeight: '320px',
+  overflowY: 'auto',
+})
+
+export const noticeCountHint = style({
+  fontSize: '13px',
+  fontWeight: 500,
+  color: vars.color.gray[500],
+})
+
+export const noticeCharCount = style({
+  fontSize: '13px',
+  fontWeight: 600,
+  color: vars.color.gray[600],
+})
+
+export const noticeCharCountOver = style([
+  noticeCharCount,
+  { color: vars.color.semantic.error[600] },
+])
+
+export const noticeCheckbox = style({
+  width: '16px',
+  height: '16px',
+  accentColor: vars.color.primary[500],
+})
+

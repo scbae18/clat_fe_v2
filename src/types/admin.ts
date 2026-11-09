@@ -302,6 +302,63 @@ export type AdminAlimtalkList = {
   meta: AdminMeta
 }
 
+export type AdminNoticeRecipient = {
+  id: number
+  name: string
+  email: string
+  phone: string
+  suspended: boolean
+}
+
+export type AdminNoticeRecipients = {
+  delivery_mode: 'mock' | 'live'
+  skipped_no_phone: number
+  items: AdminNoticeRecipient[]
+}
+
+export type AdminNoticeListItem = {
+  id: number
+  status: 'queued' | 'sending' | 'done' | 'partial_fail'
+  delivery_mode: 'mock' | 'live'
+  sent_at: string
+  total_count: number
+  success_count: number
+  fail_count: number
+  date: string | null
+  date_label: string | null
+  body: string | null
+  sender_id: number
+  sender_name: string
+  sender_email: string
+}
+
+export type AdminNoticeList = {
+  items: AdminNoticeListItem[]
+  meta: AdminMeta
+}
+
+export type AdminNoticeMessage = {
+  id: number
+  status: 'PENDING' | 'SUCCESS' | 'FAIL'
+  phone: string
+  error_message: string | null
+  message_body: string
+  teacher_id: number | null
+  teacher_name: string
+  teacher_email: string | null
+}
+
+export type AdminNoticeDetail = AdminNoticeListItem & {
+  messages: AdminNoticeMessage[]
+}
+
+export type AdminNoticeSendResult = {
+  batch_id: number
+  status: 'queued'
+  total_count: number
+  delivery_mode: 'mock' | 'live'
+}
+
 export type AdminHealth = {
   generated_at: string
   info: {

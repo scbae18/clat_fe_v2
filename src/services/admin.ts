@@ -13,6 +13,10 @@ import type {
   AdminUserDetail,
   AdminUserList,
   AdminUserTab,
+  AdminNoticeRecipients,
+  AdminNoticeList,
+  AdminNoticeDetail,
+  AdminNoticeSendResult,
 } from '@/types/admin'
 import type { UpdateNotice, UpdateNoticeItem } from '@/lib/whatsNew'
 
@@ -178,6 +182,45 @@ export const admin = {
   async deactivateUpdateNotice() {
     const { data } = await axiosInstance.post<Envelope<{ deactivated: boolean }>>(
       '/admin/update-notices/deactivate',
+    )
+    return unwrap(data)
+  },
+
+  async listNoticeRecipients() {
+    const { data } = await axiosInstance.get<Envelope<AdminNoticeRecipients>>(
+      '/admin/notices/recipients',
+    )
+    return unwrap(data)
+  },
+
+  async listNotices(page = 1, limit = 20) {
+    const { data } = await axiosInstance.get<Envelope<AdminNoticeList>>('/admin/notices', {
+      params: { page, limit },
+    })
+    return unwrap(data)
+  },
+
+  async getNotice(id: number) {
+    const { data } = await axiosInstance.get<Envelope<AdminNoticeDetail>>(`/admin/notices/${id}`, {
+      timeout: ADMIN_TIMEOUT,
+    })
+    return unwrap(data)
+  },
+
+  async sendNotice(payload: { date: string; body: string; all?: boolean; teacher_ids?: number[] }) {
+    const { data } = await axiosInstance.post<Envelope<AdminNoticeSendResult>>(
+      '/admin/notices',
+      payload,
+      { timeout: ADMIN_TIMEOUT },
+    )
+    return unwrap(data)
+  },
+
+  async sendNoticeTest(payload: { date: string; body: string }) {
+    const { data } = await axiosInstance.post<Envelope<AdminNoticeSendResult>>(
+      '/admin/notices/test',
+      payload,
+      { timeout: ADMIN_TIMEOUT },
     )
     return unwrap(data)
   },
