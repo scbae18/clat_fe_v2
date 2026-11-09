@@ -218,7 +218,6 @@ export default function CommonContent({
                 <input
                   className={nameInputInlineStyle}
                   value={newName}
-                  maxLength={10}
                   placeholder="항목 이름"
                   autoFocus
                   onChange={(e) => setNewName(e.target.value)}
