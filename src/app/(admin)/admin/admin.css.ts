@@ -1430,7 +1430,7 @@ export const noticePreviewCard = style({
   fontSize: '14px',
   fontWeight: 500,
   lineHeight: 1.7,
-  color: vars.color.gray[800],
+  color: vars.color.gray[700],
 })
 
 export const noticeToolbar = style({
