@@ -27,6 +27,21 @@ export interface Student {
   total_incomplete_items: number
 }
 
+export interface AttentionReason {
+  code: string
+  text: string
+  lesson_date: string
+  class_name: string
+}
+
+export interface AttentionStudent {
+  student_id: number
+  student_name: string
+  class_names: string[]
+  has_lesson_today: boolean
+  reasons: AttentionReason[]
+}
+
 export interface IncompleteItem {
   source?: 'template' | 'adhoc'
   lesson_student_data_id?: number
@@ -50,4 +65,5 @@ export interface StudentDetail {
   classes: StudentClass[]
   stats: StudentStats
   incomplete_items: IncompleteItem[]
+  attention_reasons?: AttentionReason[]
 }

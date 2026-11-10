@@ -1,5 +1,5 @@
 import axiosInstance from '@/lib/api/axiosInstance'
-import type { Student, StudentDetail } from '@/types/student'
+import type { AttentionStudent, Student, StudentDetail } from '@/types/student'
 
 export type { StudentClass } from '@/types/student'
 
@@ -46,6 +46,12 @@ export const studentService = {
   async getStudents(params?: { search?: string; school?: string }): Promise<StudentListResponse> {
     const { data } = await axiosInstance.get('/students', { params })
     return data.data
+  },
+
+  async getAttentionStudents(): Promise<AttentionStudent[]> {
+    const { data } = await axiosInstance.get('/students/attention')
+    const body = data.data as { data?: AttentionStudent[] }
+    return Array.isArray(body?.data) ? body.data : []
   },
 
   async getStudent(id: number): Promise<StudentDetail> {
