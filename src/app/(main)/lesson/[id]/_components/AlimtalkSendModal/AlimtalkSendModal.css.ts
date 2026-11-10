@@ -36,15 +36,24 @@ export const backdrop = style({
   overscrollBehavior: 'none',
 })
 
+export const drawerShell = style({
+  height: '100%',
+  maxWidth: '100vw',
+  display: 'flex',
+  alignItems: 'flex-end',
+  animation: `${slideIn} 0.3s ease-out`,
+})
+
 export const drawer = style({
-  width: 'min(960px, 100vw)',
+  width: 'min(960px, 100%)',
+  maxWidth: '960px',
   height: '100%',
   position: 'relative',
   backgroundColor: colors.gray50,
   boxShadow: '-4px 0 16px rgba(0, 0, 0, 0.1)',
   display: 'flex',
   flexDirection: 'column',
-  animation: `${slideIn} 0.3s ease-out`,
+  minWidth: 0,
 })
 
 export const drawerClosing = style({
@@ -502,6 +511,123 @@ export const dashboardCardHead = style({
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: '8px',
+})
+
+export const checkDock = style({
+  width: '240px',
+  maxHeight: '320px',
+  marginBottom: '24px',
+  flexShrink: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  backgroundColor: colors.white,
+  border: `1px solid ${colors.gray100}`,
+  borderRight: 'none',
+  borderRadius: '16px 0 0 16px',
+  boxShadow: '-4px 0 16px rgba(0, 0, 0, 0.1)',
+  overflow: 'hidden',
+  '@media': {
+    [media.phone]: {
+      width: '180px',
+      maxHeight: '240px',
+      marginBottom: '16px',
+    },
+  },
+})
+
+export const checkDockCollapsed = style({
+  width: 'auto',
+  maxHeight: 'none',
+})
+
+export const checkTab = style({
+  border: 'none',
+  background: colors.white,
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '6px',
+  padding: '10px 12px',
+  color: colors.primary600,
+  ':focus-visible': {
+    outline: `2px solid ${colors.primary500}`,
+    outlineOffset: '-2px',
+  },
+})
+
+export const checkTabCount = style({
+  ...fontStyles.titleSm,
+  minWidth: '22px',
+  height: '22px',
+  padding: '0 6px',
+  borderRadius: '999px',
+  backgroundColor: colors.primary50,
+  color: colors.primary600,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+})
+
+export const checkTabLabel = style({
+  ...fontStyles.labelSm,
+  letterSpacing: '-0.02em',
+})
+
+export const checkHead = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '8px',
+  padding: '16px 12px 8px',
+  flexShrink: 0,
+})
+
+export const checkCollapse = style({
+  border: 'none',
+  background: 'transparent',
+  cursor: 'pointer',
+  ...fontStyles.labelSm,
+  color: colors.primary600,
+  letterSpacing: '-0.02em',
+  padding: '4px',
+  ':focus-visible': {
+    outline: `2px solid ${colors.primary500}`,
+    outlineOffset: '2px',
+  },
+})
+
+export const checkList = style({
+  margin: 0,
+  padding: '0 8px 12px',
+  listStyle: 'none',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+  overflowY: 'auto',
+  minHeight: 0,
+  flex: '1 1 auto',
+})
+
+export const checkItem = style({
+  width: '100%',
+  border: 'none',
+  background: colors.gray50,
+  borderRadius: '8px',
+  textAlign: 'left',
+  whiteSpace: 'normal',
+  wordBreak: 'break-word',
+  padding: '8px 10px',
+  cursor: 'pointer',
+  ...fontStyles.bodyMd,
+  color: colors.gray700,
+  letterSpacing: '-0.02em',
+  ':hover': {
+    backgroundColor: colors.primary50,
+  },
+  ':focus-visible': {
+    outline: `2px solid ${colors.primary500}`,
+    outlineOffset: '2px',
+  },
 })
 
 export const summaryRow = style({

@@ -18,6 +18,7 @@ import { isAxiosError } from '@/lib/api/http'
 import {
   lessonService,
   type LessonPreviewRow,
+  type SendCheckIssue,
   type LessonSendChannel,
   type LessonSendSchedule,
   type ParentPreviewResult,
@@ -266,6 +267,8 @@ export default function AlimtalkSendModal({
   const [emptySendOpen, setEmptySendOpen] = useState(false)
   const [emptySendCount, setEmptySendCount] = useState(0)
   const [feedbackMode, setFeedbackMode] = useState<'AUTO' | 'ASSIST' | 'MANUAL'>('AUTO')
+  const [sendChecks, setSendChecks] = useState<SendCheckIssue[]>([])
+  const [checksOpen, setChecksOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [sendToParent, setSendToParent] = useState(true)
   const [sendToStudent, setSendToStudent] = useState(true)
@@ -431,9 +434,35 @@ export default function AlimtalkSendModal({
 
   useEffect(() => () => setTutorialGate('feedback', false), [])
 
+  const sendChannel = resolveSendChannel(sendToParent, sendToStudent)
+  const visibleChecks = sendChecks.filter(
+    (issue) => issue.student_id == null || selected.has(issue.student_id),
+  )
+
+  useEffect(() => {
+    if (!isOpen || !sendChannel) {
+      setSendChecks([])
+      return
+    }
+    let cancelled = false
+    const load = async () => {
+      try {
+        const result = await lessonService.getSendCheck(lessonId, sendChannel)
+        if (!cancelled) {
+          setSendChecks([...result.blockers, ...result.warnings, ...result.notices])
+        }
+      } catch {
+        if (!cancelled) setSendChecks([])
+      }
+    }
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen, lessonId, sendChannel])
+
   if (!mounted || (!isOpen && !isClosing)) return null
 
-  const sendChannel = resolveSendChannel(sendToParent, sendToStudent)
   const selectableRows = rows.filter((r) =>
     isRowSelectable(r, sendToParent, sendToStudent),
   )
@@ -575,12 +604,6 @@ export default function AlimtalkSendModal({
       const status = await lessonService.getParentPreviewStatus(lessonId, ids)
       const mode = status.feedback_mode ?? 'AUTO'
       setFeedbackMode(mode)
-      const missing = status.items.filter((item) => item.unwritten).length
-      if ((mode === 'ASSIST' || mode === 'MANUAL') && missing > 0) {
-        setEmptySendCount(missing)
-        setEmptySendOpen(true)
-        return
-      }
     } catch {
       addToast({
         variant: 'error',
@@ -678,10 +701,57 @@ export default function AlimtalkSendModal({
   return createPortal(
     <div className={styles.backdrop} onClick={handleClose}>
       <div
-        className={`${styles.drawer}${isClosing ? ` ${styles.drawerClosing}` : ''}`}
+        className={`${styles.drawerShell}${isClosing ? ` ${styles.drawerClosing}` : ''}`}
         onClick={(e) => e.stopPropagation()}
         onAnimationEnd={handleAnimationEnd}
       >
+        {visibleChecks.length > 0 ? (
+          <aside
+            className={`${styles.checkDock}${checksOpen ? '' : ` ${styles.checkDockCollapsed}`}`}
+            aria-label="보내기 전 확인"
+          >
+            {checksOpen ? (
+              <>
+                <div className={styles.checkHead}>
+                  <Text variant="titleSm">보내기 전 확인</Text>
+                  <button
+                    type="button"
+                    className={styles.checkCollapse}
+                    onClick={() => setChecksOpen(false)}
+                  >
+                    접기
+                  </button>
+                </div>
+                <ul className={styles.checkList}>
+                  {visibleChecks.map((issue) => (
+                    <li key={`${issue.code}-${issue.student_id ?? 'all'}-${issue.text}`}>
+                      <button
+                        type="button"
+                        className={styles.checkItem}
+                        onClick={() => {
+                          if (issue.student_id != null) setFocusId(issue.student_id)
+                        }}
+                      >
+                        {issue.text}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <button
+                type="button"
+                className={styles.checkTab}
+                aria-expanded={false}
+                onClick={() => setChecksOpen(true)}
+              >
+                <span className={styles.checkTabCount}>{visibleChecks.length}</span>
+                <span className={styles.checkTabLabel}>확인</span>
+              </button>
+            )}
+          </aside>
+        ) : null}
+        <div className={styles.drawer}>
         <div className={styles.header}>
           <Text variant="headingMd" as="h2">
             {'\uC54C\uB9BC\uD1A1 \uBCF4\uB0B4\uAE30'}
@@ -900,7 +970,9 @@ export default function AlimtalkSendModal({
         {pickingTime && !sendSchedule && (
           <div className={styles.schedulePick}>
             <Text variant="bodyMd" color="gray500">
-              한국 시간
+              {visibleChecks.length > 0
+                ? `한국 시간 · 확인하지 않은 내용 ${visibleChecks.length}건이 있어요`
+                : '한국 시간'}
             </Text>
             <input
               type="datetime-local"
@@ -995,18 +1067,19 @@ export default function AlimtalkSendModal({
         onClose={() => setConfirmOpen(false)}
         onConfirm={() => void handleSend()}
         title={'\uC54C\uB9BC\uD1A1\uC744 \uBCF4\uB0B4\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?'}
-        descriptions={
-          feedbackMode === 'AUTO'
+        descriptions={[
+          `${selected.size}명의 ${channelAudienceLabel(sendToParent, sendToStudent)}로 알림톡이 발송됩니다.`,
+          ...(feedbackMode === 'AUTO'
             ? [
-                `${selected.size}명의 ${channelAudienceLabel(sendToParent, sendToStudent)}로 알림톡이 발송됩니다.`,
                 selectedAiReadyCount > 0
                   ? `미리 만든 피드백 ${selectedAiReadyCount}명은 바로 보여요. 나머지는 보낸 뒤 만들어져요.`
                   : '학부모 피드백은 보낸 뒤 대시보드에 만들어져요.',
               ]
-            : [
-                `${selected.size}명의 ${channelAudienceLabel(sendToParent, sendToStudent)}로 알림톡이 발송됩니다.`,
-              ]
-        }
+            : []),
+          ...(visibleChecks.length > 0
+            ? [`확인하지 않은 내용 ${visibleChecks.length}건이 있어요`]
+            : []),
+        ]}
         confirmLabel={'\uBC1C\uC1A1'}
         cancelLabel={'\uCDE8\uC18C'}
         confirmTour="alimtalk-send"
@@ -1065,6 +1138,7 @@ export default function AlimtalkSendModal({
           await loadPreview()
         }}
       />
+      </div>
     </div>,
     document.body,
   )

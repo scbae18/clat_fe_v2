@@ -120,6 +120,20 @@ export interface LessonPreviewResult {
 
 export type LessonSendChannel = 'STUDENT' | 'PARENT' | 'BOTH'
 
+export interface SendCheckIssue {
+  code: string
+  text: string
+  student_id?: number
+  student_name?: string
+  items?: string[]
+}
+
+export interface SendCheckResult {
+  blockers: SendCheckIssue[]
+  warnings: SendCheckIssue[]
+  notices: SendCheckIssue[]
+}
+
 export interface LessonSendSchedule {
   scheduled_at: string
   channel: LessonSendChannel
@@ -292,6 +306,18 @@ export const lessonService = {
       channel,
     })
     return unwrapSendLessonResult(data)
+  },
+
+  async getSendCheck(lessonId: number, channel: LessonSendChannel): Promise<SendCheckResult> {
+    const { data } = await axiosInstance.get(`/lessons/${lessonId}/send-check`, {
+      params: { channel },
+    })
+    const body = (data.data ?? data) as SendCheckResult
+    return {
+      blockers: body.blockers ?? [],
+      warnings: body.warnings ?? [],
+      notices: body.notices ?? [],
+    }
   },
 
   async listSendSchedules(): Promise<LessonSendScheduleCard[]> {
