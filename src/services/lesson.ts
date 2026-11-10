@@ -101,6 +101,19 @@ export interface UpdateLessonBody {
   student_data?: StudentData[]
 }
 
+/** 발송 전 규칙 검사 경고. 보내기 전에 보여 주기만 하고 발송은 막지 않는다. */
+export type SendWarningCode =
+  | 'EMPTY_ITEM'
+  | 'ABSENT_WITH_SCORE'
+  | 'SCORE_OVER_MAX'
+  | 'MEANINGLESS_TEXT'
+
+export interface SendWarning {
+  code: SendWarningCode
+  item_name: string | null
+  message: string
+}
+
 export interface LessonPreviewRow {
   student_id: number
   student_name: string
@@ -111,11 +124,14 @@ export interface LessonPreviewRow {
   message_for_parent: string
   student_char_count?: number
   parent_char_count?: number
+  warnings?: SendWarning[]
 }
 
-/** GET /lessons/:id/preview — envelope data field is { data: LessonPreviewRow[] } */
+/** GET /lessons/:id/preview — envelope data field is { data: LessonPreviewRow[], common_warnings } */
 export interface LessonPreviewResult {
   data: LessonPreviewRow[]
+  /** 공통 항목 경고 (학생마다 같아서 한 번만 온다) */
+  common_warnings?: SendWarning[]
 }
 
 export type LessonSendChannel = 'STUDENT' | 'PARENT' | 'BOTH'
@@ -144,11 +160,25 @@ export interface SendLessonResult {
 
 export type ParentPreviewStatusValue = 'pending' | 'ready' | 'failed'
 
+/** AI 피드백 LLM 검수에서 짚은 문장 (가드레일 2차) */
+export interface FeedbackReviewIssue {
+  type: 'CONTRADICTION' | 'UNSUPPORTED' | 'WRONG_SUBJECT'
+  /** 피드백에 있는 문장 그대로 */
+  sentence: string
+  reason: string
+}
+
+/** null이면 검수 대상이 아니다(선생님이 쓰거나 고친 글, 아직 안 만든 글). unchecked는 "검수 못 함"이지 "문제 없음"이 아니다. */
+export type FeedbackReviewStatus = 'passed' | 'flagged' | 'unchecked'
+
 export interface ParentPreviewStatusItem {
   student_id: number
   status: ParentPreviewStatusValue
   stale: boolean
   unwritten?: boolean
+  review_status?: FeedbackReviewStatus | null
+  review_issue_count?: number
+  review_issues?: FeedbackReviewIssue[]
 }
 
 export interface ParentPreviewStatusResult {
@@ -180,6 +210,7 @@ export interface ParentPreviewResult {
   feedback_source?: 'AI' | 'ASSIST' | 'MANUAL'
   edited_at?: string | null
   show_ai_label?: boolean
+  review?: { status: FeedbackReviewStatus; issues: FeedbackReviewIssue[] } | null
   incomplete_items: Array<{
     item_name: string
     note?: string | null
