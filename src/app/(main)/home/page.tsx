@@ -13,6 +13,7 @@ import HomeQuickMenu from './_components/HomeQuickMenu/HomeQuickMenu'
 import * as styles from './home.css'
 import { TutorialHomeCard } from '@/features/tutorial/TutorialProvider'
 import HomeAttentionCard from './_components/HomeAttentionCard/HomeAttentionCard'
+import HomeBriefing from './_components/HomeBriefing/HomeBriefing'
 
 const GUIDE_MANUALS = [
   {
@@ -54,6 +55,8 @@ export default function HomePage() {
       </div>
 
       <TutorialHomeCard />
+
+      <HomeBriefing />
 
       <HomeAttentionCard />
 

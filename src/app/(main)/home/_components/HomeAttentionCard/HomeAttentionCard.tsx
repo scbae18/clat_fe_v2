@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { studentService } from '@/services/student'
 import type { AttentionStudent } from '@/types/student'
+import HomeCalendar from '../HomeCalendar/HomeCalendar'
 import * as styles from './HomeAttentionCard.css'
 
 const PREVIEW_COUNT = 5
@@ -37,7 +38,7 @@ export default function HomeAttentionCard() {
 
   return (
     <div className={styles.split}>
-      <div className={styles.calendarSlot} aria-hidden="true" />
+      <HomeCalendar />
       <section className={styles.card} aria-label="챙겨볼 학생">
       <div className={styles.header}>
         <h2 className={styles.title}>챙겨볼 학생</h2>

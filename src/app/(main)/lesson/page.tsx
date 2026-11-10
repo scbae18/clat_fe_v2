@@ -7,6 +7,7 @@ import Text from '@/components/common/Text'
 import ConfirmModal from '@/components/common/ConfirmModal'
 import DateCard from './_components/DateCard/DateCard'
 import LessonCard from './_components/LessonCard/LessonCard'
+import LessonDayEvents from './_components/LessonDayEvents/LessonDayEvents'
 import AddCard from '@/components/common/AddCard'
 import AddLessonModal from './_components/AddLessonModal/AddLessonModal'
 import PlusCircleIcon from '@/assets/icons/icon-plus-circle.svg'
@@ -167,6 +168,7 @@ function LessonPageContent() {
       <div className={sectionTitleStyle}>
         <Text variant="headingMd">{selectedLabel}</Text>
       </div>
+      <LessonDayEvents date={dateKey(selectedDate)} />
       <div className={lessonGridStyle}>
         {list.lessons.map((lesson) => {
           const recordId = lesson.lesson_record_id ?? lesson.id ?? null

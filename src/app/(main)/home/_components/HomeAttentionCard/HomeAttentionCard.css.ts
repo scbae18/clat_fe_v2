@@ -15,16 +15,6 @@ export const split = style({
   },
 })
 
-/** 캘린더가 들어올 왼쪽. 지금은 비워 둔다. */
-export const calendarSlot = style({
-  minWidth: 0,
-  '@media': {
-    [media.phone]: {
-      display: 'none',
-    },
-  },
-})
-
 export const card = style({
   minWidth: 0,
   background: colors.white,
