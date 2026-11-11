@@ -520,11 +520,12 @@ export const checkDock = style({
   flexShrink: 0,
   display: 'flex',
   flexDirection: 'column',
-  backgroundColor: colors.white,
-  border: `1px solid ${colors.gray100}`,
+  backgroundColor: colors.primary50,
+  backgroundImage: `radial-gradient(ellipse at 0% 0%, ${colors.primary200} 0%, ${colors.primary50} 46%, ${colors.white} 78%)`,
+  border: `1px solid ${colors.primary100}`,
   borderRight: 'none',
   borderRadius: '16px 0 0 16px',
-  boxShadow: '-4px 0 16px rgba(0, 0, 0, 0.1)',
+  boxShadow: `-8px 0 28px color-mix(in srgb, ${colors.primary500} 14%, transparent)`,
   overflow: 'hidden',
   '@media': {
     [media.phone]: {
@@ -542,7 +543,7 @@ export const checkDockCollapsed = style({
 
 export const checkTab = style({
   border: 'none',
-  background: colors.white,
+  background: 'transparent',
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
@@ -610,8 +611,8 @@ export const checkList = style({
 
 export const checkItem = style({
   width: '100%',
-  border: 'none',
-  background: colors.gray50,
+  border: `1px solid ${colors.primary100}`,
+  background: colors.white,
   borderRadius: '8px',
   textAlign: 'left',
   whiteSpace: 'normal',

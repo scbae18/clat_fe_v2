@@ -268,7 +268,7 @@ export default function AlimtalkSendModal({
   const [emptySendCount, setEmptySendCount] = useState(0)
   const [feedbackMode, setFeedbackMode] = useState<'AUTO' | 'ASSIST' | 'MANUAL'>('AUTO')
   const [sendChecks, setSendChecks] = useState<SendCheckIssue[]>([])
-  const [checksOpen, setChecksOpen] = useState(false)
+  const [checksOpen, setChecksOpen] = useState(true)
   const [mounted, setMounted] = useState(false)
   const [sendToParent, setSendToParent] = useState(true)
   const [sendToStudent, setSendToStudent] = useState(true)
@@ -327,6 +327,7 @@ export default function AlimtalkSendModal({
     setDashboardPreview(null)
     setFeedbackMode('AUTO')
     setEmptySendOpen(false)
+    setChecksOpen(true)
     void loadPreview()
   }, [isOpen, loadPreview])
 
