@@ -594,11 +594,12 @@ export function TutorialReplayButton({ screen }: { screen: ScreenTourId }) {
   )
 }
 
-export function TutorialHomeCard() {
+export function TutorialHomeCard({ slot = 'top' }: { slot?: 'top' | 'bottom' }) {
   const tour = useTutorial()
   if (!tour.ready) return null
 
   if (tour.status === 'completed') {
+    if (slot !== 'bottom') return null
     return (
       <section className={styles.homeCard}>
         <div className={styles.homeCopy}>
@@ -617,6 +618,8 @@ export function TutorialHomeCard() {
       </section>
     )
   }
+
+  if (slot !== 'top') return null
 
   if (tour.status === 'in_progress') {
     return (

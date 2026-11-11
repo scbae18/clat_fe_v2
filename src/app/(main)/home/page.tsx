@@ -54,7 +54,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <TutorialHomeCard />
+      <TutorialHomeCard slot="top" />
 
       <HomeBriefing />
 
@@ -168,6 +168,8 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      <TutorialHomeCard slot="bottom" />
     </div>
   )
 }
