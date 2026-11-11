@@ -15,8 +15,9 @@ export default function HomeBriefing() {
   const router = useRouter()
   const [items, setItems] = useState<BriefingItem[]>([])
   const [briefingDate, setBriefingDate] = useState('')
+  const [greeting, setGreeting] = useState(briefingGreeting)
+  const [summary, setSummary] = useState('')
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
-  const greeting = briefingGreeting()
 
   useEffect(() => {
     let cancelled = false
@@ -26,6 +27,8 @@ export default function HomeBriefing() {
         if (!cancelled) {
           setItems(result.items)
           setBriefingDate(result.date)
+          if (result.greeting) setGreeting(result.greeting)
+          setSummary(result.summary ?? '')
           setStatus('ready')
         }
       } catch {
@@ -52,6 +55,11 @@ export default function HomeBriefing() {
           <Text variant="headingSm" as="h2" className={styles.headingReset}>
             {greeting}
           </Text>
+          {summary ? (
+            <Text variant="bodyMd" color="gray900" as="p" className={styles.summary}>
+              {summary}
+            </Text>
+          ) : null}
           {briefingDate ? (
             <Text variant="labelSm" color="gray500">
               {briefingDateLabel(briefingDate)}

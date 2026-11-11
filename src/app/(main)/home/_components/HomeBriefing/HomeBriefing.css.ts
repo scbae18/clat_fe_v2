@@ -34,6 +34,11 @@ export const headingReset = style({
   margin: 0,
 })
 
+export const summary = style({
+  margin: '8px 0 0',
+  wordBreak: 'break-word',
+})
+
 export const list = style({
   display: 'flex',
   flexDirection: 'column',

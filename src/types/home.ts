@@ -18,5 +18,7 @@ export interface BriefingItem {
 
 export interface HomeToday {
   date: string
+  greeting: string
+  summary: string
   items: BriefingItem[]
 }
