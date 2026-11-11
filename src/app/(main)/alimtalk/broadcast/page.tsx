@@ -18,6 +18,7 @@ import type { Student } from '@/types/student'
 import { listParentPhones } from '@/lib/parentPhones'
 import {
   alimtalkService,
+  kakaoUnavailableToastMessage,
   pollBatchUntilSettled,
   type BroadcastChannel,
   type BroadcastNoticeType,
@@ -29,6 +30,7 @@ import {
   BROADCAST_NOTICE_HINT,
   BROADCAST_NOTICE_LABEL,
   BROADCAST_NOTICE_TYPES,
+  academyNameForStudent,
   broadcastCharCount,
   renderBroadcastMessage,
   renderBroadcastPreviewHeader,
@@ -94,7 +96,7 @@ function estimateCount(
 
 export default function AlimtalkBroadcastPage() {
   const router = useRouter()
-  const { success, error } = useToast()
+  const { success, error, warning } = useToast()
   const teacherName = useUserStore((s) => s.user?.name) ?? ''
 
   const [deliveryMode, setDeliveryMode] = useState<AlimtalkDeliveryMode>('mock')
@@ -240,19 +242,25 @@ export default function AlimtalkBroadcastPage() {
     [noticeType],
   )
 
-  const academyName = useMemo(() => {
-    if (classes.length === 0) return ''
-    return [...classes].sort((a, b) => a.id - b.id)[0]?.academy_name ?? ''
-  }, [classes])
-
   const noticeBody = body.trim()
 
+  const academyNameFor = useCallback(
+    (studentId: number) => academyNameForStudent(studentId, classes, classStudentIds),
+    [classes, classStudentIds],
+  )
+
   const charCountFor = useCallback(
-    (studentName: string) =>
+    (student: { id: number; name: string }) =>
       broadcastCharCount(
-        renderBroadcastMessage(academyName, teacherName, studentName, noticeType, noticeBody),
+        renderBroadcastMessage(
+          academyNameFor(student.id),
+          teacherName,
+          student.name,
+          noticeType,
+          noticeBody,
+        ),
       ),
-    [academyName, teacherName, noticeType, noticeBody],
+    [academyNameFor, teacherName, noticeType, noticeBody],
   )
 
   const overNames = useMemo(() => {
@@ -261,7 +269,7 @@ export default function AlimtalkBroadcastPage() {
         (student) =>
           selectedIds.has(student.id) &&
           isSelectable(student, sendToParent, sendToStudent) &&
-          charCountFor(student.name) > BROADCAST_CHAR_LIMIT,
+          charCountFor(student) > BROADCAST_CHAR_LIMIT,
       )
       .map((student) => student.name)
   }, [students, selectedIds, sendToParent, sendToStudent, charCountFor])
@@ -271,9 +279,13 @@ export default function AlimtalkBroadcastPage() {
       (student) =>
         selectedIds.has(student.id) && isSelectable(student, sendToParent, sendToStudent),
     )
-    const names = selected.length > 0 ? selected.map((student) => student.name) : ['']
-    return Math.max(...names.map((name) => charCountFor(name)))
-  }, [students, selectedIds, sendToParent, sendToStudent, charCountFor])
+    if (selected.length === 0) {
+      return broadcastCharCount(
+        renderBroadcastMessage('', teacherName, '', noticeType, noticeBody),
+      )
+    }
+    return Math.max(...selected.map((student) => charCountFor(student)))
+  }, [students, selectedIds, sendToParent, sendToStudent, charCountFor, teacherName, noticeType, noticeBody])
 
   const expectedCount = estimateCount(
     students.filter((student) => selectedIds.has(student.id)),
@@ -321,6 +333,8 @@ export default function AlimtalkBroadcastPage() {
       } else {
         success(`발송 완료 · ${res.success_count}건`)
       }
+      const kakaoNotice = kakaoUnavailableToastMessage(res)
+      if (kakaoNotice) warning(kakaoNotice, 8000)
       router.push('/alimtalk/history')
     } catch (err) {
       const tooLong = tooLongNames(err)
@@ -440,7 +454,7 @@ export default function AlimtalkBroadcastPage() {
               filteredStudents.map((s) => {
                 const ok = isSelectable(s, sendToParent, sendToStudent)
                 const checked = selectedIds.has(s.id)
-                const over = ok && charCountFor(s.name) > BROADCAST_CHAR_LIMIT
+                const over = ok && charCountFor(s) > BROADCAST_CHAR_LIMIT
                 return (
                   <button
                     key={s.id}

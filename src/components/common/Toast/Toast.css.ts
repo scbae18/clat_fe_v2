@@ -36,7 +36,7 @@ export const containerStyle = style({
 
 export const toastStyle = style({
   display: 'flex',
-  alignItems: 'center',
+  alignItems: 'flex-start',
   gap: '12px',
   backgroundColor: colors.gray700,
   color: colors.white,

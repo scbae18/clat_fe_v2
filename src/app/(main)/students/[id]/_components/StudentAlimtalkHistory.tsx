@@ -2,7 +2,7 @@
 
 import { Fragment, useState } from 'react'
 import ChevronDownIcon from '@/assets/icons/icon-chevron-down.svg'
-import { formatSent, maskPhone, statusLabel } from '@/app/(main)/alimtalk/history/_lib/historyShared'
+import { formatSent, maskPhone, messageStatusLabel, needsManualTextOnly } from '@/app/(main)/alimtalk/history/_lib/historyShared'
 import type { AlimtalkHistoryRow, StudentAlimtalkMessage } from '@/services/studentDashboard'
 import { MSG } from '../_lib/studentDashboardShared'
 import * as styles from '../studentDashboard.css'
@@ -25,6 +25,20 @@ function channelLabel(phoneType: StudentAlimtalkMessage['phone_type']) {
 
 function messageTitle(phoneType: StudentAlimtalkMessage['phone_type']) {
   return phoneType === 'STUDENT' ? MSG.alimStudentMsg : MSG.alimParentMsg
+}
+
+function rowBadgeLabel(row: AlimtalkHistoryRow): string {
+  if (row.status === 'PENDING') return '보내는 중'
+  if (needsManualTextOnly(row.messages)) return '직접 문자 발송 필요'
+  if (row.status === 'SUCCESS') return MSG.alimSentOk
+  return MSG.alimSentFail
+}
+
+function rowBadgeClass(row: AlimtalkHistoryRow): string {
+  if (row.status === 'PENDING') return styles.alimBadgePending
+  if (needsManualTextOnly(row.messages)) return styles.alimBadgeManual
+  if (row.status === 'SUCCESS') return styles.alimBadgeOk
+  return styles.alimBadgeFail
 }
 
 export function StudentAlimtalkHistory({ rows }: { rows: AlimtalkHistoryRow[] }) {
@@ -67,20 +81,8 @@ export function StudentAlimtalkHistory({ rows }: { rows: AlimtalkHistoryRow[] })
                   </td>
                   <td className={styles.td}>{row.class_name ?? '—'}</td>
                   <td className={styles.td}>
-                    <span
-                      className={
-                        row.status === 'SUCCESS'
-                          ? styles.alimBadgeOk
-                          : row.status === 'PENDING'
-                            ? styles.alimBadgePending
-                            : styles.alimBadgeFail
-                      }
-                    >
-                      {row.status === 'SUCCESS'
-                        ? MSG.alimSentOk
-                        : row.status === 'PENDING'
-                          ? '보내는 중'
-                          : MSG.alimSentFail}
+                    <span className={rowBadgeClass(row)}>
+                      {rowBadgeLabel(row)}
                     </span>
                   </td>
                   <td className={styles.td}>
@@ -97,14 +99,16 @@ export function StudentAlimtalkHistory({ rows }: { rows: AlimtalkHistoryRow[] })
                               <span
                                 key={m.message_id}
                                 className={
-                                  m.status === 'SUCCESS'
+                                  m.kakao_unavailable
+                                    ? styles.alimPillManual
+                                    : m.status === 'SUCCESS'
                                     ? styles.alimPillOk
                                     : m.status === 'PENDING'
                                       ? styles.alimPillPending
                                       : styles.alimPillFail
                                 }
                               >
-                                {channelLabel(m.phone_type)} {statusLabel(m.status)}
+                                {channelLabel(m.phone_type)} {messageStatusLabel(m)}
                               </span>
                             ))}
                           </div>
@@ -123,6 +127,7 @@ export function StudentAlimtalkHistory({ rows }: { rows: AlimtalkHistoryRow[] })
                           {row.messages.map(
                             (m) =>
                               m.status === 'FAIL' &&
+                              !m.kakao_unavailable &&
                               m.error_message && (
                                 <div key={`err-${m.message_id}`} className={styles.alimError}>
                                   {channelLabel(m.phone_type)} {m.error_message}

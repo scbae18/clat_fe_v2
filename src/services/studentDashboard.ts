@@ -29,6 +29,7 @@ export interface StudentAlimtalkMessage {
   message_body: string
   status: 'PENDING' | 'SUCCESS' | 'FAIL'
   error_message: string | null
+  kakao_unavailable?: boolean
   parent_dashboard_token: string | null
   token_expires_at: string | null
 }

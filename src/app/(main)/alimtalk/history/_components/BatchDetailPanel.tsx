@@ -7,8 +7,8 @@ import * as styles from '../history.css'
 import {
   groupMessages,
   maskPhone,
-  statusLabel,
-  statusPillStyle,
+  messageStatusLabel,
+  messageStatusStyle,
 } from '../_lib/historyShared'
 
 type BatchDetailPanelProps = {
@@ -55,17 +55,17 @@ export function BatchDetailPanel({
             {selected.student && (
               <span
                 className={styles.statusPill}
-                style={statusPillStyle(selected.student.status)}
+                style={messageStatusStyle(selected.student)}
               >
-                학생 {statusLabel(selected.student.status)}
+                학생 {messageStatusLabel(selected.student)}
               </span>
             )}
             {selected.parent && (
               <span
                 className={styles.statusPill}
-                style={statusPillStyle(selected.parent.status)}
+                style={messageStatusStyle(selected.parent)}
               >
-                학부모 {statusLabel(selected.parent.status)}
+                학부모 {messageStatusLabel(selected.parent)}
               </span>
             )}
           </div>
@@ -101,12 +101,16 @@ export function BatchDetailPanel({
               </button>
             </div>
           )}
-          {selected.student?.status === 'FAIL' && selected.student.error_message && (
+          {selected.student?.status === 'FAIL' &&
+            !selected.student.kakao_unavailable &&
+            selected.student.error_message && (
             <div style={{ marginTop: 8, fontSize: fontStyles.labelSm.fontSize, color: colors.error500 }}>
               {selected.student.error_message}
             </div>
           )}
-          {selected.parent?.status === 'FAIL' && selected.parent.error_message && (
+          {selected.parent?.status === 'FAIL' &&
+            !selected.parent.kakao_unavailable &&
+            selected.parent.error_message && (
             <div style={{ marginTop: 8, fontSize: fontStyles.labelSm.fontSize, color: colors.error500 }}>
               {selected.parent.error_message}
             </div>

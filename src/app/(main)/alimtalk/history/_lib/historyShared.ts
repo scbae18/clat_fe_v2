@@ -30,10 +30,41 @@ export function groupMessages(messages: AlimtalkBatchMessage[]) {
   return Array.from(m.entries()).sort((a, b) => a[1].name.localeCompare(b[1].name, 'ko'))
 }
 
+export const MANUAL_TEXT_LABEL = '직접 문자 발송 필요'
+
 export function statusLabel(s: 'SUCCESS' | 'FAIL' | 'PENDING'): string {
   if (s === 'SUCCESS') return '성공'
   if (s === 'PENDING') return '보내는 중'
   return '실패'
+}
+
+export function messageStatusLabel(message: {
+  status: 'SUCCESS' | 'FAIL' | 'PENDING'
+  kakao_unavailable?: boolean
+}): string {
+  if (message.kakao_unavailable) return MANUAL_TEXT_LABEL
+  return statusLabel(message.status)
+}
+
+export function messageStatusStyle(message: {
+  status: 'SUCCESS' | 'FAIL' | 'PENDING'
+  kakao_unavailable?: boolean
+}): {
+  color: string
+  backgroundColor: string
+} {
+  if (message.kakao_unavailable) {
+    return { color: colors.warning500, backgroundColor: colors.warning50 }
+  }
+  return statusPillStyle(message.status)
+}
+
+export function needsManualTextOnly(messages: Array<{
+  status: 'SUCCESS' | 'FAIL' | 'PENDING'
+  kakao_unavailable?: boolean
+}>): boolean {
+  const fails = messages.filter((message) => message.status === 'FAIL')
+  return fails.length > 0 && fails.every((message) => message.kakao_unavailable)
 }
 
 export function statusPillStyle(status: 'SUCCESS' | 'FAIL' | 'PENDING'): {

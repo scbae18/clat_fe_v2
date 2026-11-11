@@ -5,7 +5,8 @@ export default function useToast() {
 
   return {
     success: (message: string) => addToast({ variant: 'success', message }),
-    warning: (message: string) => addToast({ variant: 'warning', message }),
+    warning: (message: string, duration?: number) =>
+      addToast({ variant: 'warning', message, duration }),
     error: (message: string) => addToast({ variant: 'error', message }),
   }
 }

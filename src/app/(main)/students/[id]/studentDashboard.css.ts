@@ -885,6 +885,18 @@ export const alimBadgeFail = style({
   whiteSpace: 'nowrap',
 })
 
+export const alimBadgeManual = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: '2px 8px',
+  borderRadius: '6px',
+  backgroundColor: colors.warning50,
+  color: colors.warning500,
+  fontSize: '14px',
+  fontWeight: 600,
+  whiteSpace: 'nowrap',
+})
+
 export const alimBadgePending = style({
   display: 'inline-flex',
   alignItems: 'center',
@@ -974,6 +986,15 @@ export const alimPillFail = style({
   borderRadius: '4px',
   color: colors.error500,
   backgroundColor: colors.error50,
+})
+
+export const alimPillManual = style({
+  fontSize: '12px',
+  fontWeight: 600,
+  padding: '2px 8px',
+  borderRadius: '4px',
+  color: colors.warning500,
+  backgroundColor: colors.warning50,
 })
 
 export const alimPillPending = style({

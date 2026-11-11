@@ -48,6 +48,7 @@ export interface AlimtalkBatchListItem {
   total_count: number
   success_count: number
   fail_count: number
+  manual_text_count?: number
   lesson_record_id: number | null
   attendance_session_id: number | null
   body_text?: string | null
@@ -71,6 +72,7 @@ export interface AlimtalkBatchMessage {
   message_body: string
   status: AlimtalkMessageStatus
   error_message: string | null
+  kakao_unavailable?: boolean
   parent_dashboard_token: string | null
   token_expires_at: string | null
   ai_feedback: string | null
@@ -90,7 +92,21 @@ export interface AlimtalkBatchDetail {
   attendance_session_id: number | null
   body_text?: string | null
   notice_type?: BroadcastNoticeType | null
+  kakao_unavailable_notices?: string[]
   messages: AlimtalkBatchMessage[]
+}
+
+export function kakaoUnavailableNoticesOf(result: object): string[] {
+  if (!('kakao_unavailable_notices' in result)) return []
+  const lines = result.kakao_unavailable_notices
+  if (!Array.isArray(lines)) return []
+  return lines.filter((line): line is string => typeof line === 'string')
+}
+
+export function kakaoUnavailableToastMessage(result: object): string | null {
+  const lines = kakaoUnavailableNoticesOf(result)
+  if (lines.length === 0) return null
+  return ['카카오톡 미사용자가 있어요. 직접 발송해주세요.', ...lines].join('\n')
 }
 
 export interface BroadcastSendResult {

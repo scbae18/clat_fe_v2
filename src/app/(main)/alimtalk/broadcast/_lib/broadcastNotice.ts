@@ -49,6 +49,18 @@ export function broadcastCharCount(text: string): number {
   return Array.from(text).length
 }
 
+/** 서버 `academyNameForMemberships`와 같다. 진행 중 소속 반이 여러 개면 id가 가장 작은 반. */
+export function academyNameForStudent(
+  studentId: number,
+  classes: ReadonlyArray<{ id: number; academy_name: string }>,
+  classStudentIds: Readonly<Record<number, readonly number[]>>,
+): string {
+  const memberships = classes
+    .filter((cls) => (classStudentIds[cls.id] ?? []).includes(studentId))
+    .sort((a, b) => a.id - b.id)
+  return memberships.find((cls) => cls.academy_name.trim())?.academy_name.trim() ?? ''
+}
+
 export function renderBroadcastPreviewHeader(noticeType: BroadcastNoticeType): string {
   const middle = BROADCAST_NOTICE_MIDDLE[noticeType]
   return `안녕하세요. {학원명} {강사명}입니다.\n{학생이름} 학생의 ${middle}입니다.`

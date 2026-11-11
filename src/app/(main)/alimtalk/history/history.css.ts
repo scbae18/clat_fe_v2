@@ -161,6 +161,17 @@ export const badgeFail = style({
   fontWeight: 600,
 })
 
+export const badgeManual = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: '2px 8px',
+  borderRadius: '6px',
+  backgroundColor: colors.warning50,
+  color: colors.warning500,
+  fontSize: '14px',
+  fontWeight: 600,
+})
+
 export const badgeTypeLesson = style({
   display: 'inline-flex',
   padding: '2px 8px',

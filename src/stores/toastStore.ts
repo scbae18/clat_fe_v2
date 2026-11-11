@@ -6,6 +6,7 @@ export interface Toast {
   id: string
   variant: ToastVariant
   message: string
+  duration?: number
 }
 
 interface ToastStore {

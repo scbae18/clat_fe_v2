@@ -8,6 +8,7 @@ import { splitScoreStorage } from '@/lib/lessonScore'
 import type { Attendance, CompletionStatus } from '@/types/lessonStudent'
 import {
   alimtalkService,
+  kakaoUnavailableToastMessage,
   pollBatchUntilSettled,
   type AlimtalkDeliveryMode,
   type AlimtalkTestKind,
@@ -36,7 +37,7 @@ const KINDS: Array<{ kind: AlimtalkTestKind; label: string }> = [
 const SCORE_MAX = '100'
 
 export default function AlimtalkTestPage() {
-  const { success, error } = useToast()
+  const { success, error, warning } = useToast()
   const [phone, setPhone] = useState<string | null>(null)
   const [remaining, setRemaining] = useState<number | null>(null)
   const [limit, setLimit] = useState(5)
@@ -103,6 +104,8 @@ export default function AlimtalkTestPage() {
       })
       setRemaining(queued.remaining)
       const result = await pollBatchUntilSettled(queued.batch_id, () => {})
+      const kakaoNotice = kakaoUnavailableToastMessage(result)
+      if (kakaoNotice) warning(kakaoNotice, 8000)
       if (result.fail_count > 0) {
         error('테스트 문자를 보내지 못했어요.')
       } else {

@@ -13,17 +13,16 @@ const ICON_MAP = {
   error: ErrorIcon,
 }
 
-const DURATION = 3000
-const EXIT_DURATION = 250
+const DEFAULT_DURATION = 3000
 
-export default function Toast({ id, variant, message }: ToastType) {
+export default function Toast({ id, variant, message, duration = DEFAULT_DURATION }: ToastType) {
   const removeToast = useToastStore((s) => s.removeToast)
   const [isClosing, setIsClosing] = useState(false)
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsClosing(true), DURATION)
+    const timer = setTimeout(() => setIsClosing(true), duration)
     return () => clearTimeout(timer)
-  }, [])
+  }, [duration])
 
   const handleAnimationEnd = () => {
     if (isClosing) removeToast(id)

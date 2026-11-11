@@ -4,7 +4,7 @@ import { Fragment } from 'react'
 import ChevronDownIcon from '@/assets/icons/icon-chevron-down.svg'
 import type { AlimtalkBatchDetail, AlimtalkBatchListItem } from '@/services/alimtalk'
 import * as styles from '../history.css'
-import { formatSent, recipientLabel } from '../_lib/historyShared'
+import { formatSent, recipientLabel, MANUAL_TEXT_LABEL } from '../_lib/historyShared'
 import { BatchDetailPanel } from './BatchDetailPanel'
 
 type HistoryBatchTableProps = {
@@ -62,7 +62,10 @@ export function HistoryBatchTable({
                   </td>
                   <td className={styles.td}>{r.class_name ?? '—'}</td>
                   <td className={styles.td}>
-                    {r.fail_count > 0 ? (
+                    {(r.manual_text_count ?? 0) > 0 &&
+                    r.fail_count <= (r.manual_text_count ?? 0) ? (
+                      <span className={styles.badgeManual}>{MANUAL_TEXT_LABEL}</span>
+                    ) : r.fail_count > 0 ? (
                       <>
                         <span className={styles.badgeFail}>실패 {r.fail_count}건</span>
                         <button

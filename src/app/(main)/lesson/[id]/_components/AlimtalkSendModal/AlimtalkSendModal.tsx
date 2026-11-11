@@ -29,7 +29,7 @@ import { invalidateLessonLists } from '@/lib/queryKeys'
 import { reportTutorialAction, setTutorialGate } from '@/features/tutorial/tutorialEvents'
 import { useToastStore } from '@/stores/toastStore'
 import { useUserStore } from '@/stores/userStore'
-import { pollBatchUntilSettled } from '@/services/alimtalk'
+import { kakaoUnavailableToastMessage, pollBatchUntilSettled } from '@/services/alimtalk'
 import { fillLessonAlimtalkFrameHeader } from '@/lib/lessonAlimtalkFrame'
 import { useRegisterModal } from '@/components/common/Modal/useRegisterModal'
 import { listParentPhones } from '@/lib/parentPhones'
@@ -669,6 +669,10 @@ export default function AlimtalkSendModal({
       }
       if (result.fail_count === 0 && (result.success_count > 0 || result.total_count > 0)) {
         reportTutorialAction('alimtalk-send')
+      }
+      const kakaoNotice = kakaoUnavailableToastMessage(result)
+      if (kakaoNotice) {
+        addToast({ variant: 'warning', message: kakaoNotice, duration: 8000 })
       }
       setIsClosing(true)
     } catch (err) {
