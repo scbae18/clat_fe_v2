@@ -16,6 +16,7 @@ import { classService, type Class } from '@/services/class'
 import { studentService } from '@/services/student'
 import type { Student } from '@/types/student'
 import { listParentPhones } from '@/lib/parentPhones'
+import QuotaNotice from '@/components/billing/QuotaNotice'
 import {
   alimtalkService,
   kakaoUnavailableToastMessage,
@@ -569,6 +570,7 @@ export default function AlimtalkBroadcastPage() {
               <Text as="p" variant="bodyMd" color="gray700">
                 선택 {selectedIds.size}명 · 예상 발송 {expectedCount}건
               </Text>
+              <QuotaNotice needed={expectedCount} />
               <Button
                 variant="primary"
                 size="md"

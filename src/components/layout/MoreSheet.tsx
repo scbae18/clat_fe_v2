@@ -3,7 +3,10 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
 import ConfirmModal from '@/components/common/ConfirmModal'
+import { isEnforcedBilling } from '@/lib/billingView'
+import { billingService } from '@/services/billing'
 import { useLogout } from '@/hooks/useLogout'
 import { MORE_LINKS } from '@/lib/mobileNav'
 import ClipboardIcon from '@/assets/icons/icon-clipboard.svg'
@@ -20,6 +23,32 @@ const LINK_ICONS = {
   '/ai': StarIcon,
   '/me': UsersIcon,
 } as const
+
+function MoreBillingRow({ onClose }: { onClose: () => void }) {
+  const meQuery = useQuery({
+    queryKey: ['billing', 'me'],
+    queryFn: () => billingService.me(),
+    refetchOnWindowFocus: false,
+    retry: false,
+  })
+  const me = meQuery.data
+  if (!isEnforcedBilling(me)) return null
+  const remaining = me.messages.remaining
+  const messageLine =
+    remaining == null ? '알림톡 제한 없음' : `알림톡 ${remaining.toLocaleString('ko-KR')}통 남음`
+  const studentLine =
+    me.students.limit == null
+      ? `학생 ${me.students.count}명`
+      : `학생 ${me.students.count} / ${me.students.limit}명`
+  return (
+    <Link href="/billing" className={styles.billingRowStyle} onClick={onClose}>
+      <span className={styles.billingPlanStyle}>{me.plan.name}</span>
+      <span className={styles.billingLineStyle}>
+        {messageLine} · {studentLine}
+      </span>
+    </Link>
+  )
+}
 
 interface MoreSheetProps {
   open: boolean
@@ -48,6 +77,7 @@ export default function MoreSheet({ open, onClose }: MoreSheetProps) {
       <div className={styles.overlayStyle} onClick={onClose} aria-hidden />
       <div className={styles.sheetStyle} role="dialog" aria-label="더보기 메뉴">
         <div className={styles.handleStyle} />
+        <MoreBillingRow onClose={onClose} />
         {MORE_LINKS.map(({ href, label }) => {
           const Icon = LINK_ICONS[href]
           const isActive = pathname === href || pathname.startsWith(`${href}/`)

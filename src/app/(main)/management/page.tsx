@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState, useEffect, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import Text from '@/components/common/Text'
 import useDisclosure from '@/hooks/useDisclosure'
 import { classService, type Class } from '@/services/class'
@@ -38,6 +39,8 @@ import { studentService } from '@/services/student'
 import type { Student } from '@/types/student'
 import { useToastStore } from '@/stores/toastStore'
 import { sortStudentsByNameKo } from '@/lib/sortStudents'
+import { billingService } from '@/services/billing'
+import { isEnforcedBilling } from '@/lib/billingView'
 import useToggleArray from '@/hooks/useToggleArray'
 
 const FILTER_OPTIONS = [
@@ -57,6 +60,17 @@ function ManagementContent() {
   const [students, setStudents] = useState<Student[]>([])
   const [isLoadingStudents, setIsLoadingStudents] = useState(false)
   const [studentSearchQuery, setStudentSearchQuery] = useState('')
+  const [limitOpen, setLimitOpen] = useState(false)
+  const billingQuery = useQuery({
+    queryKey: ['billing', 'me'],
+    queryFn: () => billingService.me(),
+    refetchOnWindowFocus: false,
+    retry: false,
+  })
+  const billing = billingQuery.data
+  const studentLimit = isEnforcedBilling(billing) ? billing.students.limit : null
+  const studentCount = isEnforcedBilling(billing) ? billing.students.count : null
+  const atStudentLimit = studentLimit != null && studentCount != null && studentCount >= studentLimit
   const addToast = useToastStore((s) => s.addToast)
   const formatSchedule = (schedules: { day_of_week: number }[]) =>
     schedules.map((s) => DAY_NAMES[s.day_of_week]).join('·')
@@ -177,6 +191,12 @@ function ManagementContent() {
             전체 학생
           </button>
         </div>
+        {tab === 'students' && studentLimit != null && studentCount != null ? (
+          <Text variant="bodyMd" color={studentLimit - studentCount <= 3 ? 'warning500' : 'gray700'}>
+            학생 {studentCount} / {studentLimit}명
+            {studentLimit - studentCount <= 3 && studentLimit - studentCount > 0 ? ' · 곧 한도예요' : ''}
+          </Text>
+        ) : null}
         {tab === 'students' && (
           <div className={tabActionsStyle}>
             <Button
@@ -192,7 +212,7 @@ function ManagementContent() {
               variant="primary"
               size="sm"
               leftIcon={<PlusIcon width={20} height={20} />}
-              onClick={addStudent.open}
+              onClick={() => (atStudentLimit ? setLimitOpen(true) : addStudent.open())}
               data-tour="students-register"
             >
               학생 등록
@@ -270,7 +290,7 @@ function ManagementContent() {
                   variant: 'success',
                   message:
                     (bulkRes.limit_skipped_count ?? 0) > 0
-                      ? `${bulkRes.success_count}명을 등록했고, 한도가 남아 있지 않아 ${bulkRes.limit_skipped_count}명은 넣지 않았습니다.`
+                      ? `${bulkRes.success_count + (bulkRes.limit_skipped_count ?? 0)}명 중 ${bulkRes.success_count}명을 등록했어요. ${bulkRes.limit_skipped_count}명은 학생 수 한도 때문에 등록하지 못했어요.`
                       : bulkRes.fail_count > 0
                         ? `${bulkRes.success_count} ok, ${bulkRes.fail_count} failed`
                         : `${bulkRes.success_count} students added`,
@@ -294,6 +314,28 @@ function ManagementContent() {
               setStudents((prev) => sortStudentsByNameKo([...prev, newStudent]))
               addToast({ variant: 'success', message: '학생이 등록됐어요.' })
             }}
+          />
+          <ConfirmModal
+            isOpen={limitOpen}
+            onClose={() => setLimitOpen(false)}
+            onConfirm={() => {
+              setLimitOpen(false)
+              if (isEnforcedBilling(billing) && billing.status !== 'GRANT') {
+                router.push('/billing/plans')
+              }
+            }}
+            title={
+              isEnforcedBilling(billing)
+                ? `${billing.plan.name} 요금제는 학생 ${billing.students.limit}명까지 등록할 수 있어요.`
+                : '학생을 더 등록할 수 없어요.'
+            }
+            descriptions={
+              isEnforcedBilling(billing) && billing.status === 'GRANT'
+                ? ['더 큰 요금제가 필요하면 010-7324-7708 로 문의해 주세요.']
+                : ['더 등록하려면 요금제를 올려 주세요.']
+            }
+            confirmLabel={isEnforcedBilling(billing) && billing.status === 'GRANT' ? '닫기' : '요금제 보기'}
+            cancelLabel="닫기"
           />
           <StudentNameSearchBar
             value={studentSearchQuery}

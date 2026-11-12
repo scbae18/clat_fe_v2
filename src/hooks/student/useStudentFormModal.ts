@@ -128,7 +128,7 @@ export function useStudentFormModal({
         variant: 'success',
         message:
           (bulkRes.limit_skipped_count ?? 0) > 0
-            ? `${bulkRes.success_count}명을 등록했고, 한도가 남아 있지 않아 ${bulkRes.limit_skipped_count}명은 넣지 않았습니다.`
+            ? `${bulkRes.success_count + (bulkRes.limit_skipped_count ?? 0)}명 중 ${bulkRes.success_count}명을 등록했어요. ${bulkRes.limit_skipped_count}명은 학생 수 한도 때문에 등록하지 못했어요.`
             : bulkRes.fail_count > 0
               ? `${bulkRes.success_count} ok, ${bulkRes.fail_count} failed`
               : `${bulkRes.success_count} students added`,

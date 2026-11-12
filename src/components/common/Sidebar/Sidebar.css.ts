@@ -320,6 +320,77 @@ export const scheduleDetailStyle = styleVariants({
   },
 })
 
+export const usageCardStyle = styleVariants({
+  expanded: {
+    marginBottom: '8px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+    padding: '10px 12px',
+    borderRadius: '12px',
+    textDecoration: 'none',
+    background: 'rgba(255,255,255,0.08)',
+    color: colors.white,
+    selectors: {
+      '&:hover': {
+        background: 'rgba(255,255,255,0.14)',
+      },
+    },
+  },
+  collapsed: {
+    marginBottom: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '36px',
+    padding: '6px 2px',
+    borderRadius: '10px',
+    textDecoration: 'none',
+    background: 'rgba(255,255,255,0.08)',
+    color: colors.primary300,
+    selectors: {
+      '&:hover': {
+        background: 'rgba(255,255,255,0.14)',
+      },
+    },
+  },
+})
+
+export const usagePlanStyle = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 700,
+  letterSpacing: '-0.03em',
+  lineHeight: 1.3,
+  color: colors.primary300,
+})
+
+export const usageLineStyle = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 500,
+  letterSpacing: '-0.03em',
+  lineHeight: 1.3,
+  color: colors.gray300,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+})
+
+export const usageAlertStyle = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 600,
+  letterSpacing: '-0.03em',
+  lineHeight: 1.3,
+  color: colors.warning500,
+})
+
+export const usageRemainStyle = style({
+  fontSize: '12px',
+  fontWeight: 700,
+  letterSpacing: '-0.03em',
+  lineHeight: 1.2,
+  color: colors.primary300,
+})
+
 export const userCardStyle = styleVariants({
   expanded: {
     marginBottom: '8px',

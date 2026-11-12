@@ -53,6 +53,12 @@ export function useStartAttendanceSession({
         studentLinks,
       })
       addToast({ variant: 'success', message: '출결이 시작됐어요.' })
+      if (res.alimtalk_blocked === 'QUOTA') {
+        addToast({
+          variant: 'warning',
+          message: '알림톡이 모자라 출결 안내를 보내지 못했어요.',
+        })
+      }
       if (reportTutorialAction('attendance-opened')) {
         useAttendanceSessionStore.getState().bumpAttendanceDetail()
       }

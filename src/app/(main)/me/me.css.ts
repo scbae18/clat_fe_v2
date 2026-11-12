@@ -36,6 +36,10 @@ export const pageDesc = style({
   color: colors.gray500,
 })
 
+export const billingSlot = style({
+  marginBottom: '16px',
+})
+
 export const cardStack = style({
   display: 'flex',
   flexDirection: 'column',

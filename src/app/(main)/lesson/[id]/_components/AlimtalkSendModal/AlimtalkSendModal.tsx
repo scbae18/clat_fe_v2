@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Text from '@/components/common/Text'
 import Button from '@/components/common/Button'
@@ -33,6 +33,7 @@ import { kakaoUnavailableToastMessage, pollBatchUntilSettled } from '@/services/
 import { fillLessonAlimtalkFrameHeader } from '@/lib/lessonAlimtalkFrame'
 import { useRegisterModal } from '@/components/common/Modal/useRegisterModal'
 import { listParentPhones } from '@/lib/parentPhones'
+import QuotaNotice from '@/components/billing/QuotaNotice'
 import * as styles from './AlimtalkSendModal.css'
 
 function maskPhone(phone: string): string {
@@ -436,6 +437,15 @@ export default function AlimtalkSendModal({
   useEffect(() => () => setTutorialGate('feedback', false), [])
 
   const sendChannel = resolveSendChannel(sendToParent, sendToStudent)
+  const quotaNeeded = useMemo(() => {
+    let count = 0
+    for (const row of rows) {
+      if (!selected.has(row.student_id)) continue
+      if (sendToStudent && hasPhone(row.phone)) count += 1
+      if (sendToParent) count += listParentPhones(row).filter((phone) => hasPhone(phone)).length
+    }
+    return count
+  }, [rows, selected, sendToParent, sendToStudent])
   const visibleChecks = sendChecks.filter(
     (issue) => issue.student_id == null || selected.has(issue.student_id),
   )
@@ -1035,6 +1045,7 @@ export default function AlimtalkSendModal({
           >
             {sendSchedule ? `${formatScheduleLabel(sendSchedule.scheduled_at)} 예약 취소` : '문자 예약'}
           </Button>
+          <QuotaNotice needed={quotaNeeded} />
           <Button
             variant="primary"
             size="md"

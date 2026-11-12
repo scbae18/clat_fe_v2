@@ -4,6 +4,7 @@ import * as styles from './me.css'
 import { MSG } from './_lib/meShared'
 import { useMyProfile } from './_hooks/useMyProfile'
 import { MeAccountSections } from './_components/MeAccountSections'
+import BillingMeLink from '@/components/billing/BillingMeLink'
 import { MeAccountModals } from './_components/MeAccountModals'
 
 export default function MyProfilePage() {
@@ -22,6 +23,7 @@ export default function MyProfilePage() {
       <h1 className={styles.pageTitle}>{MSG.pageTitle}</h1>
       <p className={styles.pageDesc}>{MSG.pageDesc}</p>
 
+      <BillingMeLink />
       <MeAccountSections
         user={profile.user}
         joinedLabel={profile.joinedLabel}

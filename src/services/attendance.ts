@@ -21,6 +21,7 @@ export interface CreateAttendanceSessionResult {
   code: string
   expires_at: string
   student_count: number
+  alimtalk_blocked?: string | null
   /** Optional: server-built per-student URLs for Alimtalk; FE falls back if omitted. */
   student_links?: ApiStudentCheckLink[]
 }
@@ -105,6 +106,7 @@ export const attendanceService = {
       code: base.code,
       expires_at: base.expires_at,
       student_count: Number(raw.student_count ?? raw.studentCount ?? 0),
+      alimtalk_blocked: typeof raw.alimtalk_blocked === 'string' ? raw.alimtalk_blocked : null,
       student_links: (raw.student_links ?? raw.studentLinks ?? []) as ApiStudentCheckLink[],
     }
   },

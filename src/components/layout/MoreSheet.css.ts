@@ -86,3 +86,30 @@ export const itemActiveStyle = style({
 export const logoutStyle = style({
   color: colors.gray500,
 })
+
+export const billingRowStyle = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  padding: '12px',
+  marginBottom: '8px',
+  borderRadius: '12px',
+  textDecoration: 'none',
+  backgroundColor: colors.primary50,
+})
+
+export const billingPlanStyle = style({
+  fontSize: fontStyles.titleSm.fontSize,
+  fontWeight: 700,
+  letterSpacing: '-0.03em',
+  lineHeight: 1.3,
+  color: colors.primary500,
+})
+
+export const billingLineStyle = style({
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: 500,
+  letterSpacing: '-0.03em',
+  lineHeight: 1.4,
+  color: colors.gray700,
+})

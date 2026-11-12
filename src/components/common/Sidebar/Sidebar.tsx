@@ -35,6 +35,7 @@ import {
   userEmailStyle,
 } from './Sidebar.css'
 import ConfirmModal from '@/components/common/ConfirmModal'
+import SidebarUsage from '@/components/billing/SidebarUsage'
 import HomeIcon from '@/assets/icons/icon-home.svg'
 import EditIcon from '@/assets/icons/icon-edit.svg'
 import UsersIcon from '@/assets/icons/icon-users.svg'
@@ -180,6 +181,7 @@ export default function Sidebar() {
 
       <div className={sidebarBottomStyle[mode]}>
         <ScheduleCards items={schedules} collapsed={collapsed} onSelect={setCancelTarget} />
+        <SidebarUsage collapsed={collapsed} />
         <Link
           href="/me"
           title={collapsed ? '\uB0B4 \uC815\uBCF4' : undefined}
