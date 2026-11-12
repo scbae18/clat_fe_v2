@@ -290,9 +290,36 @@ export const admin = {
     >(`/admin/billing/users/${userId}`, { enforced_early: enforcedEarly })
     return unwrap(data)
   },
+
+  async listBenefitCodes() {
+    const { data } = await axiosInstance.get<Envelope<AdminBenefitCodeList>>('/admin/billing/benefit-codes')
+    return unwrap(data)
+  },
+
+  async createBenefitCode(payload: { plan_code: AdminBenefitPlanCode; months: number }) {
+    const { data } = await axiosInstance.post<Envelope<AdminBenefitCode>>(
+      '/admin/billing/benefit-codes',
+      payload,
+    )
+    return unwrap(data)
+  },
+
+  async applyBillingBenefit(userId: number, payload: { plan_code: AdminBenefitPlanCode; months: number }) {
+    const { data } = await axiosInstance.post<Envelope<{ user_id: number; months: number; plan_code: string }>>(
+      `/admin/billing/users/${userId}/benefit`,
+      payload,
+    )
+    return unwrap(data)
+  },
+
+  async billingSales() {
+    const { data } = await axiosInstance.get<Envelope<AdminBillingSales>>('/admin/billing/sales')
+    return unwrap(data)
+  },
 }
 
 export type AdminGrantPlanCode = 'FREE' | 'BASIC' | 'STANDARD' | 'PLUS' | 'PRO'
+export type AdminBenefitPlanCode = 'ANY' | 'BASIC' | 'STANDARD' | 'PLUS' | 'PRO'
 
 export type AdminBillingSettings = {
   enforced: boolean
@@ -320,6 +347,10 @@ export type AdminBillingPrecheckRow = {
   grant: AdminBillingGrant | null
   enforced_early: boolean
   subscription_status: string | null
+  plan_code: string
+  plan_name: string
+  next_billing_at: string | null
+  no_charge_until: string | null
   will_lock_count: number
 }
 
@@ -347,4 +378,31 @@ export type AdminBillingGrantCreateResult = {
   replaced: number[]
   freed: number[]
   skipped: Array<{ user_id: number; reason: string }>
+}
+
+export type AdminBenefitCode = {
+  id: number
+  code: string
+  plan_code: string
+  plan_name: string
+  months: number
+  used_by_name?: string | null
+  created_at?: string
+}
+
+export type AdminBenefitCodeList = { items: AdminBenefitCode[] }
+
+export type AdminBillingSales = {
+  month_total: number
+  month_count: number
+  all_total: number
+  all_count: number
+  items: Array<{
+    at: string
+    kind: 'PAYMENT' | 'CANCEL' | 'CANCEL_SCHEDULED'
+    name: string
+    email: string
+    amount: number | null
+    label: string
+  }>
 }

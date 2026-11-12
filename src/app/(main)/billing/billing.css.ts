@@ -202,3 +202,60 @@ export const noticeActions = style({
   gap: '8px',
   marginTop: '8px',
 })
+
+export const payPanel = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: '16px',
+  marginTop: '8px',
+  padding: '20px',
+  borderRadius: '16px',
+  backgroundColor: colors.gray50,
+})
+
+export const detailToggle = style({
+  margin: 0,
+  padding: 0,
+  border: 'none',
+  background: 'none',
+  cursor: 'pointer',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: 600,
+  lineHeight: '140%',
+  letterSpacing: tracking,
+  color: colors.primary500,
+})
+
+export const payAmountLabel = style({
+  margin: 0,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: 500,
+  lineHeight: '140%',
+  letterSpacing: tracking,
+  color: colors.gray500,
+})
+
+export const payAmount = style({
+  margin: '4px 0 0',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.headingLg.fontSize,
+  fontWeight: 700,
+  lineHeight: '140%',
+  letterSpacing: tracking,
+  color: colors.gray900,
+})
+
+export const agreeRow = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: tracking,
+  color: colors.gray700,
+})

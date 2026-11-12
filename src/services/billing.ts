@@ -38,10 +38,14 @@ export type BillingMe =
       grant: { plan_name: string; months: number; ends_at: string | null } | null
       card: { company: string; last4: string } | null
       customer_key: string | null
+      pending_benefit: { months: number; plan_code: string | null; plan_name: string | null } | null
       billing: {
         anchor_day: number | null
         next_billing_at: string
         next_amount: number
+        no_charge_until: string | null
+        cancel_at_period_end: boolean
+        pending_plan_code: string | null
       } | null
       banners: Array<{ type: string; lesson_ids?: number[] }>
     }
@@ -60,6 +64,26 @@ export type BillingInvoice = {
   paid_at: string | null
   receipt_url: string | null
 }
+
+export type PlanPreview =
+  | {
+      direction: 'UP'
+      plan_code: string
+      plan_name: string
+      charge_amount: number
+      remaining_days: number
+      period_days: number
+      new_monthly_price: number
+      unlock_count: number
+    }
+  | {
+      direction: 'DOWN'
+      plan_code: string
+      plan_name: string
+      effective_at: string
+      new_monthly_price: number
+      locked_students: Array<{ id: number; name: string }>
+    }
 
 export type BillingPlans = {
   plans: Array<{
@@ -114,9 +138,52 @@ export const billingService = {
     return data.data
   },
 
+  async redeemBenefit(code: string, planCode?: string) {
+    const { data } = await axiosInstance.post<Envelope<BillingMe>>('/billing/benefits', {
+      code,
+      plan_code: planCode,
+    })
+    return data.data
+  },
+
+  async clearBenefit() {
+    const { data } = await axiosInstance.delete<Envelope<{ cleared: boolean }>>('/billing/benefits')
+    return data.data
+  },
+
   async invoices() {
     const { data } = await axiosInstance.get<Envelope<{ invoices: BillingInvoice[] }>>('/billing/invoices')
     return data.data.invoices
+  },
+
+  async previewPlanChange(planCode: string) {
+    const { data } = await axiosInstance.post<Envelope<PlanPreview>>('/billing/plan-change/preview', {
+      plan_code: planCode,
+    })
+    return data.data
+  },
+
+  async changePlan(planCode: string) {
+    const { data } = await axiosInstance.post<Envelope<BillingMe>>('/billing/plan-change', {
+      plan_code: planCode,
+      agreed: true,
+    })
+    return data.data
+  },
+
+  async cancelPlanChange() {
+    const { data } = await axiosInstance.delete<Envelope<BillingMe>>('/billing/plan-change')
+    return data.data
+  },
+
+  async scheduleCancel() {
+    const { data } = await axiosInstance.post<Envelope<BillingMe>>('/billing/cancel')
+    return data.data
+  },
+
+  async undoCancel() {
+    const { data } = await axiosInstance.delete<Envelope<BillingMe>>('/billing/cancel')
+    return data.data
   },
 
   async setOverage(enabled: boolean, agreed?: boolean) {
