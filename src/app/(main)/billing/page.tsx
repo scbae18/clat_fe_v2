@@ -187,8 +187,6 @@ export default function BillingPage() {
       const typedCode = benefitCode.trim()
       if (typedCode) {
         await billingService.redeemBenefit(typedCode, plan.code)
-      } else if (me.pending_benefit) {
-        await billingService.clearBenefit()
       }
       sessionStorage.setItem('clat.billing.plan', plan.code)
       if (!me.card) {
@@ -257,7 +255,6 @@ export default function BillingPage() {
     })
   }
 
-  const planCopy = planActionCopy(planAction, me.billing?.next_billing_at ?? null, me.status)
   const selectedPlan =
     payPanel?.mode === 'subscribe'
       ? plansQuery.data?.plans.find((plan) => plan.code === payPanel.code) ?? null
@@ -270,6 +267,12 @@ export default function BillingPage() {
   const benefitHoldsBilling = Boolean(
     me.billing?.no_charge_until &&
       me.billing.next_billing_at < me.billing.no_charge_until,
+  )
+  const planCopy = planActionCopy(
+    planAction,
+    me.billing?.next_billing_at ?? null,
+    me.status,
+    benefitHoldsBilling,
   )
 
   const applyActiveCode = async (event: FormEvent) => {
@@ -352,10 +355,20 @@ export default function BillingPage() {
                   : ` · 다음 결제 ${resetDayLabel(me.billing.next_billing_at)} ${moneyLabel(me.billing.next_amount)}`
                 : ''}
               {me.billing?.cancel_at_period_end ? ' · 해지 예약' : ''}
+              {me.saved_benefit_months > 0
+                ? ` · 다시 결제하면 무료 ${me.saved_benefit_months}개월이 먼저 이어져요`
+                : ''}
               {me.billing?.pending_plan_code
                 ? ` · 다음 결제일부터 ${plansQuery.data?.plans.find((plan) => plan.code === me.billing?.pending_plan_code)?.name ?? '낮은 요금제'}`
                 : ''}
             </p>
+            {me.status === 'ACTIVE' && me.customer_key ? (
+              <div className={styles.noticeActions}>
+                <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => void changeCard()}>
+                  카드 바꾸기
+                </Button>
+              </div>
+            ) : null}
           </div>
           <InvoiceList rows={invoicesQuery.data ?? []} onRefund={setRefundRow} />
           {me.status === 'PAST_DUE' ? (
@@ -669,6 +682,7 @@ function planActionCopy(
     | null,
   periodEnd: string | null,
   status: string | null,
+  benefitPeriod: boolean,
 ): { title: string; descriptions: string[]; confirmLabel: string } {
   if (!action || action.kind === 'undo-down') {
     return {
@@ -697,13 +711,18 @@ function planActionCopy(
   if (action.kind === 'cancel') {
     return {
       title: '요금제를 해지할까요?',
-      descriptions: [
-        periodEnd
-          ? `${resetDayLabel(periodEnd)}까지는 지금 요금제를 그대로 써요.`
-          : '이번 결제 기간이 끝날 때까지 지금 요금제를 그대로 써요.',
-        '그때 초과 사용이 있으면 그 금액만 결제되고, 그 뒤 무료가 돼요.',
-        '그 전에 해지 취소로 되돌릴 수 있어요.',
-      ],
+      descriptions: benefitPeriod
+        ? [
+            '이미 결제한 기간이면 그 기간이 끝날 때까지 써요. 이번 기간에 결제가 없으면 지금 무료로 바뀌어요.',
+            '아직 쓰지 않은 혜택 개월은 없어지지 않고, 다시 결제할 때 먼저 이어져요.',
+          ]
+        : [
+            periodEnd
+              ? `${resetDayLabel(periodEnd)}까지는 지금 요금제를 그대로 써요.`
+              : '이번 결제 기간이 끝날 때까지 지금 요금제를 그대로 써요.',
+            '그때 초과 사용이 있으면 그 금액만 결제되고, 그 뒤 무료가 돼요.',
+            '그 전에 해지 취소로 되돌릴 수 있어요.',
+          ],
       confirmLabel: '해지하기',
     }
   }
@@ -727,6 +746,7 @@ function planActionCopy(
     title: `${preview.plan_name} 요금제로 내릴까요?`,
     descriptions: [
       `${resetDayLabel(preview.effective_at)}부터 월 ${moneyLabel(preview.new_monthly_price)}이에요. 그때까지는 지금 요금제예요.`,
+      '해지 예약이 있으면 그대로 유지돼요.',
       names.length === 0
         ? '그때 잠기는 학생은 없어요.'
         : `그때 잠기는 학생은 ${shown}${names.length > 4 ? ` 외 ${names.length - 4}명` : ''}이에요.`,

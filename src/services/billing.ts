@@ -39,12 +39,14 @@ export type BillingMe =
       card: { company: string; last4: string } | null
       customer_key: string | null
       pending_benefit: { months: number; plan_code: string | null; plan_name: string | null } | null
+      saved_benefit_months: number
       past_due_until: string | null
       billing: {
         anchor_day: number | null
         next_billing_at: string
         next_amount: number
         no_charge_until: string | null
+        saved_benefit_months: number
         cancel_at_period_end: boolean
         pending_plan_code: string | null
       } | null
