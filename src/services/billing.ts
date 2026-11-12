@@ -66,6 +66,7 @@ export type BillingInvoice = {
   receipt_url: string | null
   refundable: boolean
   refund_amount: number | null
+  includes_upgrade?: boolean
   refund_block_reason: string | null
   locked_students: Array<{ id: number; name: string }>
 }

@@ -642,6 +642,7 @@ export default function BillingPage() {
           refundRow
             ? [
                 `${moneyLabel(refundRow.refund_amount ?? 0)}을 환불하고 바로 무료로 바뀌어요.`,
+                ...(refundRow.includes_upgrade ? ['요금제를 올리며 낸 차액도 함께 취소돼요.'] : []),
                 refundRow.locked_students.length === 0
                   ? '잠기는 학생은 없어요.'
                   : `잠기는 학생은 ${refundRow.locked_students
