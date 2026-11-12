@@ -14,6 +14,10 @@ const ACTION_LABEL: Record<AdminActionType, string> = {
   DELETE: '삭제',
   SUSPEND: '정지',
   RESET_PASSWORD: '비밀번호 재설정',
+  GRANT_CREATE: '요금제 적용',
+  GRANT_UPDATE: '요금제 적용 변경',
+  GRANT_REVOKE: '요금제 적용 취소',
+  SUBSCRIPTION_CHANGE: '요금 적용 변경',
 }
 
 export default function AdminActionsPage() {

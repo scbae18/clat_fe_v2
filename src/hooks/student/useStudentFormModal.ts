@@ -4,6 +4,7 @@ import useToggleArray from '@/hooks/useToggleArray'
 import { classService, type Class } from '@/services/class'
 import { studentService } from '@/services/student'
 import { formatPhoneInput } from '@/lib/phone'
+import { apiErrorMessage } from '@/lib/api/http'
 import { useToastStore } from '@/stores/toastStore'
 
 export type StudentFormData = {
@@ -21,7 +22,7 @@ type UseStudentFormModalParams = {
   mode?: 'add' | 'edit'
   defaultValues?: Partial<StudentFormData>
   onClose: () => void
-  onConfirm: (data: StudentFormData) => void
+  onConfirm: (data: StudentFormData) => void | Promise<void>
   onBulkConfirm?: () => void
 }
 
@@ -42,6 +43,7 @@ export function useStudentFormModal({
   const [grade, setGrade] = useState('')
   const [classes, setClasses] = useState<Class[]>([])
   const [isBulkLoading, setIsBulkLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const addToast = useToastStore((s) => s.addToast)
 
@@ -88,18 +90,31 @@ export function useStudentFormModal({
     onClose()
   }
 
-  const handleConfirm = () => {
-    if (!name.trim()) return
-    onConfirm({
-      name,
-      phone,
-      parent_phone: parentPhone,
-      parent_phone_2: showSecondParent ? parentPhone2 : '',
-      school_name: schoolName,
-      grade,
-      class_ids: selectedClassIds,
-    })
-    handleClose()
+  const handleConfirm = async () => {
+    if (!name.trim() || submitting) return
+    setSubmitting(true)
+    try {
+      await onConfirm({
+        name,
+        phone,
+        parent_phone: parentPhone,
+        parent_phone_2: showSecondParent ? parentPhone2 : '',
+        school_name: schoolName,
+        grade,
+        class_ids: selectedClassIds,
+      })
+      handleClose()
+    } catch (err) {
+      addToast({
+        variant: 'error',
+        message: apiErrorMessage(
+          err,
+          mode === 'add' ? '학생 등록에 실패했어요.' : '학생 정보 수정에 실패했어요.',
+        ),
+      })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const handleExcelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,14 +127,19 @@ export function useStudentFormModal({
       addToast({
         variant: 'success',
         message:
-          bulkRes.fail_count > 0
-            ? `${bulkRes.success_count} ok, ${bulkRes.fail_count} failed`
-            : `${bulkRes.success_count} students added`,
+          (bulkRes.limit_skipped_count ?? 0) > 0
+            ? `${bulkRes.success_count}명을 등록했고, 한도가 남아 있지 않아 ${bulkRes.limit_skipped_count}명은 넣지 않았습니다.`
+            : bulkRes.fail_count > 0
+              ? `${bulkRes.success_count} ok, ${bulkRes.fail_count} failed`
+              : `${bulkRes.success_count} students added`,
       })
       onBulkConfirm?.()
       handleClose()
-    } catch {
-      addToast({ variant: 'error', message: '엑셀 업로드에 실패했어요.' })
+    } catch (err) {
+      addToast({
+        variant: 'error',
+        message: apiErrorMessage(err, '엑셀 업로드에 실패했어요.'),
+      })
     } finally {
       setIsBulkLoading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
@@ -149,6 +169,7 @@ export function useStudentFormModal({
     handleClose,
     handleConfirm,
     handleExcelUpload,
-    canSubmit: Boolean(name.trim()),
+    submitting,
+    canSubmit: Boolean(name.trim()) && !submitting,
   }
 }

@@ -224,4 +224,111 @@ export const admin = {
     )
     return unwrap(data)
   },
+
+  async getBillingSettings() {
+    const { data } = await axiosInstance.get<Envelope<AdminBillingSettings>>('/admin/billing/settings')
+    return unwrap(data)
+  },
+
+  async setBillingEnforced(enforced: boolean) {
+    const { data } = await axiosInstance.put<Envelope<AdminBillingSettings>>('/admin/billing/settings', {
+      enforced,
+    })
+    return unwrap(data)
+  },
+
+  async billingPrecheck(q?: string) {
+    const { data } = await axiosInstance.get<Envelope<AdminBillingPrecheck>>('/admin/billing/precheck', {
+      params: { q: q || undefined },
+      timeout: ADMIN_TIMEOUT,
+    })
+    return unwrap(data)
+  },
+
+  async listBillingGrants() {
+    const { data } = await axiosInstance.get<Envelope<AdminBillingGrantList>>('/admin/billing/grants')
+    return unwrap(data)
+  },
+
+  async createBillingGrants(payload: {
+    user_ids: number[]
+    plan_code: AdminGrantPlanCode
+    months: number
+    memo?: string
+  }) {
+    const { data } = await axiosInstance.post<Envelope<AdminBillingGrantCreateResult>>(
+      '/admin/billing/grants',
+      payload,
+    )
+    return unwrap(data)
+  },
+
+  async revokeBillingGrant(id: number) {
+    const { data } = await axiosInstance.delete<Envelope<{ id: number; status: string }>>(
+      `/admin/billing/grants/${id}`,
+    )
+    return unwrap(data)
+  },
+
+  async setBillingEarly(userId: number, enforcedEarly: boolean) {
+    const { data } = await axiosInstance.patch<
+      Envelope<{ user_id: number; enforced_early: boolean }>
+    >(`/admin/billing/users/${userId}`, { enforced_early: enforcedEarly })
+    return unwrap(data)
+  },
+}
+
+export type AdminGrantPlanCode = 'BASIC' | 'STANDARD' | 'PLUS' | 'PRO'
+
+export type AdminBillingSettings = {
+  enforced: boolean
+  enforced_at: string | null
+}
+
+export type AdminBillingGrant = {
+  id: number
+  status: string
+  plan_code: string
+  months: number
+  starts_at: string | null
+  ends_at: string | null
+}
+
+export type AdminBillingPrecheckRow = {
+  user_id: number
+  name: string
+  email: string
+  student_count: number
+  last_month_messages: number
+  this_month_messages: number
+  this_month_reserved: number
+  recommended_plan_code: string | null
+  grant: AdminBillingGrant | null
+  enforced_early: boolean
+  subscription_status: string | null
+  will_lock_count: number
+}
+
+export type AdminBillingPrecheck = {
+  enforced: boolean
+  enforced_at: string | null
+  teachers: number
+  will_lock_total: number
+  rows: AdminBillingPrecheckRow[]
+}
+
+export type AdminBillingGrantList = {
+  items: Array<
+    AdminBillingGrant & {
+      user_id: number
+      name: string
+      email: string
+      memo: string | null
+    }
+  >
+}
+
+export type AdminBillingGrantCreateResult = {
+  created: number[]
+  skipped: Array<{ user_id: number; reason: string }>
 }

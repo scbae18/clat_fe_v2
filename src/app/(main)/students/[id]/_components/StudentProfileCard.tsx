@@ -29,16 +29,20 @@ export function StudentProfileCard({
         <div className={styles.profileName} title={detail.name}>
           {detail.name}
         </div>
-        <button
-          type="button"
-          className={styles.profileEditButton}
-          onClick={onEdit}
-          aria-label={MSG.editStudent}
-          title={MSG.editStudent}
-        >
-          <EditIcon width={16} height={16} />
-          <span>{MSG.editStudent}</span>
-        </button>
+        {detail.locked ? (
+          <span className={styles.memoHint}>잠김 · 삭제만 할 수 있습니다</span>
+        ) : (
+          <button
+            type="button"
+            className={styles.profileEditButton}
+            onClick={onEdit}
+            aria-label={MSG.editStudent}
+            title={MSG.editStudent}
+          >
+            <EditIcon width={16} height={16} />
+            <span>{MSG.editStudent}</span>
+          </button>
+        )}
       </div>
       <div className={styles.infoGrid}>
         <div className={styles.infoLabelCell}>

@@ -199,7 +199,16 @@ export type AdminLessonList = {
 export type AdminAlimtalkStatus = 'all' | 'SUCCESS' | 'FAIL'
 export type AdminAlimtalkBatchType = 'LESSON' | 'ATTENDANCE' | 'BROADCAST' | 'TEST'
 
-export type AdminActionType = 'APPROVE' | 'REJECT' | 'DELETE' | 'SUSPEND' | 'RESET_PASSWORD'
+export type AdminActionType =
+  | 'APPROVE'
+  | 'REJECT'
+  | 'DELETE'
+  | 'SUSPEND'
+  | 'RESET_PASSWORD'
+  | 'GRANT_CREATE'
+  | 'GRANT_UPDATE'
+  | 'GRANT_REVOKE'
+  | 'SUBSCRIPTION_CHANGE'
 
 export type AdminActionLogList = {
   items: Array<{

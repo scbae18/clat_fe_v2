@@ -7,9 +7,10 @@ import { MSG } from '../_lib/studentDashboardShared'
 type StudentMemoCardProps = {
   memo: string
   onSave: (memo: string) => Promise<void>
+  locked?: boolean
 }
 
-export function StudentMemoCard({ memo, onSave }: StudentMemoCardProps) {
+export function StudentMemoCard({ memo, onSave, locked = false }: StudentMemoCardProps) {
   const [value, setValue] = useState(memo)
   const [status, setStatus] = useState('')
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -43,12 +44,13 @@ export function StudentMemoCard({ memo, onSave }: StudentMemoCardProps) {
     <section className={styles.memoCard}>
       <div>
         <h2 className={styles.memoTitle}>{MSG.memoTitle}</h2>
-        <p className={styles.memoHint}>{status || MSG.memoHint}</p>
+        <p className={styles.memoHint}>{locked ? '잠긴 학생의 메모는 바꿀 수 없습니다.' : status || MSG.memoHint}</p>
       </div>
       <textarea
         className={styles.memoTextarea}
         value={value}
         placeholder={MSG.memoPlaceholder}
+        readOnly={locked}
         onChange={(e) => scheduleSave(e.target.value)}
       />
     </section>

@@ -115,7 +115,7 @@ export default function HomePage() {
             <div className={styles.cardTitleStyle}>
               지금 참여하면
               <br />
-              3개월 무료
+              1개월 무료
             </div>
             <div className={styles.cardDescStyle}>
               베타 기간 동안 모든 기능을
@@ -138,22 +138,22 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 친구 초대 */}
+        {/* 설문 참여 */}
         <div className={styles.inviteCardStyle}>
           <div className={styles.cardContentStyle}>
-            <div className={styles.cardTagInvertStyle}>친구 초대 이벤트</div>
+            <div className={styles.cardTagInvertStyle}>설문 참여 이벤트</div>
             <div className={styles.cardTitleInvertStyle}>
-              친구 초대하고
+              설문하고
               <br />
-              3개월 추가 무료
+              2개월 추가 무료
             </div>
             <a
-              href="https://forms.gle/GnAunK7KUQQuHCSY8"
+              href="https://docs.google.com/forms/d/e/1FAIpQLSfDECSvuqPCDVEjNG6Q3XMoFDebftYHRZZs1HuCAxfdn8o_Ng/viewform?usp=dialog"
               target="_blank"
               rel="noopener noreferrer"
               className={styles.inviteButtonStyle}
             >
-              친구 초대하기
+              설문 참여하기
               <ChevronRight width={24} height={24} />
             </a>
           </div>

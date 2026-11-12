@@ -25,6 +25,7 @@ export interface Student {
   classes: StudentClass[]
   completion_rate: number
   total_incomplete_items: number
+  locked?: boolean
 }
 
 export interface AttentionReason {
@@ -66,4 +67,5 @@ export interface StudentDetail {
   stats: StudentStats
   incomplete_items: IncompleteItem[]
   attention_reasons?: AttentionReason[]
+  locked?: boolean
 }

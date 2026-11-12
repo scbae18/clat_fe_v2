@@ -264,17 +264,12 @@ export default function StudentDetailModal({
             class_ids: detail.classes.map((c) => c.id),
           }}
           onConfirm={async (data) => {
-            try {
-              await studentService.updateStudent(detail.id, data)
-              // 수정 후 상세 다시 조회
-              const updated = await studentService.getStudent(detail.id)
-              setDetail(updated)
-              editStudent.close()
-              addToast({ variant: 'success', message: '학생 정보가 수정됐어요.' })
-              onUpdated?.()
-            } catch {
-              addToast({ variant: 'error', message: '학생 정보 수정에 실패했어요.' })
-            }
+            await studentService.updateStudent(detail.id, data)
+            const updated = await studentService.getStudent(detail.id)
+            setDetail(updated)
+            editStudent.close()
+            addToast({ variant: 'success', message: '학생 정보가 수정됐어요.' })
+            onUpdated?.()
           }}
         />
       )}

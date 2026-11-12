@@ -55,9 +55,9 @@
 
 사용 메뉴얼은 앱 밖 문서 두 개다. 조교용 "클랫 조교 사용 메뉴얼"은 https://discovered-impatiens-00f.notion.site/363dab71334f801791c0cd42a519361d?pvs=74 이다. 선생님용 "클랫 선생님 사용 메뉴얼"은 https://discovered-impatiens-00f.notion.site/363dab71334f8033bad4c5f93e34750a?pvs=74 이다. 주소를 물어보면 이 링크를 알려 준다. 앱 안에 조교 계정은 따로 없다.
 
-베타 테스터 혜택 카드는 "지금 참여하면 3개월 무료", "베타 기간 동안 모든 기능을 무료로 사용하세요."이고 링크는 내 폰으로 받아보기(`/alimtalk/test`)다. 요금제와 결제 화면은 없다.
+베타 테스터 혜택 카드는 "지금 참여하면 1개월 무료", "베타 기간 동안 모든 기능을 무료로 사용하세요."이고 링크는 내 폰으로 받아보기(`/alimtalk/test`)다. 요금제와 결제 화면은 없다.
 
-친구 초대 이벤트 카드는 "친구 초대하고 3개월 추가 무료"이고 초대는 앱 밖 설문으로 연결된다.
+설문 참여 이벤트 카드는 "설문하고 2개월 추가 무료"이고 버튼은 앱 밖 설문(https://docs.google.com/forms/d/e/1FAIpQLSfDECSvuqPCDVEjNG6Q3XMoFDebftYHRZZs1HuCAxfdn8o_Ng/viewform?usp=dialog)으로 연결된다. 테스터는 1개월 무료이고, 설문에 참여한 사람은 2개월을 더 받는다.
 
 튜토리얼 카드:
 

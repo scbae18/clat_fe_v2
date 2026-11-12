@@ -39,6 +39,7 @@ export interface BulkCreateStudentDto {
 export interface BulkUploadResult {
   success_count: number
   fail_count: number
+  limit_skipped_count?: number
   errors: Array<{ row: number; reason: string }>
 }
 

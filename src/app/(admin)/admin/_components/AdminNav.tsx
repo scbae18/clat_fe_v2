@@ -12,6 +12,7 @@ import {
   ScrollText,
   ScanSearch,
   Bell,
+  CreditCard,
 } from 'lucide-react'
 import LogoSymbol from '@/assets/logo/logo-symbol.svg'
 import * as styles from '../admin.css'
@@ -24,6 +25,7 @@ const NAV = [
   { href: '/admin/actions', label: '기록', icon: ScrollText },
   { href: '/admin/anomalies', label: '이상 감지', icon: ScanSearch },
   { href: '/admin/notices', label: '안내 알림톡', icon: Bell },
+  { href: '/admin/billing', label: '요금제', icon: CreditCard },
 ] as const
 
 function isActive(pathname: string, href: string, exact?: boolean): boolean {

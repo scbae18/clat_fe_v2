@@ -158,15 +158,11 @@ export function useStudentDashboard(studentId: number) {
 
   const updateStudent = async (data: UpdateStudentDto) => {
     if (!detail) return
-    try {
-      await studentService.updateStudent(detail.id, data)
-      const next = await studentService.getStudent(studentId)
-      setDetail(next)
-      editStudent.close()
-      addToast({ variant: 'success', message: MSG.editStudentOk })
-    } catch {
-      addToast({ variant: 'error', message: MSG.editStudentFail })
-    }
+    await studentService.updateStudent(detail.id, data)
+    const next = await studentService.getStudent(studentId)
+    setDetail(next)
+    editStudent.close()
+    addToast({ variant: 'success', message: MSG.editStudentOk })
   }
 
   const saveMemo = async (memo: string) => {

@@ -68,6 +68,7 @@ export default function Dropdown({
       ref={containerRef}
     >
       <button
+        type="button"
         className={[
           triggerStyle,
           noBorder ? triggerNoBorderStyle : '',

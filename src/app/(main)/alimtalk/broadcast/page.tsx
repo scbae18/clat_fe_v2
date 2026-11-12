@@ -343,7 +343,10 @@ export default function AlimtalkBroadcastPage() {
         setLengthOpen(true)
         return
       }
-      error('발송에 실패했어요. 발송 내역에서 결과를 확인해 주세요.')
+      const apiMessage = isAxiosError(err)
+        ? (err.response?.data as { error?: { message?: string } } | undefined)?.error?.message
+        : undefined
+      error(apiMessage ?? '발송에 실패했어요. 발송 내역에서 결과를 확인해 주세요.')
     } finally {
       setSending(false)
       setSendProgress(null)

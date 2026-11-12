@@ -148,6 +148,7 @@ export default function StudentTable({
               >
                 <td className={`${tdStyle} ${stickyNameCellStyle}`} title={student.name}>
                   {student.name}
+                  {student.locked ? ' · 잠김' : ''}
                 </td>
                 <td className={tdPhoneStyle} title={student.phone}>
                   {student.phone}

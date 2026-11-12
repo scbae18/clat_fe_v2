@@ -5,6 +5,7 @@ import { Suspense, useState, useEffect, useMemo } from 'react'
 import Text from '@/components/common/Text'
 import useDisclosure from '@/hooks/useDisclosure'
 import { classService, type Class } from '@/services/class'
+import { apiErrorMessage } from '@/lib/api/http'
 import Button from '@/components/common/Button'
 import PlusIcon from '@/assets/icons/icon-plus.svg'
 import UploadIcon from '@/assets/icons/icon-upload.svg'
@@ -268,15 +269,20 @@ function ManagementContent() {
                 addToast({
                   variant: 'success',
                   message:
-                    bulkRes.fail_count > 0
-                      ? `${bulkRes.success_count} ok, ${bulkRes.fail_count} failed`
-                      : `${bulkRes.success_count} students added`,
+                    (bulkRes.limit_skipped_count ?? 0) > 0
+                      ? `${bulkRes.success_count}명을 등록했고, 한도가 남아 있지 않아 ${bulkRes.limit_skipped_count}명은 넣지 않았습니다.`
+                      : bulkRes.fail_count > 0
+                        ? `${bulkRes.success_count} ok, ${bulkRes.fail_count} failed`
+                        : `${bulkRes.success_count} students added`,
                 })
                 studentService
                   .getStudents()
                   .then((r) => setStudents(sortStudentsByNameKo(r.data)))
-              } catch {
-                addToast({ variant: 'error', message: '엑셀 업로드에 실패했어요.' })
+              } catch (err) {
+                addToast({
+                  variant: 'error',
+                  message: apiErrorMessage(err, '엑셀 업로드에 실패했어요.'),
+                })
               }
             }}
           />
@@ -284,15 +290,9 @@ function ManagementContent() {
             isOpen={addStudent.isOpen}
             onClose={addStudent.close}
             onConfirm={async (data) => {
-              try {
-                const newStudent = await studentService.createStudent(data)
-                setStudents((prev) => sortStudentsByNameKo([...prev, newStudent]))
-                addStudent.close()
-                addToast({ variant: 'success', message: '학생이 등록됐어요.' })
-              } catch (err) {
-                console.error('학생 등록 실패', err)
-                addToast({ variant: 'error', message: '학생 등록에 실패했어요.' })
-              }
+              const newStudent = await studentService.createStudent(data)
+              setStudents((prev) => sortStudentsByNameKo([...prev, newStudent]))
+              addToast({ variant: 'success', message: '학생이 등록됐어요.' })
             }}
           />
           <StudentNameSearchBar

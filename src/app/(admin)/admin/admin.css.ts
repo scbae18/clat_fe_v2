@@ -1074,10 +1074,30 @@ export const field = style({
   gap: '6px',
 })
 
+export const fieldSpaced = style([
+  field,
+  {
+    marginTop: '16px',
+  },
+])
+
 export const fieldLabel = style({
   fontSize: '14px',
   fontWeight: 600,
   color: vars.color.gray[700],
+})
+
+export const select = style({
+  width: '100%',
+  padding: '10px 16px',
+  borderRadius: '8px',
+  border: `1px solid ${colors.gray100}`,
+  backgroundColor: colors.white,
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: tracking,
+  color: colors.gray700,
 })
 
 export const formBody = style({

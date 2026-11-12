@@ -159,9 +159,9 @@ export default function AddStudentFormModal({
           size="lg"
           fullWidth
           disabled={!form.canSubmit}
-          onClick={form.handleConfirm}
+          onClick={() => void form.handleConfirm()}
         >
-          {mode === 'add' ? '등록하기' : '저장'}
+          {form.submitting ? '저장 중…' : mode === 'add' ? '등록하기' : '저장'}
         </Button>
       </div>
     </Modal>

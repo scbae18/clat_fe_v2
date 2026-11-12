@@ -89,7 +89,7 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
             classLabel={dash.classLabel}
             onEdit={dash.editStudent.open}
           />
-          <StudentMemoCard memo={detail.memo ?? ''} onSave={dash.saveMemo} />
+          <StudentMemoCard memo={detail.memo ?? ''} onSave={dash.saveMemo} locked={detail.locked} />
           <StudentStatsRow
             monthlyCompletionPct={dash.monthlyCompletionPct}
             monthlyAttendancePct={dash.monthlyAttendancePct}
