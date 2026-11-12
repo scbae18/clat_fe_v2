@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Button from '@/components/common/Button'
@@ -8,7 +9,7 @@ import Text from '@/components/common/Text'
 import PlanCompare from '@/components/billing/PlanCompare'
 import { apiErrorMessage } from '@/lib/api/http'
 import { isEnforcedBilling, moneyLabel, resetDayLabel } from '@/lib/billingView'
-import { billingService } from '@/services/billing'
+import { billingService, type BillingInvoice } from '@/services/billing'
 import useToast from '@/hooks/useToast'
 import * as styles from './billing.css'
 
@@ -20,6 +21,12 @@ export default function BillingPage() {
   const meQuery = useQuery({
     queryKey: ['billing', 'me'],
     queryFn: () => billingService.me(),
+    refetchOnWindowFocus: false,
+  })
+  const invoicesQuery = useQuery({
+    queryKey: ['billing', 'invoices'],
+    queryFn: () => billingService.invoices(),
+    enabled: isEnforcedBilling(meQuery.data),
     refetchOnWindowFocus: false,
   })
   const plansQuery = useQuery({
@@ -80,7 +87,7 @@ export default function BillingPage() {
     <div className={styles.pageRoot}>
       <h1 className={styles.pageTitle}>요금제</h1>
       <p className={styles.pageDesc}>
-        사용량과 다섯 요금제를 한눈에 볼 수 있어요. 카드 결제와 요금제 변경은 곧 연결돼요.
+        사용량과 다섯 요금제를 한눈에 볼 수 있어요. 첫 결제는 여기서 하고, 요금제 변경·해지·환불은 다음 단계에서 연결돼요.
       </p>
 
       <div className={styles.cardStack}>
@@ -119,6 +126,21 @@ export default function BillingPage() {
           <Text variant="bodyMd" color="gray500">
             {resetDayLabel(me.messages.resets_at)}에 다시 채워져요.
           </Text>
+        </section>
+
+        <section className={styles.card}>
+          <div>
+            <h2 className={styles.sectionTitle}>결제</h2>
+            <p className={styles.sectionDesc}>
+              {me.card
+                ? `${me.card.company} ${me.card.last4}`
+                : '등록된 카드가 없어요.'}
+              {me.billing
+                ? ` · 다음 결제 ${resetDayLabel(me.billing.next_billing_at)} ${moneyLabel(me.billing.next_amount)}`
+                : ''}
+            </p>
+          </div>
+          <InvoiceList rows={invoicesQuery.data ?? []} />
         </section>
 
         <section className={styles.card}>
@@ -168,6 +190,27 @@ export default function BillingPage() {
               recommendedCode={plansQuery.data.recommended_plan_code}
             />
           ) : null}
+          {me.status === 'FREE' && plansQuery.data ? (
+            <div className={styles.noticeActions}>
+              {plansQuery.data.plans
+                .filter((plan) => plan.monthly_price > 0)
+                .map((plan) => (
+                  <Link key={plan.code} href={`/billing/checkout?plan=${plan.code}`}>
+                    <Button
+                      variant={plan.code === plansQuery.data.recommended_plan_code ? 'primary' : 'secondary'}
+                      size="sm"
+                    >
+                      {plan.name} 결제
+                    </Button>
+                  </Link>
+                ))}
+            </div>
+          ) : null}
+          {me.status === 'GRANT' ? (
+            <Text variant="bodyMd" color="gray500">
+              무료 적용 중에는 직접 요금제를 바꿀 수 없어요.
+            </Text>
+          ) : null}
         </section>
       </div>
 
@@ -183,6 +226,42 @@ export default function BillingPage() {
         }
         confirmLabel="켜기"
       />
+    </div>
+  )
+}
+
+function invoiceStatus(status: string): string {
+  if (status === 'PAID') return '결제됨'
+  if (status === 'FAILED') return '거절됨'
+  if (status === 'PENDING') return '확인 중'
+  return status
+}
+
+function InvoiceList({ rows }: { rows: BillingInvoice[] }) {
+  if (rows.length === 0) {
+    return (
+      <Text variant="bodyMd" color="gray500">
+        결제 내역이 없어요.
+      </Text>
+    )
+  }
+  return (
+    <div className={styles.cardStack}>
+      {rows.map((row) => (
+        <div key={row.id} className={styles.sectionHead}>
+          <Text variant="bodyMd">
+            {row.plan_name} · {moneyLabel(row.total_amount)} · {invoiceStatus(row.status)}
+            {row.paid_at ? ` · ${resetDayLabel(row.paid_at)}` : ''}
+          </Text>
+          {row.receipt_url ? (
+            <a href={row.receipt_url} target="_blank" rel="noreferrer">
+              <Button variant="ghost" size="sm">
+                영수증
+              </Button>
+            </a>
+          ) : null}
+        </div>
+      ))}
     </div>
   )
 }

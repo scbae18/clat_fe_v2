@@ -270,6 +270,20 @@ export const admin = {
     return unwrap(data)
   },
 
+  async pullBillingPeriod(userId: number) {
+    const { data } = await axiosInstance.post<Envelope<{ pulled: boolean }>>(
+      `/admin/billing/users/${userId}/pull-period`,
+    )
+    return unwrap(data)
+  },
+
+  async runBillingRenewal(userId: number) {
+    const { data } = await axiosInstance.post<Envelope<{ charged: number }>>(
+      `/admin/billing/users/${userId}/run-renewal`,
+    )
+    return unwrap(data)
+  },
+
   async setBillingEarly(userId: number, enforcedEarly: boolean) {
     const { data } = await axiosInstance.patch<
       Envelope<{ user_id: number; enforced_early: boolean }>
@@ -278,7 +292,7 @@ export const admin = {
   },
 }
 
-export type AdminGrantPlanCode = 'BASIC' | 'STANDARD' | 'PLUS' | 'PRO'
+export type AdminGrantPlanCode = 'FREE' | 'BASIC' | 'STANDARD' | 'PLUS' | 'PRO'
 
 export type AdminBillingSettings = {
   enforced: boolean
@@ -330,5 +344,7 @@ export type AdminBillingGrantList = {
 
 export type AdminBillingGrantCreateResult = {
   created: number[]
+  replaced: number[]
+  freed: number[]
   skipped: Array<{ user_id: number; reason: string }>
 }

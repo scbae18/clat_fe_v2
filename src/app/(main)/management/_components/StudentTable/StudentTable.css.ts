@@ -1,4 +1,4 @@
-import { style } from '@vanilla-extract/css'
+import { globalStyle, style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
 import { phoneTextRules, truncateRules } from '@/styles/tokens/textOverflow'
@@ -42,6 +42,32 @@ export const trSelectedStyle = style({
       backgroundColor: colors.primary100,
     },
   },
+})
+
+export const trClickableStyle = style({
+  cursor: 'pointer',
+})
+
+export const trLockedStyle = style({
+  backgroundColor: colors.gray50,
+  pointerEvents: 'none',
+  selectors: {
+    '&:hover': {
+      backgroundColor: colors.gray50,
+    },
+  },
+})
+
+globalStyle(`${trLockedStyle} td`, {
+  color: colors.gray300,
+})
+
+globalStyle(`${trLockedStyle} td span`, {
+  color: colors.gray300,
+})
+
+export const lockedProgressBarStyle = style({
+  backgroundColor: colors.gray200,
 })
 
 export const thStyle = style({
@@ -112,6 +138,12 @@ export const stickyNameCellStyle = style({
         },
         [`${trSelectedStyle}:hover &`]: {
           backgroundColor: colors.primary100,
+        },
+        [`${trLockedStyle} &`]: {
+          backgroundColor: colors.gray50,
+        },
+        [`${trLockedStyle}:hover &`]: {
+          backgroundColor: colors.gray50,
         },
       },
     },
@@ -184,6 +216,7 @@ export const deleteButtonStyle = style({
   alignItems: 'center',
   color: colors.gray300,
   marginLeft: 'auto',
+  pointerEvents: 'auto',
   flexShrink: 0,
   '@media': {
     [media.phone]: {

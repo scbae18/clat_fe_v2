@@ -26,6 +26,9 @@ import {
   remainingTextStyle,
   deleteButtonStyle,
   trSelectedStyle,
+  trClickableStyle,
+  trLockedStyle,
+  lockedProgressBarStyle,
 } from './StudentTable.css'
 
 interface MiddleColumn {
@@ -129,8 +132,11 @@ export default function StudentTable({
             const grade = student.grade?.trim()
             const schoolLabel = grade ? `${school} · ${grade}` : school
             const parentPhoneLabel = listParentPhones(student).join('\n')
-            const isSelected = selectionMode && selectedIds.includes(student.id)
+            const isLocked = Boolean(student.locked)
+            const isSelected = selectionMode && !isLocked && selectedIds.includes(student.id)
+            const canClickRow = !isLocked && (selectionMode || Boolean(onRowClick))
             const handleRowClick = () => {
+              if (isLocked) return
               if (selectionMode) {
                 onToggleSelect?.(student.id)
                 return
@@ -141,14 +147,20 @@ export default function StudentTable({
             return (
               <tr
                 key={student.id}
-                className={`${trStyle}${isSelected ? ` ${trSelectedStyle}` : ''}`}
-                onClick={handleRowClick}
-                style={{ cursor: selectionMode || onRowClick ? 'pointer' : 'default' }}
+                className={[
+                  trStyle,
+                  isLocked ? trLockedStyle : '',
+                  isSelected ? trSelectedStyle : '',
+                  canClickRow ? trClickableStyle : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                onClick={canClickRow ? handleRowClick : undefined}
+                aria-disabled={isLocked || undefined}
                 data-tour={tour.studentId === student.id ? 'tutorial-student' : undefined}
               >
                 <td className={`${tdStyle} ${stickyNameCellStyle}`} title={student.name}>
                   {student.name}
-                  {student.locked ? ' · 잠김' : ''}
                 </td>
                 <td className={tdPhoneStyle} title={student.phone}>
                   {student.phone}
@@ -171,12 +183,16 @@ export default function StudentTable({
                   <div className={completionCellStyle}>
                     <div className={progressTrackStyle}>
                       <div
-                        className={progressBarStyle}
-                        style={{ width: `${completionPct}%`, backgroundColor: color }}
+                        className={`${progressBarStyle}${isLocked ? ` ${lockedProgressBarStyle}` : ''}`}
+                        style={
+                          isLocked
+                            ? { width: `${completionPct}%` }
+                            : { width: `${completionPct}%`, backgroundColor: color }
+                        }
                       />
                     </div>
                     <span className={percentTextStyle}>{completionPct}%</span>
-                    <span className={remainingTextStyle} style={{ color }}>
+                    <span className={remainingTextStyle} style={isLocked ? undefined : { color }}>
                       {student.completion_rate === 1
                         ? '모두 완료'
                         : student.total_incomplete_items == null

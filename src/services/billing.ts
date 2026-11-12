@@ -36,8 +36,30 @@ export type BillingMe =
         resets_at: string
       }
       grant: { plan_name: string; months: number; ends_at: string | null } | null
+      card: { company: string; last4: string } | null
+      customer_key: string | null
+      billing: {
+        anchor_day: number | null
+        next_billing_at: string
+        next_amount: number
+      } | null
       banners: Array<{ type: string; lesson_ids?: number[] }>
     }
+
+export type BillingInvoice = {
+  id: number
+  kind: string
+  plan_code: string
+  plan_name: string
+  plan_amount: number
+  overage_count: number
+  overage_amount: number
+  carried_amount: number
+  total_amount: number
+  status: string
+  paid_at: string | null
+  receipt_url: string | null
+}
 
 export type BillingPlans = {
   plans: Array<{
@@ -74,6 +96,27 @@ export const billingService = {
   async plans() {
     const { data } = await axiosInstance.get<Envelope<BillingPlans>>('/billing/plans')
     return data.data
+  },
+
+  async registerCard(authKey: string, customerKey: string) {
+    const { data } = await axiosInstance.post<Envelope<{ card: { company: string; last4: string } }>>(
+      '/billing/card',
+      { auth_key: authKey, customer_key: customerKey },
+    )
+    return data.data
+  },
+
+  async subscribe(planCode: string) {
+    const { data } = await axiosInstance.post<Envelope<BillingMe>>('/billing/subscribe', {
+      plan_code: planCode,
+      agreed: true,
+    })
+    return data.data
+  },
+
+  async invoices() {
+    const { data } = await axiosInstance.get<Envelope<{ invoices: BillingInvoice[] }>>('/billing/invoices')
+    return data.data.invoices
   },
 
   async setOverage(enabled: boolean, agreed?: boolean) {

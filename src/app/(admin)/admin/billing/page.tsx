@@ -18,10 +18,19 @@ import { formatMdHm } from '../_lib/format'
 import * as styles from '../admin.css'
 
 const PLANS: Array<{ code: AdminGrantPlanCode; label: string }> = [
+  { code: 'FREE', label: '무료 · 학생 10 · 30통 · 0원' },
   { code: 'BASIC', label: '베이직 · 학생 30 · 500통 · 19,900원' },
   { code: 'STANDARD', label: '스탠다드 · 학생 80 · 1,300통 · 29,900원' },
   { code: 'PLUS', label: '플러스 · 학생 120 · 2,000통 · 39,900원' },
   { code: 'PRO', label: '프로 · 학생 무제한 · 2,500통 · 49,900원' },
+]
+
+const ROW_PLANS: Array<{ value: AdminGrantPlanCode; label: string }> = [
+  { value: 'FREE', label: '무료' },
+  { value: 'BASIC', label: '베이직' },
+  { value: 'STANDARD', label: '스탠다드' },
+  { value: 'PLUS', label: '플러스' },
+  { value: 'PRO', label: '프로' },
 ]
 
 const PLAN_LABEL: Record<string, string> = {
@@ -40,9 +49,13 @@ function planLabel(code: string | null): string {
 function grantLabel(status: string): string {
   if (status === 'PENDING') return '대기'
   if (status === 'ACTIVE') return '진행 중'
-  if (status === 'REVOKED') return '이번 기간까지'
+  if (status === 'REVOKED') return '취소됨'
   if (status === 'ENDED') return '종료'
   return status
+}
+
+function isPlanCode(code: string | null | undefined): code is AdminGrantPlanCode {
+  return code === 'FREE' || code === 'BASIC' || code === 'STANDARD' || code === 'PLUS' || code === 'PRO'
 }
 
 function parseUserIds(raw: string): number[] {
@@ -65,6 +78,7 @@ export default function AdminBillingPage() {
   const [busy, setBusy] = useState(false)
   const [confirm, setConfirm] = useState<'on' | 'off' | null>(null)
   const [revokeId, setRevokeId] = useState<number | null>(null)
+  const [rowPlan, setRowPlan] = useState<Record<number, AdminGrantPlanCode>>({})
 
   const precheckQuery = useQuery({
     queryKey: ['admin', 'billing', 'precheck', search],
@@ -109,7 +123,7 @@ export default function AdminBillingPage() {
       error('계정 번호를 입력하세요.')
       return
     }
-    if (!Number.isInteger(monthCount) || monthCount < 1 || monthCount > 36) {
+    if (planCode !== 'FREE' && (!Number.isInteger(monthCount) || monthCount < 1 || monthCount > 36)) {
       error('개월 수는 1부터 36까지입니다.')
       return
     }
@@ -117,19 +131,46 @@ export default function AdminBillingPage() {
       const result = await admin.createBillingGrants({
         user_ids: ids,
         plan_code: planCode,
-        months: monthCount,
+        months: planCode === 'FREE' ? 1 : monthCount,
         memo: memo.trim() || undefined,
       })
       if (result.skipped.length > 0) {
-        error(
-          result.skipped.map((row) => `${row.user_id}번: ${row.reason}`).join(' '),
-        )
+        error(result.skipped.map((row) => `${row.user_id}번: ${row.reason}`).join(' '))
       }
-      if (result.created.length > 0) {
-        success(`${result.created.length}건 적용했습니다.`)
+      const notes = [
+        result.created.length > 0 ? `${result.created.length}건 적용했습니다.` : '',
+        result.freed.length > 0 ? `${result.freed.length}건을 무료로 바꿨습니다.` : '',
+        result.replaced.length > 0 ? '이전 적용은 바로 끊겼습니다.' : '',
+      ].filter(Boolean)
+      if (notes.length > 0) {
+        success(notes.join(' '))
         setUserIds('')
         setMemo('')
       }
+    })
+  }
+
+  const changeAccountPlan = (userId: number, name: string, code: AdminGrantPlanCode) => {
+    const monthCount = Number(months)
+    if (code !== 'FREE' && (!Number.isInteger(monthCount) || monthCount < 1 || monthCount > 36)) {
+      error('개월 수는 1부터 36까지입니다.')
+      return
+    }
+    void run(async () => {
+      const result = await admin.createBillingGrants({
+        user_ids: [userId],
+        plan_code: code,
+        months: code === 'FREE' ? 1 : monthCount,
+      })
+      if (result.skipped.length > 0) {
+        error(result.skipped.map((row) => `${row.user_id}번: ${row.reason}`).join(' '))
+        return
+      }
+      success(
+        code === 'FREE'
+          ? `${name} 계정을 바로 무료로 바꿨습니다.`
+          : `${name} 요금제를 바꿨습니다. 이전 적용은 끊겼습니다.`,
+      )
     })
   }
 
@@ -231,7 +272,7 @@ export default function AdminBillingPage() {
               적용하기
             </Button>
             <Text variant="bodyMd" color="gray500" as="span">
-              한도가 꺼져 있으면 대기입니다. 그 계정을 미리 켜거나 전체를 켜면 그때 시작하고, 선생님에게 한 번 안내가 뜹니다.
+              이미 적용 중인 계정은 이전 요금제를 바로 끊고 바꿉니다. 무료는 그 순간 무료 한도가 됩니다. 유료 요금제의 개월 수는 위 칸을 씁니다.
             </Text>
           </div>
         </form>
@@ -281,7 +322,15 @@ export default function AdminBillingPage() {
                 </tr>
               </thead>
               <tbody>
-                {(data?.rows ?? []).map((row) => (
+                {(data?.rows ?? []).map((row) => {
+                  const currentCode =
+                    row.grant &&
+                    (row.grant.status === 'PENDING' || row.grant.status === 'ACTIVE') &&
+                    isPlanCode(row.grant.plan_code)
+                      ? row.grant.plan_code
+                      : 'FREE'
+                  const selectedPlan = rowPlan[row.user_id] ?? currentCode
+                  return (
                   <tr key={row.user_id}>
                     <td className={styles.td}>{row.user_id}</td>
                     <td className={styles.td}>
@@ -294,9 +343,34 @@ export default function AdminBillingPage() {
                     <td className={styles.td}>{row.this_month_reserved}</td>
                     <td className={styles.td}>{planLabel(row.recommended_plan_code)}</td>
                     <td className={styles.td}>
-                      {row.grant
-                        ? `${planLabel(row.grant.plan_code)} ${row.grant.months}개월 · ${grantLabel(row.grant.status)}`
-                        : '-'}
+                      <div className={styles.stack}>
+                        <span>
+                          {row.grant
+                            ? `${planLabel(row.grant.plan_code)} ${row.grant.months}개월 · ${grantLabel(row.grant.status)}`
+                            : '적용 없음'}
+                        </span>
+                        <Dropdown
+                          fullWidth
+                          value={selectedPlan}
+                          onChange={(value) =>
+                            setRowPlan((prev) => ({
+                              ...prev,
+                              [row.user_id]: value as AdminGrantPlanCode,
+                            }))
+                          }
+                          options={ROW_PLANS}
+                        />
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          disabled={busy}
+                          onClick={() =>
+                            changeAccountPlan(row.user_id, row.name, selectedPlan)
+                          }
+                        >
+                          변경
+                        </Button>
+                      </div>
                     </td>
                     <td className={styles.td}>{row.will_lock_count}</td>
                     <td className={styles.td}>
@@ -321,9 +395,48 @@ export default function AdminBillingPage() {
                           {row.enforced_early ? '미리 켜기 끄기' : '이 계정만 적용'}
                         </Button>
                       )}
+                      {row.subscription_status === 'ACTIVE' ? (
+                        <div className={styles.stack}>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            disabled={busy}
+                            onClick={() =>
+                              void run(async () => {
+                                const res = await admin.pullBillingPeriod(row.user_id)
+                                success(
+                                  res.pulled
+                                    ? `${row.name} 결제일을 지금으로 당겼습니다. 결제는 아직입니다.`
+                                    : '이미 결제 시각이 지났습니다.',
+                                )
+                              })
+                            }
+                          >
+                            결제일 당기기
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            disabled={busy}
+                            onClick={() =>
+                              void run(async () => {
+                                const res = await admin.runBillingRenewal(row.user_id)
+                                success(
+                                  res.charged > 0
+                                    ? `${row.name} 다음 결제를 실행했습니다.`
+                                    : '지금 결제할 금액이 없습니다.',
+                                )
+                              })
+                            }
+                          >
+                            결제 실행
+                          </Button>
+                        </div>
+                      ) : null}
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -420,14 +533,14 @@ export default function AdminBillingPage() {
             success(
               result.status === 'DELETED'
                 ? '대기 중인 적용을 취소했습니다.'
-                : '이번 기간이 끝나면 무료로 돌아갑니다.',
+                : '바로 무료로 바꿨습니다.',
             )
           })
         }}
         title="이 적용을 취소할까요?"
         descriptions={[
           '아직 시작 전이면 바로 없어집니다.',
-          '이미 시작된 적용은 이번 기간이 끝날 때까지 그 요금제 한도를 유지합니다.',
+          '이미 시작된 적용도 지금 바로 무료 한도로 돌아갑니다.',
         ]}
         confirmLabel="취소하기"
         confirmVariant="danger"
