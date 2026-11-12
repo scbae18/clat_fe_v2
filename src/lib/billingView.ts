@@ -101,6 +101,9 @@ export function quotaNotice(me: EnforcedBilling, needed: number): {
 }
 
 export function bannerText(type: string): string {
+  if (type === 'PAYMENT_FAILED') return '결제가 되지 않았어요. 알림톡은 월 30통까지예요.'
+  if (type === 'PAST_DUE_EXPIRED') return '결제가 되지 않아 무료 요금제로 바뀌었어요.'
+  if (type === 'BILLING_TOMORROW') return '내일 요금이 결제돼요.'
   if (type === 'SCHEDULE_QUOTA_BLOCKED') return '알림톡이 모자라 예약 발송을 보내지 못했어요.'
   if (type === 'QUOTA_80') return '이번 달 알림톡을 거의 다 썼어요.'
   if (type === 'QUOTA_REACHED') return '이번 달 알림톡을 다 썼어요.'

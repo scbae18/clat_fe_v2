@@ -39,6 +39,7 @@ export type BillingMe =
       card: { company: string; last4: string } | null
       customer_key: string | null
       pending_benefit: { months: number; plan_code: string | null; plan_name: string | null } | null
+      past_due_until: string | null
       billing: {
         anchor_day: number | null
         next_billing_at: string
@@ -47,7 +48,7 @@ export type BillingMe =
         cancel_at_period_end: boolean
         pending_plan_code: string | null
       } | null
-      banners: Array<{ type: string; lesson_ids?: number[] }>
+      banners: Array<{ type: string; lesson_ids?: number[]; past_due_until?: string; amount?: number }>
     }
 
 export type BillingInvoice = {
@@ -127,6 +128,11 @@ export const billingService = {
       '/billing/card',
       { auth_key: authKey, customer_key: customerKey },
     )
+    return data.data
+  },
+
+  async retryPastDue() {
+    const { data } = await axiosInstance.post<Envelope<BillingMe>>('/billing/retry')
     return data.data
   },
 

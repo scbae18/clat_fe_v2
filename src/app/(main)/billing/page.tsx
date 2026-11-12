@@ -135,7 +135,7 @@ export default function BillingPage() {
         )
       } else if (planAction.kind === 'cancel') {
         await billingService.scheduleCancel()
-        success('이번 결제 기간이 끝나면 무료로 돌아가요.')
+        success(me.status === 'PAST_DUE' ? '무료로 바꿨어요.' : '이번 결제 기간이 끝나면 무료로 돌아가요.')
       } else if (planAction.kind === 'undo-cancel') {
         await billingService.undoCancel()
         success('해지 예약을 취소했어요.')
@@ -222,7 +222,41 @@ export default function BillingPage() {
     }
   }
 
-  const planCopy = planActionCopy(planAction, me.billing?.next_billing_at ?? null)
+  const retryPayment = async () => {
+    setBusy(true)
+    try {
+      await billingService.retryPastDue()
+      success('결제됐어요. 오늘이 새 결제일이에요.')
+      await queryClient.invalidateQueries({ queryKey: ['billing'] })
+    } catch (err) {
+      error(apiErrorMessage(err, '다시 결제하지 못했어요.'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const changeCard = async () => {
+    if (!me.customer_key) {
+      error('결제 정보를 만들지 못했어요. 화면을 다시 열어 주세요.')
+      return
+    }
+    const clientKey = process.env.NEXT_PUBLIC_TOSS_PAYMENTS_CLIENT_KEY
+    if (!clientKey) {
+      error('결제 키가 없습니다.')
+      return
+    }
+    sessionStorage.removeItem('clat.billing.plan')
+    const toss = await loadTossPayments(clientKey)
+    await toss.payment({ customerKey: me.customer_key }).requestBillingAuth({
+      method: 'CARD',
+      successUrl: `${window.location.origin}/billing/card/success`,
+      failUrl: `${window.location.origin}/billing/card/fail`,
+      customerEmail: user?.email,
+      customerName: user?.name,
+    })
+  }
+
+  const planCopy = planActionCopy(planAction, me.billing?.next_billing_at ?? null, me.status)
   const selectedPlan =
     payPanel?.mode === 'subscribe'
       ? plansQuery.data?.plans.find((plan) => plan.code === payPanel.code) ?? null
@@ -270,7 +304,9 @@ export default function BillingPage() {
             <div>
               <h2 className={styles.sectionTitle}>{me.plan.name}</h2>
               <p className={styles.sectionDesc}>
-                {me.status === 'GRANT'
+                {me.status === 'PAST_DUE'
+                  ? '결제가 되지 않아 알림톡과 새 학생 등록만 무료 한도예요.'
+                  : me.status === 'GRANT'
                   ? `무료 적용 · ${me.grant?.ends_at ? `${resetDayLabel(me.grant.ends_at)}까지` : ''}`
                   : me.plan.monthly_price > 0
                     ? `월 ${moneyLabel(me.plan.monthly_price)} · 부가세 포함`
@@ -321,6 +357,33 @@ export default function BillingPage() {
             </p>
           </div>
           <InvoiceList rows={invoicesQuery.data ?? []} />
+          {me.status === 'PAST_DUE' ? (
+            <div className={styles.payPanel}>
+              <p className={styles.sectionDesc}>
+                결제가 되지 않았어요. 결제될 때까지 알림톡은 월 30통, 새 학생은 10명까지예요.
+                {me.past_due_until
+                  ? ` ${resetDayLabel(me.past_due_until)}까지 결제되지 않으면 무료로 바뀌고, 그때 한도를 넘는 학생이 잠겨요.`
+                  : ''}
+              </p>
+              <div className={styles.noticeActions}>
+                <Button type="button" size="sm" disabled={busy || !me.card} onClick={() => void retryPayment()}>
+                  다시 결제
+                </Button>
+                <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => void changeCard()}>
+                  카드 바꾸기
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="danger"
+                  disabled={busy}
+                  onClick={() => setPlanAction({ kind: 'cancel' })}
+                >
+                  해지하기
+                </Button>
+              </div>
+            </div>
+          ) : null}
           {me.status === 'ACTIVE' ? (
             <form className={styles.payPanel} onSubmit={(event) => void applyActiveCode(event)}>
               <p className={styles.sectionDesc}>
@@ -566,6 +629,7 @@ function planActionCopy(
     | { kind: 'undo-down' }
     | null,
   periodEnd: string | null,
+  status: string | null,
 ): { title: string; descriptions: string[]; confirmLabel: string } {
   if (!action || action.kind === 'undo-down') {
     return {
@@ -579,6 +643,16 @@ function planActionCopy(
       title: '해지를 취소할까요?',
       descriptions: ['다음 결제일에도 지금 요금제로 결제돼요.'],
       confirmLabel: '해지 취소',
+    }
+  }
+  if (action.kind === 'cancel' && status === 'PAST_DUE') {
+    return {
+      title: '요금제를 해지할까요?',
+      descriptions: [
+        '바로 무료로 바뀌고, 한도를 넘는 학생은 잠겨요.',
+        '못 받은 초과 사용이 있으면 다음에 결제할 때 같이 내요.',
+      ],
+      confirmLabel: '해지하기',
     }
   }
   if (action.kind === 'cancel') {

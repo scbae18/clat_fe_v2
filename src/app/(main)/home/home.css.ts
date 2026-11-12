@@ -14,6 +14,27 @@ export const pageStyle = style({
   },
 })
 
+export const billingNoticeStyle = style({
+  background: colors.gray50,
+  border: `1px solid ${colors.gray200}`,
+  borderRadius: '20px',
+  padding: '16px 20px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+})
+
+export const billingNoticeTextStyle = style({
+  ...fontStyles.bodyMd,
+  color: colors.gray900,
+  lineHeight: '1.5',
+})
+
+export const billingNoticeLinkStyle = style({
+  color: colors.primary500,
+  ...fontStyles.bodyMd,
+})
+
 export const bannerStyle = style({
   background: `radial-gradient(circle at right center, ${colors.primary400} 0%, transparent 75%), ${colors.primary100}`,
   borderRadius: '20px',

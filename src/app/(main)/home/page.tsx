@@ -8,6 +8,9 @@ import giftBox from '@/assets/images/gift-box.png'
 import envelope from '@/assets/images/envelope.png'
 import BookOpen from '@/assets/icons/icon-book-open.svg'
 import ChevronRight from '@/assets/icons/icon-chevron-right.svg'
+import { useQuery } from '@tanstack/react-query'
+import { isEnforcedBilling, resetDayLabel } from '@/lib/billingView'
+import { billingService } from '@/services/billing'
 import HomeUpdateSection from './_components/HomeUpdateSection/HomeUpdateSection'
 import HomeQuickMenu from './_components/HomeQuickMenu/HomeQuickMenu'
 import * as styles from './home.css'
@@ -31,8 +34,40 @@ const GUIDE_MANUALS = [
 ]
 
 export default function HomePage() {
+  const meQuery = useQuery({
+    queryKey: ['billing', 'me'],
+    queryFn: () => billingService.me(),
+    refetchOnWindowFocus: false,
+    retry: false,
+  })
+  const me = meQuery.data
+  const failed = isEnforcedBilling(me) ? me.banners.find((banner) => banner.type === 'PAYMENT_FAILED') : null
+  const expired = isEnforcedBilling(me) ? me.banners.some((banner) => banner.type === 'PAST_DUE_EXPIRED') : false
+  const until = failed?.past_due_until ?? (isEnforcedBilling(me) ? me.past_due_until : null)
+
   return (
     <div className={styles.pageStyle}>
+      {failed ? (
+        <div className={styles.billingNoticeStyle}>
+          <p className={styles.billingNoticeTextStyle}>
+            결제가 되지 않았어요. 결제될 때까지 알림톡은 월 30통까지 보낼 수 있어요.
+            {until ? ` ${resetDayLabel(until)}까지 결제되지 않으면 무료 요금제로 바뀌어요.` : ''}
+          </p>
+          <Link href="/billing" className={styles.billingNoticeLinkStyle}>
+            결제 수단 확인
+          </Link>
+        </div>
+      ) : null}
+      {expired ? (
+        <div className={styles.billingNoticeStyle}>
+          <p className={styles.billingNoticeTextStyle}>
+            결제가 되지 않아 무료 요금제로 바뀌었어요. 한도를 넘는 학생은 잠겨 있어요.
+          </p>
+          <Link href="/billing" className={styles.billingNoticeLinkStyle}>
+            요금제 보기
+          </Link>
+        </div>
+      ) : null}
       {/* 웰컴 배너 */}
       <div className={styles.bannerStyle}>
         <div className={styles.bannerContentStyle}>
