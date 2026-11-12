@@ -43,6 +43,10 @@ export default function AdminBillingPage() {
   const [busy, setBusy] = useState(false)
   const [confirm, setConfirm] = useState<'on' | 'off' | null>(null)
   const [latestCode, setLatestCode] = useState<string | null>(null)
+  const [refundInvoiceId, setRefundInvoiceId] = useState<number | null>(null)
+  const [refundAmount, setRefundAmount] = useState('')
+  const [refundReason, setRefundReason] = useState('')
+  const [refundAfter, setRefundAfter] = useState<'KEEP' | 'FREE' | 'REVERT_PLAN'>('FREE')
 
   const precheckQuery = useQuery({
     queryKey: ['admin', 'billing', 'precheck', search],
@@ -57,6 +61,11 @@ export default function AdminBillingPage() {
   const salesQuery = useQuery({
     queryKey: ['admin', 'billing', 'sales'],
     queryFn: () => admin.billingSales(),
+    refetchOnWindowFocus: false,
+  })
+  const refundsQuery = useQuery({
+    queryKey: ['admin', 'billing', 'refunds'],
+    queryFn: () => admin.billingRefunds(),
     refetchOnWindowFocus: false,
   })
 
@@ -188,6 +197,7 @@ export default function AdminBillingPage() {
                   <th className={styles.th}>구분</th>
                   <th className={styles.th}>선생님</th>
                   <th className={styles.th}>금액</th>
+                  <th className={styles.th}>환불</th>
                 </tr>
               </thead>
               <tbody>
@@ -200,6 +210,138 @@ export default function AdminBillingPage() {
                       {item.email ? <span className={styles.mutedInline}> · {item.email}</span> : null}
                     </td>
                     <td className={styles.td}>{item.amount == null ? '-' : won(item.amount)}</td>
+                    <td className={styles.td}>
+                      {item.invoice_id != null && item.amount != null ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="danger"
+                          disabled={busy}
+                          onClick={() => {
+                            setRefundInvoiceId(item.invoice_id)
+                            setRefundAmount(String(item.amount))
+                            setRefundReason('')
+                            setRefundAfter('FREE')
+                          }}
+                        >
+                          환불
+                        </Button>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className={styles.card}>
+        <div className={styles.cardHeader}>
+          <h2 className={styles.cardTitle}>환불</h2>
+        </div>
+        {refundInvoiceId == null ? (
+          <p className={styles.empty}>
+            결제 내역에서 환불을 누르면 금액과 이유를 적습니다. 오류나 중복 결제, 요금제 올리기 차액은 여기서 처리합니다.
+          </p>
+        ) : (
+          <form
+            className={styles.formBody}
+            onSubmit={(event) => {
+              event.preventDefault()
+              const amount = Number(refundAmount)
+              if (!Number.isInteger(amount) || amount < 1 || refundReason.trim() === '') {
+                error('금액과 이유를 적어 주세요.')
+                return
+              }
+              void run(async () => {
+                await admin.refundInvoice(refundInvoiceId, {
+                  amount,
+                  reason: refundReason.trim(),
+                  after: refundAfter,
+                })
+                success('환불했습니다.')
+                setRefundInvoiceId(null)
+              })
+            }}
+          >
+            <Text variant="bodyMd" color="gray700" as="p">
+              청구 {refundInvoiceId}
+            </Text>
+            <div className={styles.formGrid}>
+              <label className={styles.field}>
+                <Text variant="labelSm" color="gray700" as="span">
+                  금액
+                </Text>
+                <Input value={refundAmount} onChange={(event) => setRefundAmount(event.target.value)} inputMode="numeric" />
+              </label>
+              <div className={styles.field}>
+                <Text variant="labelSm" color="gray700" as="span">
+                  환불 후
+                </Text>
+                <Dropdown
+                  fullWidth
+                  value={refundAfter}
+                  onChange={(value) => setRefundAfter(value as 'KEEP' | 'FREE' | 'REVERT_PLAN')}
+                  options={[
+                    { value: 'FREE', label: '무료로' },
+                    { value: 'KEEP', label: '구독 유지' },
+                    { value: 'REVERT_PLAN', label: '이전 요금제' },
+                  ]}
+                />
+              </div>
+              <label className={styles.field}>
+                <Text variant="labelSm" color="gray700" as="span">
+                  이유
+                </Text>
+                <Input value={refundReason} onChange={(event) => setRefundReason(event.target.value)} />
+              </label>
+            </div>
+            <div className={styles.formActions}>
+              <Button type="submit" variant="danger" disabled={busy}>
+                환불하기
+              </Button>
+              <Button type="button" variant="secondary" disabled={busy} onClick={() => setRefundInvoiceId(null)}>
+                닫기
+              </Button>
+            </div>
+          </form>
+        )}
+        {refundsQuery.isLoading ? (
+          <p className={styles.loading}>환불을 불러오는 중…</p>
+        ) : (refundsQuery.data?.items.length ?? 0) === 0 ? (
+          <p className={styles.empty}>환불 내역이 없습니다.</p>
+        ) : (
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th className={styles.th}>시각</th>
+                  <th className={styles.th}>상태</th>
+                  <th className={styles.th}>선생님</th>
+                  <th className={styles.th}>금액</th>
+                  <th className={styles.th}>근거</th>
+                </tr>
+              </thead>
+              <tbody>
+                {refundsQuery.data?.items.map((row) => (
+                  <tr key={row.id}>
+                    <td className={styles.td}>{formatMdHm(row.created_at)}</td>
+                    <td className={styles.td}>
+                      {row.status === 'DONE' ? '완료' : row.status === 'FAILED' ? '실패' : '처리 중'}
+                    </td>
+                    <td className={styles.td}>
+                      {row.name}
+                      {row.email ? <span className={styles.mutedInline}> · {row.email}</span> : null}
+                    </td>
+                    <td className={styles.td}>{won(row.amount)}</td>
+                    <td className={styles.td}>
+                      {row.reason ?? '-'}
+                      {typeof row.messages === 'number' ? ` · 통수 ${row.messages}` : ''}
+                      {typeof row.max_students === 'number' ? ` · 학생 ${row.max_students}` : ''}
+                    </td>
                   </tr>
                 ))}
               </tbody>

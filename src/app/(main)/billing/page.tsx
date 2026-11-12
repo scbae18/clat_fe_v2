@@ -27,6 +27,7 @@ export default function BillingPage() {
     | { kind: 'undo-down' }
     | null
   >(null)
+  const [refundRow, setRefundRow] = useState<BillingInvoice | null>(null)
   const [payPanel, setPayPanel] = useState<
     | { mode: 'subscribe'; code: string }
     | { mode: 'upgrade'; preview: Extract<PlanPreview, { direction: 'UP' }> }
@@ -356,7 +357,7 @@ export default function BillingPage() {
                 : ''}
             </p>
           </div>
-          <InvoiceList rows={invoicesQuery.data ?? []} />
+          <InvoiceList rows={invoicesQuery.data ?? []} onRefund={setRefundRow} />
           {me.status === 'PAST_DUE' ? (
             <div className={styles.payPanel}>
               <p className={styles.sectionDesc}>
@@ -533,7 +534,7 @@ export default function BillingPage() {
                         해지하면 이번 결제 기간이 끝날 때까지 쓸 수 있고, 그다음 결제는 없어요.
                       </p>
                       <p className={styles.sectionDesc}>
-                        결제일부터 7일 이내이고, 그 기간에 알림톡을 30통 이하로 보냈고 학생이 10명을 넘은 적이 없으면 전액을 돌려받을 수 있어요. 환불 버튼은 아직 연결되지 않았어요.
+                        결제일부터 7일 이내이고, 그 기간에 알림톡을 30통 이하로 보냈으면 결제 내역에서 전액을 돌려받을 수 있어요.
                       </p>
                       <p className={styles.sectionDesc}>
                         상호 클랫 · 전화 010-7324-7708 · 인스타그램 @clat.official. 주소, 사업자등록번호, 통신판매업 신고번호는 등록이 끝나면 여기에 표시돼요.
@@ -616,6 +617,43 @@ export default function BillingPage() {
         descriptions={planCopy.descriptions}
         confirmLabel={planCopy.confirmLabel}
         confirmVariant={planAction?.kind === 'cancel' ? 'danger' : 'primary'}
+      />
+      <ConfirmModal
+        isOpen={refundRow != null}
+        onClose={() => setRefundRow(null)}
+        onConfirm={() => {
+          if (!refundRow) return
+          const row = refundRow
+          setBusy(true)
+          void billingService
+            .refundInvoice(row.id)
+            .then(async () => {
+              success('환불했어요. 무료 요금제로 바뀌었어요.')
+              setRefundRow(null)
+              await queryClient.invalidateQueries({ queryKey: ['billing'] })
+            })
+            .catch((err: unknown) => {
+              error(apiErrorMessage(err, '환불하지 못했어요.'))
+            })
+            .finally(() => setBusy(false))
+        }}
+        title="이 결제를 환불할까요?"
+        descriptions={
+          refundRow
+            ? [
+                `${moneyLabel(refundRow.refund_amount ?? 0)}을 환불하고 바로 무료로 바뀌어요.`,
+                refundRow.locked_students.length === 0
+                  ? '잠기는 학생은 없어요.'
+                  : `잠기는 학생은 ${refundRow.locked_students
+                      .slice(0, 4)
+                      .map((student) => student.name)
+                      .join(', ')}${refundRow.locked_students.length > 4 ? ` 외 ${refundRow.locked_students.length - 4}명` : ''}이에요.`,
+                '카드사 반영에는 며칠 걸릴 수 있어요.',
+              ]
+            : []
+        }
+        confirmLabel="환불 받기"
+        confirmVariant="danger"
       />
     </div>
   )
@@ -700,10 +738,18 @@ function invoiceStatus(status: string): string {
   if (status === 'PAID') return '결제됨'
   if (status === 'FAILED') return '거절됨'
   if (status === 'PENDING') return '확인 중'
+  if (status === 'REFUNDED') return '환불됨'
+  if (status === 'PARTIALLY_REFUNDED') return '일부 환불'
   return status
 }
 
-function InvoiceList({ rows }: { rows: BillingInvoice[] }) {
+function InvoiceList({
+  rows,
+  onRefund,
+}: {
+  rows: BillingInvoice[]
+  onRefund: (row: BillingInvoice) => void
+}) {
   if (rows.length === 0) {
     return (
       <Text variant="bodyMd" color="gray500">
@@ -715,19 +761,36 @@ function InvoiceList({ rows }: { rows: BillingInvoice[] }) {
     <div className={styles.cardStack}>
       {rows.map((row) => (
         <div key={row.id} className={styles.sectionHead}>
-          <Text variant="bodyMd">
-            {row.plan_name} · {moneyLabel(row.total_amount)} · {invoiceStatus(row.status)}
-            {row.paid_at ? ` · ${resetDayLabel(row.paid_at)}` : ''}
-          </Text>
-          {row.receipt_url ? (
-            <a href={row.receipt_url} target="_blank" rel="noreferrer">
-              <Button variant="ghost" size="sm">
-                영수증
+          <div>
+            <Text variant="bodyMd">
+              {row.plan_name} · {moneyLabel(row.total_amount)} · {invoiceStatus(row.status)}
+              {row.paid_at ? ` · ${resetDayLabel(row.paid_at)}` : ''}
+            </Text>
+            {row.refund_block_reason ? (
+              <Text variant="bodyMd" color="gray500">
+                {row.refund_block_reason}
+              </Text>
+            ) : null}
+          </div>
+          <div className={styles.noticeActions}>
+            {row.refundable ? (
+              <Button type="button" variant="danger" size="sm" onClick={() => onRefund(row)}>
+                환불 받기
               </Button>
-            </a>
-          ) : null}
+            ) : null}
+            {row.receipt_url ? (
+              <a href={row.receipt_url} target="_blank" rel="noreferrer">
+                <Button variant="ghost" size="sm">
+                  영수증
+                </Button>
+              </a>
+            ) : null}
+          </div>
         </div>
       ))}
+      <Text variant="bodyMd" color="gray500">
+        클랫 오류나 중복 결제라면 010-7324-7708로 문의해 주세요.
+      </Text>
     </div>
   )
 }

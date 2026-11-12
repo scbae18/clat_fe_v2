@@ -316,6 +316,22 @@ export const admin = {
     const { data } = await axiosInstance.get<Envelope<AdminBillingSales>>('/admin/billing/sales')
     return unwrap(data)
   },
+
+  async billingRefunds() {
+    const { data } = await axiosInstance.get<Envelope<AdminRefundList>>('/admin/billing/refunds')
+    return unwrap(data)
+  },
+
+  async refundInvoice(
+    invoiceId: number,
+    payload: { amount: number; reason: string; after: 'KEEP' | 'FREE' | 'REVERT_PLAN' },
+  ) {
+    const { data } = await axiosInstance.post<Envelope<{ invoice_id: number; amount: number; after: string }>>(
+      `/admin/billing/invoices/${invoiceId}/refund`,
+      payload,
+    )
+    return unwrap(data)
+  },
 }
 
 export type AdminGrantPlanCode = 'FREE' | 'BASIC' | 'STANDARD' | 'PLUS' | 'PRO'
@@ -404,5 +420,23 @@ export type AdminBillingSales = {
     email: string
     amount: number | null
     label: string
+    invoice_id: number | null
+  }>
+}
+
+export type AdminRefundList = {
+  items: Array<{
+    id: number
+    invoice_id: number
+    status: string
+    source: string
+    amount: number
+    reason: string | null
+    name: string
+    email: string
+    plan_name: string
+    messages: unknown
+    max_students: unknown
+    created_at: string
   }>
 }

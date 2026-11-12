@@ -64,6 +64,10 @@ export type BillingInvoice = {
   status: string
   paid_at: string | null
   receipt_url: string | null
+  refundable: boolean
+  refund_amount: number | null
+  refund_block_reason: string | null
+  locked_students: Array<{ id: number; name: string }>
 }
 
 export type PlanPreview =
@@ -160,6 +164,11 @@ export const billingService = {
   async invoices() {
     const { data } = await axiosInstance.get<Envelope<{ invoices: BillingInvoice[] }>>('/billing/invoices')
     return data.data.invoices
+  },
+
+  async refundInvoice(invoiceId: number) {
+    const { data } = await axiosInstance.post<Envelope<BillingMe>>(`/billing/invoices/${invoiceId}/refund`)
+    return data.data
   },
 
   async previewPlanChange(planCode: string) {
