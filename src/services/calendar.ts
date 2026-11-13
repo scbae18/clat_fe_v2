@@ -11,6 +11,7 @@ export const calendarService = {
     event_date: string
     body: string
     student_ids: number[]
+    class_ids: number[]
   }): Promise<CalendarEvent> {
     const { data } = await axiosInstance.post('/calendar', input)
     return data.data as CalendarEvent
@@ -18,7 +19,7 @@ export const calendarService = {
 
   async update(
     id: number,
-    input: { body?: string; student_ids?: number[] },
+    input: { body?: string; student_ids?: number[]; class_ids?: number[] },
   ): Promise<CalendarEvent> {
     const { data } = await axiosInstance.patch(`/calendar/${id}`, input)
     return data.data as CalendarEvent

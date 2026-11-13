@@ -3,9 +3,16 @@ export interface CalendarEventStudent {
   student_name: string
 }
 
+export interface CalendarEventClass {
+  class_id: number
+  class_name: string
+}
+
 export interface CalendarEvent {
   id: number
   event_date: string
   body: string
+  audience: string
+  classes: CalendarEventClass[]
   students: CalendarEventStudent[]
 }

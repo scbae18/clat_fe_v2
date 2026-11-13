@@ -40,6 +40,27 @@ export type BroadcastChannel = 'STUDENT' | 'PARENT' | 'BOTH'
 
 export type BroadcastNoticeType = 'MAKEUP' | 'SCHEDULE' | 'PREP' | 'PROGRESS'
 
+export interface BroadcastSuggestion {
+  notice_type: BroadcastNoticeType
+  mode: 'literal' | 'pattern' | 'none'
+  suggested_value?: string
+  pattern_template?: string
+  pattern_example?: string
+  source_label?: string
+  last_value?: string
+  last_source_label?: string
+}
+
+export interface BroadcastSchedule {
+  id: number
+  notice_type: BroadcastNoticeType
+  body: string
+  channel: BroadcastChannel
+  scheduled_at: string
+  student_ids: number[]
+  student_count: number
+}
+
 export interface AlimtalkBatchListItem {
   batch_id: number
   type: AlimtalkBatchType
@@ -191,6 +212,35 @@ export const alimtalkService = {
   async getBatchDetail(batchId: number): Promise<AlimtalkBatchDetail> {
     const { data } = await axiosInstance.get(`/alimtalk/batches/${batchId}`)
     return unwrapBatchDetail(data)
+  },
+
+  async getBroadcastSuggestion(noticeType: BroadcastNoticeType): Promise<BroadcastSuggestion> {
+    const { data } = await axiosInstance.get('/alimtalk/broadcast/suggestions', {
+      params: { notice_type: noticeType },
+    })
+    return data.data as BroadcastSuggestion
+  },
+
+  async listBroadcastSchedules(): Promise<BroadcastSchedule[]> {
+    const { data } = await axiosInstance.get('/alimtalk/broadcast/schedules')
+    const body = data.data as BroadcastSchedule[] | { data?: BroadcastSchedule[] }
+    if (Array.isArray(body)) return body
+    return body.data ?? []
+  },
+
+  async createBroadcastSchedule(dto: {
+    student_ids: number[]
+    channel: BroadcastChannel
+    notice_type: BroadcastNoticeType
+    body: string
+    scheduled_at: string
+  }): Promise<BroadcastSchedule> {
+    const { data } = await axiosInstance.post('/alimtalk/broadcast/schedules', dto)
+    return data.data as BroadcastSchedule
+  },
+
+  async cancelBroadcastSchedule(id: number): Promise<void> {
+    await axiosInstance.delete(`/alimtalk/broadcast/schedules/${id}`)
   },
 
   async sendBroadcast(dto: {

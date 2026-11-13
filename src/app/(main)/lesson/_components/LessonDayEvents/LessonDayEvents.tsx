@@ -40,9 +40,9 @@ export default function LessonDayEvents({ date }: LessonDayEventsProps) {
               <Text variant="bodyMd" color="gray900">
                 {event.body}
               </Text>
-              {event.students.length > 0 ? (
+              {event.audience ? (
                 <Text variant="labelSm" color="gray600">
-                  {event.students.map((student) => student.student_name).join(' · ')}
+                  {event.audience}
                 </Text>
               ) : null}
             </span>

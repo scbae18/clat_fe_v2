@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Button from '@/components/common/Button'
+import ConfirmModal from '@/components/common/ConfirmModal'
 import Input from '@/components/common/Input'
 import Modal from '@/components/common/Modal'
 import Text from '@/components/common/Text'
@@ -11,6 +13,7 @@ import { listItemRowStyle, listItemRowSelectedStyle } from '@/components/common/
 import CheckIcon from '@/assets/icons/icon-check.svg'
 import useToast from '@/hooks/useToast'
 import { isAxiosError } from '@/lib/api/http'
+import { queryKeys } from '@/lib/queryKeys'
 import { useUserStore } from '@/stores/userStore'
 import { classService, type Class } from '@/services/class'
 import { studentService } from '@/services/student'
@@ -23,8 +26,11 @@ import {
   pollBatchUntilSettled,
   type BroadcastChannel,
   type BroadcastNoticeType,
+  type BroadcastSuggestion,
   type AlimtalkDeliveryMode,
 } from '@/services/alimtalk'
+import CommonSuggestionPopover from '@/app/(main)/lesson/[id]/_components/CommonContent/CommonSuggestionPopover'
+import { hasSuggestionContent, type CommonSuggestionItem } from '@/types/commonSuggestion'
 import { AlimtalkTabs } from '../_components/AlimtalkTabs'
 import {
   BROADCAST_CHAR_LIMIT,
@@ -40,6 +46,56 @@ import { AlimtalkPreviewVarText } from '@/components/message/LessonAlimtalkFrame
 import * as frameStyles from '@/components/message/LessonAlimtalkFramePreview.css'
 import * as baseStyles from '../alimtalkSettings.css'
 import * as styles from './broadcast.css'
+
+function seoulDatetimeLocal(date: Date): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date)
+  const read = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? ''
+  const hour = read('hour') === '24' ? '00' : read('hour')
+  return `${read('year')}-${read('month')}-${read('day')}T${hour}:${read('minute')}`
+}
+
+function formatScheduleLabel(iso: string): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul',
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date(iso))
+  const read = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? ''
+  const hour = read('hour') === '24' ? '00' : read('hour')
+  return `${Number(read('month'))}월 ${Number(read('day'))}일 ${hour}:${read('minute')}`
+}
+
+function toSuggestionItem(row: BroadcastSuggestion): CommonSuggestionItem {
+  return {
+    template_item_id: 0,
+    item_name: BROADCAST_NOTICE_LABEL[row.notice_type],
+    mode: row.mode,
+    suggested_value: row.suggested_value,
+    pattern_template: row.pattern_template,
+    pattern_example: row.pattern_example,
+    source_label: row.source_label,
+    last_class_value: row.last_value,
+    last_class_source_label: row.last_source_label,
+  }
+}
+
+function apiErrorMessage(err: unknown): string | undefined {
+  if (!isAxiosError(err)) return undefined
+  return (err.response?.data as { error?: { message?: string } } | undefined)?.error?.message
+}
 
 function hasPhone(value: string | null | undefined) {
   return Boolean(value && String(value).replace(/\D/g, '').length >= 8)
@@ -99,6 +155,7 @@ function estimateCount(
 
 export default function AlimtalkBroadcastPage() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { success, error, warning } = useToast()
   const teacherName = useUserStore((s) => s.user?.name) ?? ''
 
@@ -114,12 +171,39 @@ export default function AlimtalkBroadcastPage() {
   const [noticeType, setNoticeType] = useState<BroadcastNoticeType>('MAKEUP')
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [body, setBody] = useState('')
+  const [bodyFocused, setBodyFocused] = useState(false)
+  const [suggestion, setSuggestion] = useState<CommonSuggestionItem | null>(null)
+  const [pickingTime, setPickingTime] = useState(false)
+  const [timeValue, setTimeValue] = useState('')
+  const [scheduling, setScheduling] = useState(false)
+  const [cancelId, setCancelId] = useState<number | null>(null)
   const [sending, setSending] = useState(false)
   const [sendProgress, setSendProgress] = useState<{ sent: number; total: number } | null>(null)
   const [lengthOpen, setLengthOpen] = useState(false)
   const [lengthNames, setLengthNames] = useState<string[]>([])
 
   const channel = resolveChannel(sendToParent, sendToStudent)
+  const schedulesQuery = useQuery({
+    queryKey: queryKeys.alimtalk.broadcastSchedules,
+    queryFn: () => alimtalkService.listBroadcastSchedules(),
+  })
+  const schedules = schedulesQuery.data ?? []
+  const cancelTarget = schedules.find((row) => row.id === cancelId) ?? null
+
+  useEffect(() => {
+    let cancelled = false
+    void alimtalkService
+      .getBroadcastSuggestion(noticeType)
+      .then((row) => {
+        if (!cancelled) setSuggestion(toSuggestionItem(row))
+      })
+      .catch(() => {
+        if (!cancelled) setSuggestion(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [noticeType])
 
   useEffect(() => {
     let cancelled = false
@@ -295,6 +379,51 @@ export default function AlimtalkBroadcastPage() {
     sendToParent,
     sendToStudent,
   )
+
+  const confirmSchedule = async () => {
+    if (scheduling || !channel || selectedIds.size === 0 || !body.trim() || !timeValue) return
+    if (overNames.length > 0) {
+      setLengthNames(overNames)
+      setLengthOpen(true)
+      return
+    }
+    setScheduling(true)
+    try {
+      const saved = await alimtalkService.createBroadcastSchedule({
+        student_ids: [...selectedIds],
+        channel,
+        notice_type: noticeType,
+        body: body.trim(),
+        scheduled_at: `${timeValue}:00+09:00`,
+      })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.alimtalk.broadcastSchedules })
+      setPickingTime(false)
+      setTimeValue('')
+      success(`${formatScheduleLabel(saved.scheduled_at)}에 예약했어요.`)
+    } catch (err) {
+      const tooLong = tooLongNames(err)
+      if (tooLong) {
+        setLengthNames(tooLong)
+        setLengthOpen(true)
+        return
+      }
+      error(apiErrorMessage(err) ?? '문자 예약에 실패했어요.')
+    } finally {
+      setScheduling(false)
+    }
+  }
+
+  const cancelSchedule = async () => {
+    if (cancelId == null) return
+    try {
+      await alimtalkService.cancelBroadcastSchedule(cancelId)
+      await queryClient.invalidateQueries({ queryKey: queryKeys.alimtalk.broadcastSchedules })
+      success('예약을 취소했어요.')
+      setCancelId(null)
+    } catch (err) {
+      error(apiErrorMessage(err) ?? '예약 취소에 실패했어요.')
+    }
+  }
 
   const handleSend = async () => {
     if (sending) return
@@ -559,13 +688,24 @@ export default function AlimtalkBroadcastPage() {
               <Text as="label" variant="titleSm" color="gray700">
                 안내사항
               </Text>
-              <Textarea
-                className={styles.bodyTextarea}
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                placeholder="예: 내일 오후 7시, 3층 강의실에서 보강합니다."
-                aria-label="안내사항"
-              />
+              <div className={styles.suggestionWrap}>
+                <Textarea
+                  className={styles.bodyTextarea}
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  onFocus={() => setBodyFocused(true)}
+                  onBlur={() => setBodyFocused(false)}
+                  placeholder="예: 내일 오후 7시, 3층 강의실에서 보강합니다."
+                  aria-label="안내사항"
+                />
+                {bodyFocused && !body.trim() && suggestion && hasSuggestionContent(suggestion) ? (
+                  <CommonSuggestionPopover
+                    suggestion={suggestion}
+                    onApplyLastClass={(value) => setBody(value)}
+                    onApplySuggestion={(value) => setBody(value)}
+                  />
+                ) : null}
+              </div>
             </div>
 
             <div className={styles.summaryBar}>
@@ -573,19 +713,66 @@ export default function AlimtalkBroadcastPage() {
                 선택 {selectedIds.size}명 · 예상 발송 {expectedCount}건
               </Text>
               <QuotaNotice needed={expectedCount} />
-              <Button
-                variant="primary"
-                size="md"
-                onClick={() => void handleSend()}
-                disabled={sending}
-              >
-                {sendProgress
-                  ? `보내는 중 ${sendProgress.sent}/${sendProgress.total}`
-                  : sending
-                    ? '발송 중…'
-                    : '발송하기'}
-              </Button>
+              <div className={styles.summaryActions}>
+                <Button
+                  variant="outlined"
+                  size="md"
+                  onClick={() => setPickingTime((open) => !open)}
+                  disabled={sending || scheduling}
+                >
+                  {pickingTime ? '예약 닫기' : '예약'}
+                </Button>
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={() => void handleSend()}
+                  disabled={sending || scheduling}
+                >
+                  {sendProgress
+                    ? `보내는 중 ${sendProgress.sent}/${sendProgress.total}`
+                    : sending
+                      ? '발송 중…'
+                      : '발송하기'}
+                </Button>
+              </div>
             </div>
+            {pickingTime ? (
+              <div className={styles.schedulePick}>
+                <Text as="span" variant="bodyMd" color="gray500">
+                  한국 시간
+                </Text>
+                <input
+                  type="datetime-local"
+                  className={styles.scheduleInput}
+                  min={seoulDatetimeLocal(new Date())}
+                  value={timeValue}
+                  onChange={(event) => setTimeValue(event.target.value)}
+                />
+                <Button
+                  variant="outlined"
+                  size="md"
+                  onClick={() => void confirmSchedule()}
+                  disabled={scheduling || sending || !timeValue || selectedIds.size === 0 || !channel || !body.trim()}
+                >
+                  {scheduling ? '예약하는 중…' : '이 시각에 예약'}
+                </Button>
+              </div>
+            ) : null}
+            {schedules.length > 0 ? (
+              <ul className={styles.scheduleList}>
+                {schedules.map((row) => (
+                  <li key={row.id} className={styles.scheduleItem}>
+                    <span>
+                      {formatScheduleLabel(row.scheduled_at)} · {BROADCAST_NOTICE_LABEL[row.notice_type]} ·{' '}
+                      {row.student_count}명
+                    </span>
+                    <Button variant="ghost" size="sm" onClick={() => setCancelId(row.id)}>
+                      예약 취소
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
 
           <div className={baseStyles.previewColumn} data-tour="alimtalk-broadcast-preview">
@@ -638,6 +825,21 @@ export default function AlimtalkBroadcastPage() {
           확인
         </Button>
       </Modal>
+      <ConfirmModal
+        isOpen={cancelTarget != null}
+        onClose={() => setCancelId(null)}
+        onConfirm={() => void cancelSchedule()}
+        title="예약을 취소할까요?"
+        descriptions={
+          cancelTarget
+            ? [
+                `${BROADCAST_NOTICE_LABEL[cancelTarget.notice_type]} · ${formatScheduleLabel(cancelTarget.scheduled_at)}`,
+                '예약 알림톡이 발송되지 않습니다.',
+              ]
+            : []
+        }
+        confirmLabel="예약 취소"
+      />
     </div>
   )
 }

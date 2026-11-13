@@ -10,6 +10,8 @@ import { useLogout } from '@/hooks/useLogout'
 import { invalidateLessonLists, queryKeys } from '@/lib/queryKeys'
 import { useToastStore } from '@/stores/toastStore'
 import { lessonService, type LessonSendScheduleCard } from '@/services/lesson'
+import { alimtalkService, type BroadcastSchedule } from '@/services/alimtalk'
+import { BROADCAST_NOTICE_LABEL } from '@/app/(main)/alimtalk/broadcast/_lib/broadcastNotice'
 import {
   sidebarStyle,
   sidebarTopStyle,
@@ -76,14 +78,50 @@ function lessonDayLabel(lessonDate: string): string {
   return `${Number(month)}월 ${Number(day)}일 수업`
 }
 
+interface ScheduleCancelCard {
+  key: string
+  scheduled_at: string
+  badge: string
+  title: string
+  subtitle: string
+  kind: 'lesson' | 'broadcast'
+  lesson_record_id?: number
+  schedule_id?: number
+}
+
+function lessonCard(item: LessonSendScheduleCard): ScheduleCancelCard {
+  return {
+    key: `lesson-${item.lesson_record_id}`,
+    scheduled_at: item.scheduled_at,
+    badge: '알림톡 발송 예약',
+    title: item.class_name,
+    subtitle: lessonDayLabel(item.lesson_date),
+    kind: 'lesson',
+    lesson_record_id: item.lesson_record_id,
+  }
+}
+
+function broadcastCard(item: BroadcastSchedule): ScheduleCancelCard {
+  const clock = seoulClock(item.scheduled_at)
+  return {
+    key: `broadcast-${item.id}`,
+    scheduled_at: item.scheduled_at,
+    badge: '전체 공지 예약',
+    title: BROADCAST_NOTICE_LABEL[item.notice_type],
+    subtitle: `${Number(clock.month)}월 ${Number(clock.day)}일 발송`,
+    kind: 'broadcast',
+    schedule_id: item.id,
+  }
+}
+
 function ScheduleCards({
   items,
   collapsed,
   onSelect,
 }: {
-  items: LessonSendScheduleCard[]
+  items: ScheduleCancelCard[]
   collapsed: boolean
-  onSelect: (item: LessonSendScheduleCard) => void
+  onSelect: (item: ScheduleCancelCard) => void
 }) {
   if (items.length === 0) return null
   const mode = collapsed ? 'collapsed' : 'expanded'
@@ -92,20 +130,19 @@ function ScheduleCards({
       {items.map((item) => {
         const clock = seoulClock(item.scheduled_at)
         const time = `${clock.hour}:${clock.minute}`
-        const day = lessonDayLabel(item.lesson_date)
         return (
           <button
-            key={item.lesson_record_id}
+            key={item.key}
             type="button"
             className={scheduleCardStyle[mode]}
-            title={`${item.class_name} ${day} ${time} 예약 취소`}
+            title={`${item.title} ${item.subtitle} ${time} 예약 취소`}
             onClick={() => onSelect(item)}
           >
             <span className={scheduleTimeStyle}>{time}</span>
             <span className={scheduleDetailStyle[mode]}>
-              <span className={scheduleBadgeStyle}>알림톡 발송 예약</span>
-              <span className={scheduleClassStyle}>{item.class_name}</span>
-              <span className={scheduleDateStyle}>{day}</span>
+              <span className={scheduleBadgeStyle}>{item.badge}</span>
+              <span className={scheduleClassStyle}>{item.title}</span>
+              <span className={scheduleDateStyle}>{item.subtitle}</span>
             </span>
           </button>
         )
@@ -128,7 +165,7 @@ export default function Sidebar() {
   const logout = useLogout()
 
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
-  const [cancelTarget, setCancelTarget] = useState<LessonSendScheduleCard | null>(null)
+  const [cancelTarget, setCancelTarget] = useState<ScheduleCancelCard | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const queryClient = useQueryClient()
   const addToast = useToastStore((s) => s.addToast)
@@ -141,7 +178,16 @@ export default function Sidebar() {
     enabled: Boolean(user),
     refetchInterval: 15_000,
   })
-  const schedules = schedulesQuery.data ?? []
+  const broadcastSchedulesQuery = useQuery({
+    queryKey: queryKeys.alimtalk.broadcastSchedules,
+    queryFn: () => alimtalkService.listBroadcastSchedules(),
+    enabled: Boolean(user),
+    refetchInterval: 15_000,
+  })
+  const schedules = [
+    ...(schedulesQuery.data ?? []).map(lessonCard),
+    ...(broadcastSchedulesQuery.data ?? []).map(broadcastCard),
+  ].sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at) || a.key.localeCompare(b.key))
 
   return (
     <aside className={sidebarStyle[mode]} aria-expanded={!collapsed}>
@@ -215,10 +261,16 @@ export default function Sidebar() {
         onConfirm={() => {
           if (!cancelTarget || cancelling) return
           setCancelling(true)
-          void lessonService
-            .cancelSendSchedule(cancelTarget.lesson_record_id)
+          const cancel =
+            cancelTarget.kind === 'lesson' && cancelTarget.lesson_record_id != null
+              ? lessonService.cancelSendSchedule(cancelTarget.lesson_record_id)
+              : cancelTarget.schedule_id != null
+                ? alimtalkService.cancelBroadcastSchedule(cancelTarget.schedule_id)
+                : Promise.resolve()
+          void cancel
             .then(() => {
               invalidateLessonLists(queryClient)
+              void queryClient.invalidateQueries({ queryKey: queryKeys.alimtalk.broadcastSchedules })
               addToast({ variant: 'success', message: '예약을 취소했어요.' })
               setCancelTarget(null)
             })
@@ -231,7 +283,7 @@ export default function Sidebar() {
         descriptions={
           cancelTarget
             ? [
-                `${cancelTarget.class_name} · ${lessonDayLabel(cancelTarget.lesson_date)} ${seoulClock(cancelTarget.scheduled_at).hour}:${seoulClock(cancelTarget.scheduled_at).minute}`,
+                `${cancelTarget.title} · ${cancelTarget.subtitle} ${seoulClock(cancelTarget.scheduled_at).hour}:${seoulClock(cancelTarget.scheduled_at).minute}`,
                 '예약 알림톡이 발송되지 않습니다.',
               ]
             : []

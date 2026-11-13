@@ -346,6 +346,56 @@ export const summaryBar = style({
   marginTop: '8px',
 })
 
+export const suggestionWrap = style({
+  position: 'relative',
+})
+
+export const summaryActions = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  marginLeft: 'auto',
+})
+
+export const schedulePick = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: '8px',
+  flexWrap: 'wrap',
+})
+
+export const scheduleInput = style({
+  height: '40px',
+  padding: '0 12px',
+  borderRadius: '8px',
+  border: `1px solid ${colors.gray200}`,
+  backgroundColor: colors.white,
+  color: colors.gray900,
+  fontSize: fontStyles.bodyMd.fontSize,
+})
+
+export const scheduleList = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+  margin: 0,
+  padding: 0,
+  listStyle: 'none',
+})
+
+export const scheduleItem = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '12px',
+  padding: '8px 12px',
+  borderRadius: '8px',
+  backgroundColor: colors.gray50,
+  color: colors.gray700,
+  fontSize: fontStyles.bodyMd.fontSize,
+})
+
 export const countBadge = style({
   display: 'inline-flex',
   alignItems: 'center',

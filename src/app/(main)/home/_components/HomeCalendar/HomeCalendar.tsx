@@ -46,10 +46,15 @@ export default function HomeCalendar() {
   const [selectedKey, setSelectedKey] = useState(todayKey)
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [addOpen, setAddOpen] = useState(false)
+  const [editingId, setEditingId] = useState<number | null>(null)
   const [body, setBody] = useState('')
   const [studentIds, setStudentIds] = useState<number[]>([])
-  const [students, setStudents] = useState<Array<{ id: number; name: string; phone: string }>>([])
+  const [classIds, setClassIds] = useState<number[]>([])
+  const [students, setStudents] = useState<
+    Array<{ id: number; name: string; phone: string; classes: Array<{ id: number; name: string }> }>
+  >([])
   const [studentQuery, setStudentQuery] = useState('')
+  const [targetMode, setTargetMode] = useState<'student' | 'class'>('student')
   const [studentStatus, setStudentStatus] = useState<'idle' | 'ready' | 'error'>('idle')
   const [error, setError] = useState('')
   const [formError, setFormError] = useState('')
@@ -98,34 +103,44 @@ export default function HomeCalendar() {
     setEvents(rows)
   }
 
-  const addEvent = async () => {
+  const closeForm = () => {
+    setAddOpen(false)
+    setEditingId(null)
+  }
+
+  const saveEvent = async () => {
     const text = body.trim()
     if (!text || saving) return
     setSaving(true)
     setError('')
     try {
-      await calendarService.create({
-        event_date: selectedKey,
-        body: text,
-        student_ids: studentIds,
-      })
+      if (editingId != null) {
+        await calendarService.update(editingId, {
+          body: text,
+          student_ids: studentIds,
+          class_ids: classIds,
+        })
+      } else {
+        await calendarService.create({
+          event_date: selectedKey,
+          body: text,
+          student_ids: studentIds,
+          class_ids: classIds,
+        })
+      }
       setBody('')
       setStudentIds([])
-      setAddOpen(false)
+      setClassIds([])
+      closeForm()
       await reload()
     } catch {
-      setFormError('일정을 추가하지 못했어요.')
+      setFormError(editingId != null ? '일정을 수정하지 못했어요.' : '일정을 추가하지 못했어요.')
     } finally {
       setSaving(false)
     }
   }
 
-  const openAdd = async () => {
-    setBody('')
-    setStudentIds([])
-    setStudentQuery('')
-    setFormError('')
-    setAddOpen(true)
+  const loadStudents = async () => {
     if (studentStatus === 'ready') return
     try {
       const result = await studentService.getStudents()
@@ -134,12 +149,37 @@ export default function HomeCalendar() {
           id: student.id,
           name: student.name,
           phone: student.phone ?? '',
+          classes: (student.classes ?? []).map((cls) => ({ id: cls.id, name: cls.name })),
         })),
       )
       setStudentStatus('ready')
     } catch {
       setStudentStatus('error')
     }
+  }
+
+  const openAdd = async () => {
+    setEditingId(null)
+    setBody('')
+    setStudentIds([])
+    setClassIds([])
+    setStudentQuery('')
+    setTargetMode('student')
+    setFormError('')
+    setAddOpen(true)
+    await loadStudents()
+  }
+
+  const openEdit = async (event: CalendarEvent) => {
+    setEditingId(event.id)
+    setBody(event.body)
+    setStudentIds(event.students.map((student) => student.student_id))
+    setClassIds((event.classes ?? []).map((row) => row.class_id))
+    setStudentQuery('')
+    setTargetMode('student')
+    setFormError('')
+    setAddOpen(true)
+    await loadStudents()
   }
 
   const removeEvent = async (id: number) => {
@@ -160,10 +200,54 @@ export default function HomeCalendar() {
       student.phone.includes(studentQueryTrimmed),
   )
 
+  const showTarget = (mode: 'student' | 'class') => {
+    setTargetMode(mode)
+    setStudentQuery('')
+  }
+
+  const classGroups = useMemo(() => {
+    const groups = new Map<number, { id: number; name: string; studentIds: number[] }>()
+    for (const student of students) {
+      for (const cls of student.classes) {
+        const group = groups.get(cls.id) ?? { id: cls.id, name: cls.name, studentIds: [] }
+        group.studentIds.push(student.id)
+        groups.set(cls.id, group)
+      }
+    }
+    return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name, 'ko'))
+  }, [students])
+
+  const visibleClasses = classGroups.filter(
+    (group) => studentQueryTrimmed === '' || group.name.includes(studentQueryTrimmed),
+  )
+
   const toggleStudent = (id: number) => {
+    const removing = studentIds.includes(id)
     setStudentIds((current) =>
       current.includes(id) ? current.filter((studentId) => studentId !== id) : [...current, id],
     )
+    if (!removing) return
+    setClassIds((current) =>
+      current.filter((classId) => {
+        const group = classGroups.find((row) => row.id === classId)
+        return group ? !group.studentIds.includes(id) : false
+      }),
+    )
+  }
+
+  const toggleClass = (classId: number, memberIds: number[]) => {
+    const on = classIds.includes(classId)
+    const nextClassIds = on ? classIds.filter((id) => id !== classId) : [...classIds, classId]
+    const keptByClass = new Set(
+      classGroups
+        .filter((group) => nextClassIds.includes(group.id))
+        .flatMap((group) => group.studentIds),
+    )
+    setClassIds(nextClassIds)
+    setStudentIds((current) => {
+      if (!on) return [...new Set([...current, ...memberIds])]
+      return current.filter((id) => !memberIds.includes(id) || keptByClass.has(id))
+    })
   }
 
   return (
@@ -256,15 +340,20 @@ export default function HomeCalendar() {
                 <Text variant="bodyMd" color="gray900">
                   {event.body}
                 </Text>
-                {event.students.length > 0 ? (
+                {event.audience ? (
                   <Text variant="labelSm" color="gray600">
-                    {event.students.map((student) => student.student_name).join(' · ')}
+                    {event.audience}
                   </Text>
                 ) : null}
               </span>
-              <Button type="button" variant="ghost" size="sm" onClick={() => void removeEvent(event.id)}>
-                지우기
-              </Button>
+              <span className={styles.itemActions}>
+                <Button type="button" variant="ghost" size="sm" onClick={() => void openEdit(event)}>
+                  수정
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => void removeEvent(event.id)}>
+                  지우기
+                </Button>
+              </span>
             </li>
           ))}
         </ul>
@@ -274,10 +363,12 @@ export default function HomeCalendar() {
           {error}
         </Text>
       ) : null}
-      <Modal isOpen={addOpen} onClose={() => setAddOpen(false)} size="md">
+      <Modal isOpen={addOpen} onClose={closeForm} size="md">
         <div className={styles.modalTitle}>
           <Text variant="headingLg" as="h2" className={styles.headingReset}>
-            {selectedDate.getMonth() + 1}월 {selectedDate.getDate()}일 일정
+            {editingId != null
+              ? `${selectedDate.getMonth() + 1}월 ${selectedDate.getDate()}일 일정 수정`
+              : `${selectedDate.getMonth() + 1}월 ${selectedDate.getDate()}일 일정`}
           </Text>
         </div>
         <div className={styles.fieldGroup}>
@@ -292,19 +383,72 @@ export default function HomeCalendar() {
             />
           </label>
           <div className={styles.field}>
-            <Text variant="headingSm">학생</Text>
-            {studentStatus === 'ready' && students.length > 0 ? (
+            <div className={styles.targetTabs} role="tablist" aria-label="학생 또는 반">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={targetMode === 'student'}
+                className={`${styles.targetTab}${targetMode === 'student' ? ` ${styles.targetTabActive}` : ''}`}
+                onClick={() => showTarget('student')}
+              >
+                <Text variant="headingSm" color={targetMode === 'student' ? 'gray900' : 'gray500'}>
+                  학생
+                </Text>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={targetMode === 'class'}
+                className={`${styles.targetTab}${targetMode === 'class' ? ` ${styles.targetTabActive}` : ''}`}
+                onClick={() => showTarget('class')}
+              >
+                <Text variant="headingSm" color={targetMode === 'class' ? 'gray900' : 'gray500'}>
+                  반
+                </Text>
+              </button>
+            </div>
+            {studentStatus === 'ready' &&
+            (targetMode === 'student' ? students.length > 0 : classGroups.length > 0) ? (
               <Input
                 value={studentQuery}
-                placeholder="학생 이름 또는 전화번호 검색"
+                placeholder={targetMode === 'student' ? '학생 이름 또는 전화번호 검색' : '반 이름 검색'}
                 onChange={(event) => setStudentQuery(event.target.value)}
               />
             ) : null}
             <div className={styles.students}>
               {studentStatus !== 'ready' ? (
                 <Text variant="bodyMd" color="gray500">
-                  {studentStatus === 'error' ? '학생 목록을 불러오지 못했어요.' : '불러오는 중'}
+                  {studentStatus === 'error' ? '목록을 불러오지 못했어요.' : '불러오는 중'}
                 </Text>
+              ) : targetMode === 'class' ? (
+                classGroups.length === 0 ? (
+                  <Text variant="bodyMd" color="gray500">
+                    등록된 반이 없어요.
+                  </Text>
+                ) : visibleClasses.length === 0 ? (
+                  <Text variant="bodyMd" color="gray500">
+                    검색 결과가 없어요
+                  </Text>
+                ) : (
+                  visibleClasses.map((group) => {
+                    const selected = classIds.includes(group.id)
+                    return (
+                      <button
+                        key={group.id}
+                        type="button"
+                        className={styles.studentButton({ selected })}
+                        aria-pressed={selected}
+                        onClick={() => toggleClass(group.id, group.studentIds)}
+                      >
+                        <CheckIcon width={16} height={16} className={selected ? styles.checkOn : styles.checkOff} />
+                        <Text variant="titleSm">{group.name}</Text>
+                        <Text variant="bodyMd" color="gray500">
+                          {group.studentIds.length}명
+                        </Text>
+                      </button>
+                    )
+                  })
+                )
               ) : students.length === 0 ? (
                 <Text variant="bodyMd" color="gray500">
                   등록된 학생이 없어요.
@@ -344,7 +488,7 @@ export default function HomeCalendar() {
           ) : null}
         </div>
         <div className={styles.actions}>
-          <Button type="button" variant="ghost" size="lg" fullWidth onClick={() => setAddOpen(false)}>
+          <Button type="button" variant="ghost" size="lg" fullWidth onClick={closeForm}>
             취소
           </Button>
           <Button
@@ -353,9 +497,9 @@ export default function HomeCalendar() {
             size="lg"
             fullWidth
             disabled={saving || body.trim() === ''}
-            onClick={() => void addEvent()}
+            onClick={() => void saveEvent()}
           >
-            추가하기
+            {editingId != null ? '저장' : '추가하기'}
           </Button>
         </div>
       </Modal>

@@ -238,3 +238,34 @@ export const actions = style({
   display: 'flex',
   gap: '8px',
 })
+
+export const itemActions = style({
+  display: 'flex',
+  flexShrink: 0,
+  gap: '4px',
+})
+
+export const targetTabs = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '20px',
+  borderBottom: `1px solid ${colors.gray100}`,
+  paddingBottom: '12px',
+})
+
+export const targetTab = style({
+  background: 'none',
+  border: 'none',
+  padding: '0 0 10px',
+  marginBottom: '-13px',
+  cursor: 'pointer',
+  borderBottom: '2px solid transparent',
+  ':focus-visible': {
+    outline: `2px solid ${colors.primary500}`,
+    outlineOffset: '2px',
+  },
+})
+
+export const targetTabActive = style({
+  borderBottomColor: colors.primary500,
+})
