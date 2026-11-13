@@ -189,15 +189,15 @@ export default function AdminBillingPage() {
         {(sales?.items.length ?? 0) === 0 ? (
           <p className={styles.empty}>아직 결제나 해지가 없습니다.</p>
         ) : (
-          <div className={styles.tableWrap}>
+          <div className={`${styles.tableWrap} ${styles.paymentHistory}`}>
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th className={styles.th}>시각</th>
-                  <th className={styles.th}>구분</th>
-                  <th className={styles.th}>선생님</th>
-                  <th className={styles.th}>금액</th>
-                  <th className={styles.th}>환불</th>
+                  <th className={`${styles.th} ${styles.paymentHistoryHead}`}>시각</th>
+                  <th className={`${styles.th} ${styles.paymentHistoryHead}`}>구분</th>
+                  <th className={`${styles.th} ${styles.paymentHistoryHead}`}>선생님</th>
+                  <th className={`${styles.th} ${styles.paymentHistoryHead}`}>금액</th>
+                  <th className={`${styles.th} ${styles.paymentHistoryHead}`}>환불</th>
                 </tr>
               </thead>
               <tbody>

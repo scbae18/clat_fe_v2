@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 
 import useToggleArray from '@/hooks/useToggleArray'
 import { classService, type Class } from '@/services/class'
-import { studentService } from '@/services/student'
+import { bulkResultMessage, studentService } from '@/services/student'
 import { formatPhoneInput } from '@/lib/phone'
 import { apiErrorMessage } from '@/lib/api/http'
 import { useToastStore } from '@/stores/toastStore'
@@ -45,6 +46,7 @@ export function useStudentFormModal({
   const [isBulkLoading, setIsBulkLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const queryClient = useQueryClient()
   const addToast = useToastStore((s) => s.addToast)
 
   const {
@@ -103,6 +105,9 @@ export function useStudentFormModal({
         grade,
         class_ids: selectedClassIds,
       })
+      if (mode === 'add') {
+        await queryClient.invalidateQueries({ queryKey: ['billing', 'me'] })
+      }
       handleClose()
     } catch (err) {
       addToast({
@@ -126,13 +131,9 @@ export function useStudentFormModal({
       const bulkRes = await studentService.bulkCreateStudents(file)
       addToast({
         variant: 'success',
-        message:
-          (bulkRes.limit_skipped_count ?? 0) > 0
-            ? `${bulkRes.success_count + (bulkRes.limit_skipped_count ?? 0)}명 중 ${bulkRes.success_count}명을 등록했어요. ${bulkRes.limit_skipped_count}명은 학생 수 한도 때문에 등록하지 못했어요.`
-            : bulkRes.fail_count > 0
-              ? `${bulkRes.success_count} ok, ${bulkRes.fail_count} failed`
-              : `${bulkRes.success_count} students added`,
+        message: bulkResultMessage(bulkRes),
       })
+      await queryClient.invalidateQueries({ queryKey: ['billing', 'me'] })
       onBulkConfirm?.()
       handleClose()
     } catch (err) {

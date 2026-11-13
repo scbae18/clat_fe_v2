@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { loadTossPayments } from '@tosspayments/tosspayments-sdk'
 import Button from '@/components/common/Button'
 import Text from '@/components/common/Text'
@@ -18,6 +18,7 @@ const PLAN_KEY = 'clat.billing.plan'
 function CheckoutForm() {
   const params = useSearchParams()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const user = useUserStore((s) => s.user)
   const { error } = useToast()
   const [agreed, setAgreed] = useState(false)
@@ -82,6 +83,7 @@ function CheckoutForm() {
       }
       await billingService.subscribe(plan.code)
       sessionStorage.removeItem(PLAN_KEY)
+      await queryClient.invalidateQueries({ queryKey: ['billing'] })
       router.replace('/billing')
     } catch (err) {
       error(apiErrorMessage(err, '결제를 시작하지 못했어요.'))

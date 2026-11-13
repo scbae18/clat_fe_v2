@@ -29,6 +29,7 @@ import {
   nameCellRowStyle,
   removeStudentButtonStyle,
   studentRowStyle,
+  lockedStudentRowStyle,
   nameStickyCellStyle,
   addColumnCellStyle,
   addColumnButtonStyle,
@@ -240,7 +241,7 @@ export default function LessonTable({
                   templateItems,
                 )
                 return (
-                <tr key={student.id} className={studentRowStyle}>
+                <tr key={student.id} className={student.locked ? `${studentRowStyle} ${lockedStudentRowStyle}` : studentRowStyle}>
                   <td className={`${getTdClassName(tdCompactStyle, student.id, focusedStudentId, isComplete)} ${nameStickyCellStyle}`}>
                     <div className={nameCellRowStyle}>
                       <Link href={`/students/${student.id}`} className={nameCellStyle}>

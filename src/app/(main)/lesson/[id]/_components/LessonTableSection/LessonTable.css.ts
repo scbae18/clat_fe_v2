@@ -1,4 +1,4 @@
-﻿import { style } from '@vanilla-extract/css'
+﻿import { globalStyle, style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
@@ -163,6 +163,27 @@ export const cellEditableStyle = style({
 })
 
 export const studentRowStyle = style({})
+
+export const lockedStudentRowStyle = style({
+  backgroundColor: colors.gray50,
+})
+
+globalStyle(`${lockedStudentRowStyle} td`, {
+  color: colors.gray300,
+  backgroundColor: `${colors.gray50} !important`,
+})
+
+globalStyle(`${lockedStudentRowStyle} td span, ${lockedStudentRowStyle} td a, ${lockedStudentRowStyle} td input, ${lockedStudentRowStyle} td [contenteditable]`, {
+  color: colors.gray300,
+})
+
+globalStyle(`${lockedStudentRowStyle} td a:hover`, {
+  color: colors.gray300,
+})
+
+globalStyle(`${lockedStudentRowStyle} td:not(:first-child)`, {
+  pointerEvents: 'none',
+})
 
 export const nameCellRowStyle = style({
   position: 'relative',
@@ -371,6 +392,9 @@ export const nameStickyCellStyle = style({
     },
     [`&.${completeRowTdStyle}`]: {
       backgroundColor: colors.primary50,
+    },
+    [`${lockedStudentRowStyle} &`]: {
+      backgroundColor: colors.gray50,
     },
   },
 })

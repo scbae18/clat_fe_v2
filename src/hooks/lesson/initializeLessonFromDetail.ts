@@ -25,6 +25,10 @@ export function buildStudentsFromDetail(
   const attendanceItems = data.items.filter((i) => i.item_type === 'ATTENDANCE')
 
   const nameMap = new Map(classStudents.map((s) => [s.id, s.name]))
+  const lockedIds = new Set([
+    ...(data.locked_student_ids ?? []),
+    ...classStudents.filter((student) => student.locked).map((student) => student.id),
+  ])
   const apiNameMap = new Map(
     data.student_data.map((sd) => [sd.student_id, sd.student_name ?? '']),
   )
@@ -64,6 +68,7 @@ export function buildStudentsFromDetail(
     return {
       id: studentId,
       name: nameMap.get(studentId) ?? guestNameMap.get(studentId) ?? apiNameMap.get(studentId) ?? '',
+      locked: lockedIds.has(studentId),
       attendance,
       items: individualItems.map((item) => {
         const existing = sdItems.find((si) => {
@@ -113,6 +118,7 @@ export function mergePolledLessonState(args: {
     classes: [],
     completion_rate: 0,
     total_incomplete_items: 0,
+    locked: s.locked,
   }))
   const nextStudents = buildStudentsFromDetail(nextDetail, nameSource)
   const prevById = new Map(prevStudents.map((s) => [s.id, s]))

@@ -46,6 +46,14 @@ export const cardStack = style({
   gap: '16px',
 })
 
+export const invoiceList = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+  maxHeight: '420px',
+  overflowY: 'auto',
+})
+
 export const card = style({
   backgroundColor: colors.white,
   border: `1px solid ${colors.gray50}`,

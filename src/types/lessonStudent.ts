@@ -15,4 +15,5 @@ export interface LessonStudent {
   name: string
   attendance: Attendance
   items: LessonStudentItem[]
+  locked?: boolean
 }

@@ -548,6 +548,17 @@ export const tableWrap = style({
   overflowX: 'auto',
 })
 
+export const paymentHistory = style({
+  maxHeight: '420px',
+  overflow: 'auto',
+})
+
+export const paymentHistoryHead = style({
+  position: 'sticky',
+  top: 0,
+  zIndex: 1,
+})
+
 export const table = style({
   width: '100%',
   textAlign: 'left',

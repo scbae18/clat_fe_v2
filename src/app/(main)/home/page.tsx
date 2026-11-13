@@ -42,6 +42,7 @@ export default function HomePage() {
   })
   const me = meQuery.data
   const failed = isEnforcedBilling(me) ? me.banners.find((banner) => banner.type === 'PAYMENT_FAILED') : null
+  const card = isEnforcedBilling(me) ? me.banners.some((banner) => banner.type === 'CARD_REREGISTER') : false
   const expired = isEnforcedBilling(me) ? me.banners.some((banner) => banner.type === 'PAST_DUE_EXPIRED') : false
   const until = failed?.past_due_until ?? (isEnforcedBilling(me) ? me.past_due_until : null)
 
@@ -55,6 +56,16 @@ export default function HomePage() {
           </p>
           <Link href="/billing" className={styles.billingNoticeLinkStyle}>
             결제 수단 확인
+          </Link>
+        </div>
+      ) : null}
+      {card ? (
+        <div className={styles.billingNoticeStyle}>
+          <p className={styles.billingNoticeTextStyle}>
+            등록된 카드를 읽지 못했어요. 카드를 다시 등록하면 결제를 이어갈 수 있어요.
+          </p>
+          <Link href="/billing" className={styles.billingNoticeLinkStyle}>
+            카드 다시 등록
           </Link>
         </div>
       ) : null}

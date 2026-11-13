@@ -1,4 +1,5 @@
 export type BriefingKind =
+  | 'SCHEDULE_BLOCKED'
   | 'LESSON_MISSING'
   | 'LESSON_INPUT'
   | 'LESSON_UNSENT'

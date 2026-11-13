@@ -68,6 +68,7 @@ function isRowSelectable(
   sendToParent: boolean,
   sendToStudent: boolean,
 ) {
+  if (row.locked) return false
   if (sendToParent && listParentPhones(row).some((phone) => hasPhone(phone))) return true
   if (sendToStudent && hasPhone(row.phone)) return true
   return false
@@ -290,7 +291,7 @@ export default function AlimtalkSendModal({
       const res = await lessonService.previewLesson(lessonId)
       const list = res.data ?? []
       setRows(list)
-      const ids = new Set(list.map((r) => r.student_id))
+      const ids = new Set(list.filter((r) => !r.locked).map((r) => r.student_id))
       setSelected(ids)
       setFocusId(list[0]?.student_id ?? null)
     } catch {
@@ -899,6 +900,11 @@ export default function AlimtalkSendModal({
                         >
                           {`학생 ${maskPhone(r.phone)} · ${parentAudienceLabel(r)}`}
                         </div>
+                        {r.locked ? (
+                          <Text as="p" variant="labelSm" color="gray500">
+                            잠긴 학생은 보낼 수 없어요.
+                          </Text>
+                        ) : null}
                         {limitLabel ? (
                           <Text as="p" variant="labelSm" color="error500" className={styles.overLimit}>
                             {limitLabel}

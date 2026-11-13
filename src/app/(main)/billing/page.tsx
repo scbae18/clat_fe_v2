@@ -779,8 +779,9 @@ function InvoiceList({
     )
   }
   return (
-    <div className={styles.cardStack}>
-      {rows.map((row) => (
+    <>
+      <div className={styles.invoiceList}>
+        {rows.map((row) => (
         <div key={row.id} className={styles.sectionHead}>
           <div>
             <Text variant="bodyMd">
@@ -808,10 +809,11 @@ function InvoiceList({
             ) : null}
           </div>
         </div>
-      ))}
+        ))}
+      </div>
       <Text variant="bodyMd" color="gray500">
         클랫 오류나 중복 결제라면 010-7324-7708로 문의해 주세요.
       </Text>
-    </div>
+    </>
   )
 }

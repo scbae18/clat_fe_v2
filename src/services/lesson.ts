@@ -49,6 +49,7 @@ export interface LessonDetail {
   guest_students?: Array<{ student_id: number; student_name: string }>
   excluded_student_ids?: number[]
   roster_student_ids?: number[]
+  locked_student_ids?: number[]
   items: LessonItemDetail[]
   send_schedule?: LessonSendSchedule | null
   send_schedule_cancel_notice?: boolean
@@ -111,6 +112,7 @@ export interface LessonPreviewRow {
   message_for_parent: string
   student_char_count?: number
   parent_char_count?: number
+  locked?: boolean
 }
 
 /** GET /lessons/:id/preview — envelope data field is { data: LessonPreviewRow[] } */

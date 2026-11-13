@@ -60,6 +60,7 @@ function isSelectable(
   sendToParent: boolean,
   sendToStudent: boolean,
 ) {
+  if (student.locked) return false
   if (!sendToParent && !sendToStudent) return false
   if (sendToStudent && !hasPhone(student.phone)) return false
   if (sendToParent && !listParentPhones(student).some((phone) => hasPhone(phone))) return false
@@ -71,6 +72,7 @@ function disableReason(
   sendToParent: boolean,
   sendToStudent: boolean,
 ) {
+  if (student.locked) return '잠긴 학생'
   if (!sendToParent && !sendToStudent) return '수신 대상 선택'
   const needStudent = sendToStudent && !hasPhone(student.phone)
   const needParent = sendToParent && !listParentPhones(student).some((phone) => hasPhone(phone))

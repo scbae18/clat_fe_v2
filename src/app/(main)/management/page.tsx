@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState, useEffect, useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Text from '@/components/common/Text'
 import useDisclosure from '@/hooks/useDisclosure'
 import { classService, type Class } from '@/services/class'
@@ -35,7 +35,7 @@ import UsersIcon from '@/assets/icons/icon-users.svg'
 import AddStudentFormModal from '@/components/student/AddStudentFormModal/AddStudentFormModal'
 import BulkUploadModal from './_components/BulkUploadModal/BulkUploadModal'
 import ConfirmModal from '@/components/common/ConfirmModal'
-import { studentService } from '@/services/student'
+import { bulkResultMessage, studentService } from '@/services/student'
 import type { Student } from '@/types/student'
 import { useToastStore } from '@/stores/toastStore'
 import { sortStudentsByNameKo } from '@/lib/sortStudents'
@@ -61,6 +61,7 @@ function ManagementContent() {
   const [isLoadingStudents, setIsLoadingStudents] = useState(false)
   const [studentSearchQuery, setStudentSearchQuery] = useState('')
   const [limitOpen, setLimitOpen] = useState(false)
+  const queryClient = useQueryClient()
   const billingQuery = useQuery({
     queryKey: ['billing', 'me'],
     queryFn: () => billingService.me(),
@@ -288,13 +289,9 @@ function ManagementContent() {
                 const bulkRes = await studentService.bulkCreateStudents(file)
                 addToast({
                   variant: 'success',
-                  message:
-                    (bulkRes.limit_skipped_count ?? 0) > 0
-                      ? `${bulkRes.success_count + (bulkRes.limit_skipped_count ?? 0)}명 중 ${bulkRes.success_count}명을 등록했어요. ${bulkRes.limit_skipped_count}명은 학생 수 한도 때문에 등록하지 못했어요.`
-                      : bulkRes.fail_count > 0
-                        ? `${bulkRes.success_count} ok, ${bulkRes.fail_count} failed`
-                        : `${bulkRes.success_count} students added`,
+                  message: bulkResultMessage(bulkRes),
                 })
+                await queryClient.invalidateQueries({ queryKey: ['billing', 'me'] })
                 studentService
                   .getStudents()
                   .then((r) => setStudents(sortStudentsByNameKo(r.data)))
@@ -312,6 +309,7 @@ function ManagementContent() {
             onConfirm={async (data) => {
               const newStudent = await studentService.createStudent(data)
               setStudents((prev) => sortStudentsByNameKo([...prev, newStudent]))
+              await queryClient.invalidateQueries({ queryKey: ['billing', 'me'] })
               addToast({ variant: 'success', message: '학생이 등록됐어요.' })
             }}
           />

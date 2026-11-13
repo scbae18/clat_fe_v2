@@ -40,7 +40,21 @@ export interface BulkUploadResult {
   success_count: number
   fail_count: number
   limit_skipped_count?: number
+  locked_count?: number
   errors: Array<{ row: number; reason: string }>
+}
+
+export function bulkResultMessage(result: BulkUploadResult): string {
+  if ((result.locked_count ?? 0) > 0) {
+    return `${result.success_count}명을 등록했어요. 요금제 인원을 넘는 학생은 가나다순으로 잠겼어요.`
+  }
+  if ((result.limit_skipped_count ?? 0) > 0) {
+    return `${result.success_count}명을 등록했어요. ${result.limit_skipped_count}명은 학생 수 한도 때문에 등록하지 못했어요.`
+  }
+  if (result.fail_count > 0) {
+    return `${result.success_count}명을 등록했고, ${result.fail_count}명은 등록하지 못했어요.`
+  }
+  return `${result.success_count}명을 등록했어요.`
 }
 
 export const studentService = {
