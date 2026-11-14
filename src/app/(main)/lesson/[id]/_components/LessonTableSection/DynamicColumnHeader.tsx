@@ -6,6 +6,7 @@ import type { LessonStudent } from '@/types/lessonStudent'
 import type { LessonItemDetail } from '@/services/lesson'
 import {
   dynamicColThStyle,
+  dynamicColThTopStyle,
   scoreColHeaderStyle,
   scoreHeaderMaxRowStyle,
   scoreHeaderFieldGroupStyle,
@@ -130,6 +131,16 @@ export function DynamicColumnHeader({
   const isComplete = isCompleteItem(item)
   const showPartial = canMarkLessonItemPartial(item) && onTogglePartial != null
   const isPartial = item.is_partial === true
+  const completeNote = isComplete ? getCompleteColumnNote(students, item) : ''
+  const [completeNoteOpen, setCompleteNoteOpen] = useState(false)
+  const completeNoteInputRef = useRef<HTMLInputElement>(null)
+  const showCompleteNote = isComplete && (completeNoteOpen || completeNote.trim() !== '')
+  const isTallHeader = isScore || showCompleteNote
+
+  useEffect(() => {
+    if (!completeNoteOpen) return
+    completeNoteInputRef.current?.focus()
+  }, [completeNoteOpen])
 
   const titleRow = (
     <div className={colHeaderWrapStyle}>
@@ -137,6 +148,24 @@ export function DynamicColumnHeader({
         <span className={colHeaderNameStyle}>{item.name}</span>
         {showPartial && onTogglePartial ? (
           <PartialInputChip item={item} isPartial={isPartial} onToggle={onTogglePartial} />
+        ) : null}
+        {isComplete ? (
+          <button
+            type="button"
+            className={partialChipRecipe({ on: showCompleteNote })}
+            aria-pressed={showCompleteNote}
+            aria-label={`${item.name} 내용입력`}
+            onMouseDown={(ev) => ev.preventDefault()}
+            onClick={() => {
+              if (completeNoteOpen && completeNote.trim() === '') {
+                setCompleteNoteOpen(false)
+                return
+              }
+              setCompleteNoteOpen(true)
+            }}
+          >
+            내용입력
+          </button>
         ) : null}
       </div>
       {canRemove ? (
@@ -153,7 +182,7 @@ export function DynamicColumnHeader({
   )
 
   return (
-    <th className={dynamicColThStyle}>
+    <th className={isTallHeader ? `${dynamicColThStyle} ${dynamicColThTopStyle}` : dynamicColThStyle}>
       {isScore ? (
         <div className={scoreColHeaderStyle}>
           {titleRow}
@@ -187,21 +216,32 @@ export function DynamicColumnHeader({
       ) : isComplete ? (
         <div className={completeColHeaderStyle}>
           {titleRow}
-          <div className={scoreHeaderMaxRowStyle}>
-            <span className={scoreHeaderMaxLabelStyle}>내용</span>
-            <input
-              className={completeHeaderNoteInputStyle}
-              type="text"
-              autoComplete="off"
-              value={getCompleteColumnNote(students, item)}
-              onChange={(ev) =>
-                onChange(applyCompleteNoteToAllStudents(students, item, ev.target.value))
-              }
-              onKeyDown={(ev) => ev.stopPropagation()}
-              placeholder="선택"
-              aria-label={`${item.name} 내용`}
-            />
-          </div>
+          {showCompleteNote ? (
+            <div className={scoreHeaderMaxRowStyle}>
+              <input
+                ref={completeNoteInputRef}
+                className={completeHeaderNoteInputStyle}
+                type="text"
+                autoComplete="off"
+                value={completeNote}
+                onChange={(ev) =>
+                  onChange(applyCompleteNoteToAllStudents(students, item, ev.target.value))
+                }
+                onKeyDown={(ev) => {
+                  ev.stopPropagation()
+                  if (ev.key === 'Escape') {
+                    ev.preventDefault()
+                    if (completeNote.trim() === '') setCompleteNoteOpen(false)
+                  }
+                }}
+                onBlur={() => {
+                  if (completeNote.trim() === '') setCompleteNoteOpen(false)
+                }}
+                placeholder="선택"
+                aria-label={`${item.name} 내용`}
+              />
+            </div>
+          ) : null}
         </div>
       ) : (
         titleRow

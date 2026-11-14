@@ -61,13 +61,22 @@ export const dynamicColThStyle = style({
   height: 'auto',
   minHeight: '40px',
   whiteSpace: 'normal',
-  verticalAlign: 'top',
+  verticalAlign: 'middle',
   overflow: 'hidden',
+})
+
+/** 만점·내용 입력이 있는 열. 제목은 위에 두고 아래 칸을 쓴다. */
+export const dynamicColThTopStyle = style({
+  verticalAlign: 'top',
 })
 export const tdStyle = style({ ...baseTdStyles, paddingRight: '16px' })
 
 // ?숈깮, 異쒓껐: 肄섑뀗痢??덈퉬 + paddingRight 36
-export const thCompactStyle = style({ ...baseThStyles, paddingRight: '36px' })
+export const thCompactStyle = style({
+  ...baseThStyles,
+  paddingRight: '36px',
+  verticalAlign: 'middle',
+})
 export const tdCompactStyle = style({ ...baseTdStyles, paddingRight: '36px' })
 
 // 怨쇱젣, ?ㅻ떟?명듃, ?쒗뿕 ?먯닔: ?ㅻ뜑 肄섑뀗痢?湲곗? ?섏텞
@@ -259,17 +268,24 @@ export const nameCellStyle = style({
 export const attendanceThStyle = style({
   ...baseThStyles,
   paddingRight: '16px',
+  height: 'auto',
+  minHeight: '40px',
   whiteSpace: 'normal',
-  verticalAlign: 'top',
+  verticalAlign: 'middle',
+  overflow: 'hidden',
 })
 
 export const attendanceThInnerStyle = style({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'flex-start',
+  justifyContent: 'center',
+  boxSizing: 'border-box',
+  minHeight: '40px',
+  height: '100%',
   gap: '8px',
-  paddingTop: '8px',
-  paddingBottom: '8px',
+  paddingTop: '4px',
+  paddingBottom: '4px',
 })
 
 export const attendanceExtraRowStyle = style({
