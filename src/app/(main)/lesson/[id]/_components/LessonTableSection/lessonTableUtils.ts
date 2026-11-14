@@ -1,6 +1,6 @@
 import type { LessonStudent } from '@/types/lessonStudent'
 import type { LessonItemDetail, CreateLessonAdhocItemBody } from '@/services/lesson'
-import { cohortScoreMetric, joinScoreStorage, splitScoreStorage } from '@/lib/lessonScore'
+import { cohortScoreMetric, joinScoreStorage, scoreNoteDraft, splitScoreStorage } from '@/lib/lessonScore'
 import { completeItemNoteDraft } from '@/lib/completeNote'
 import { matchesLessonItem } from '@/lib/lessonItemRef'
 import { activeRowTdStyle, completeRowTdStyle } from './LessonTable.css'
@@ -88,10 +88,11 @@ export function applyScoreMaxToAllStudents(
   return students.map((s) => {
     const it = s.items.find((i) => matchesLessonItem(i, item))
     const { earned } = splitScoreStorage(it?.value ?? '')
+    const note = scoreNoteDraft(it?.value ?? '')
     return {
       ...s,
       items: s.items.map((i) =>
-        matchesLessonItem(i, item) ? { ...i, value: joinScoreStorage(earned, maxStr) } : i,
+        matchesLessonItem(i, item) ? { ...i, value: joinScoreStorage(earned, maxStr, note) } : i,
       ),
     }
   })
@@ -108,6 +109,31 @@ export function getCompleteColumnNote(students: LessonStudent[], item: LessonIte
     if (note != null) return note
   }
   return ''
+}
+
+export function getScoreColumnNote(students: LessonStudent[], item: LessonItemDetail): string {
+  for (const s of students) {
+    const note = scoreNoteDraft(s.items.find((i) => matchesLessonItem(i, item))?.value ?? '')
+    if (note !== '') return note
+  }
+  return ''
+}
+
+export function applyScoreNoteToAllStudents(
+  students: LessonStudent[],
+  item: LessonItemDetail,
+  note: string,
+): LessonStudent[] {
+  return students.map((s) => {
+    const it = s.items.find((i) => matchesLessonItem(i, item))
+    const { earned, max } = splitScoreStorage(it?.value ?? '')
+    return {
+      ...s,
+      items: s.items.map((i) =>
+        matchesLessonItem(i, item) ? { ...i, value: joinScoreStorage(earned, max, note) } : i,
+      ),
+    }
+  })
 }
 
 export function applyCompleteNoteToAllStudents(

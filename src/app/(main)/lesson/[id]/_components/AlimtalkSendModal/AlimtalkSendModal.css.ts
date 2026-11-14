@@ -42,6 +42,13 @@ export const drawerShell = style({
   display: 'flex',
   alignItems: 'flex-end',
   animation: `${slideIn} 0.3s ease-out`,
+  '@media': {
+    [media.phone]: {
+      width: '100%',
+      flexDirection: 'column',
+      alignItems: 'stretch',
+    },
+  },
 })
 
 export const drawer = style({
@@ -54,6 +61,15 @@ export const drawer = style({
   display: 'flex',
   flexDirection: 'column',
   minWidth: 0,
+  '@media': {
+    [media.phone]: {
+      width: '100%',
+      maxWidth: '100%',
+      height: 'auto',
+      flex: 1,
+      minHeight: 0,
+    },
+  },
 })
 
 export const drawerClosing = style({
@@ -529,9 +545,13 @@ export const checkDock = style({
   overflow: 'hidden',
   '@media': {
     [media.phone]: {
-      width: '180px',
-      maxHeight: '240px',
-      marginBottom: '16px',
+      width: '100%',
+      maxWidth: '100%',
+      maxHeight: '28vh',
+      marginBottom: 0,
+      borderRight: `1px solid ${colors.primary100}`,
+      borderRadius: 0,
+      boxShadow: 'none',
     },
   },
 })
@@ -539,6 +559,12 @@ export const checkDock = style({
 export const checkDockCollapsed = style({
   width: 'auto',
   maxHeight: 'none',
+  '@media': {
+    [media.phone]: {
+      width: '100%',
+      maxHeight: 'none',
+    },
+  },
 })
 
 export const checkTab = style({

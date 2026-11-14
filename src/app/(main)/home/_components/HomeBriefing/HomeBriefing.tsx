@@ -6,6 +6,7 @@ import CheckIcon from '@/assets/icons/icon-check.svg'
 import StarIcon from '@/assets/icons/icon-star.svg'
 import Text from '@/components/common/Text'
 import { listItemRowStyle } from '@/components/common/styles/listItem.css'
+import { CALENDAR_EVENTS_CHANGED } from '@/lib/calendarEvents'
 import { homeService } from '@/services/home'
 import type { BriefingItem } from '@/types/home'
 import { briefingGreeting } from './briefingGreeting'
@@ -36,8 +37,13 @@ export default function HomeBriefing() {
       }
     }
     void load()
+    const onCalendarChange = () => {
+      void load()
+    }
+    window.addEventListener(CALENDAR_EVENTS_CHANGED, onCalendarChange)
     return () => {
       cancelled = true
+      window.removeEventListener(CALENDAR_EVENTS_CHANGED, onCalendarChange)
     }
   }, [])
 

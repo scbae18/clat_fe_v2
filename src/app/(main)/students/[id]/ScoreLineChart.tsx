@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { colors } from '@/styles/tokens/colors'
 import type { ScoreHistoryPoint } from '@/services/studentDashboard'
-import { parseLessonScoreValue } from '@/lib/lessonScore'
+import { formatScoreStorageLabel, parseLessonScoreValue } from '@/lib/lessonScore'
 import * as styles from './studentDashboard.css'
 
 const SERIES_COLORS = [
@@ -78,7 +78,7 @@ function buildSeries(rows: ScoreHistoryPoint[]): {
       const k = String(r.lesson_record_id ?? `${r.lesson_date}-${r.class_name}`)
       const xIdx = xKeys.indexOf(k)
       if (xIdx < 0) continue
-      const rawLabel = (r.value ?? '').trim() || '—'
+      const rawLabel = formatScoreStorageLabel(r.value) || '—'
       pts.push({
         xIdx,
         meta: { ...r, studentValue, rawLabel },

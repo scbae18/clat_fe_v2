@@ -1,14 +1,16 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import CheckIcon from '@/assets/icons/icon-check.svg'
 import ChevronLeftIcon from '@/assets/icons/icon-chevron-left.svg'
 import ChevronRightIcon from '@/assets/icons/icon-chevron-right.svg'
 import Button from '@/components/common/Button'
+import ConfirmModal from '@/components/common/ConfirmModal'
 import Input from '@/components/common/Input'
 import Modal from '@/components/common/Modal'
 import Text from '@/components/common/Text'
 import Textarea from '@/components/common/Textarea'
+import { notifyCalendarEventsChanged, sortCalendarEvents } from '@/lib/calendarEvents'
 import { calendarService } from '@/services/calendar'
 import { studentService } from '@/services/student'
 import type { CalendarEvent } from '@/types/calendar'
@@ -59,6 +61,9 @@ export default function HomeCalendar() {
   const [error, setError] = useState('')
   const [formError, setFormError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const deletingRef = useRef(false)
 
   const cells = useMemo(() => monthCells(month), [month])
   const rangeFrom = dateKey(cells[0])
@@ -89,7 +94,7 @@ export default function HomeCalendar() {
     return dates
   }, [events])
 
-  const selectedEvents = events.filter((event) => event.event_date === selectedKey)
+  const selectedEvents = sortCalendarEvents(events.filter((event) => event.event_date === selectedKey))
   const selectedDate = parseKey(selectedKey)
 
   const shiftMonth = (delta: number) => {
@@ -133,6 +138,7 @@ export default function HomeCalendar() {
       setClassIds([])
       closeForm()
       await reload()
+      notifyCalendarEventsChanged()
     } catch {
       setFormError(editingId != null ? '일정을 수정하지 못했어요.' : '일정을 추가하지 못했어요.')
     } finally {
@@ -182,13 +188,37 @@ export default function HomeCalendar() {
     await loadStudents()
   }
 
-  const removeEvent = async (id: number) => {
+  const removeEvent = async () => {
+    const id = deleteId
+    if (id == null || deletingRef.current) return
+    deletingRef.current = true
+    setDeleting(true)
     setError('')
     try {
       await calendarService.remove(id)
       setEvents((current) => current.filter((row) => row.id !== id))
+      setDeleteId(null)
+      notifyCalendarEventsChanged()
     } catch {
       setError('일정을 지우지 못했어요.')
+    } finally {
+      deletingRef.current = false
+      setDeleting(false)
+    }
+  }
+
+  const toggleDone = async (event: CalendarEvent) => {
+    const next = !event.done
+    setEvents((current) => current.map((row) => (row.id === event.id ? { ...row, done: next } : row)))
+    setError('')
+    try {
+      await calendarService.update(event.id, { done: next })
+      notifyCalendarEventsChanged()
+    } catch {
+      setEvents((current) =>
+        current.map((row) => (row.id === event.id ? { ...row, done: event.done } : row)),
+      )
+      setError('일정을 체크하지 못했어요.')
     }
   }
 
@@ -336,21 +366,38 @@ export default function HomeCalendar() {
         <ul className={styles.list}>
           {selectedEvents.map((event) => (
             <li key={event.id} className={styles.item}>
-              <span className={styles.itemBody}>
-                <Text variant="bodyMd" color="gray900">
+              <button
+                type="button"
+                className={styles.checkButton}
+                aria-pressed={event.done}
+                aria-label={event.done ? `${event.body} 체크 해제` : `${event.body} 체크`}
+                onClick={() => void toggleDone(event)}
+              >
+                <CheckIcon width={16} height={16} className={event.done ? styles.checkOn : styles.checkOff} />
+              </button>
+              <button type="button" className={styles.itemBodyButton} onClick={() => void toggleDone(event)}>
+                <Text
+                  variant="bodyMd"
+                  color={event.done ? 'gray500' : 'gray900'}
+                  className={event.done ? styles.struck : undefined}
+                >
                   {event.body}
                 </Text>
                 {event.audience ? (
-                  <Text variant="labelSm" color="gray600">
+                  <Text
+                    variant="labelSm"
+                    color={event.done ? 'gray500' : 'gray600'}
+                    className={event.done ? styles.struck : undefined}
+                  >
                     {event.audience}
                   </Text>
                 ) : null}
-              </span>
+              </button>
               <span className={styles.itemActions}>
                 <Button type="button" variant="ghost" size="sm" onClick={() => void openEdit(event)}>
                   수정
                 </Button>
-                <Button type="button" variant="ghost" size="sm" onClick={() => void removeEvent(event.id)}>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setDeleteId(event.id)}>
                   지우기
                 </Button>
               </span>
@@ -363,6 +410,17 @@ export default function HomeCalendar() {
           {error}
         </Text>
       ) : null}
+      <ConfirmModal
+        isOpen={deleteId != null}
+        onClose={() => {
+          if (!deleting) setDeleteId(null)
+        }}
+        onConfirm={() => void removeEvent()}
+        title="이 일정을 지울까요?"
+        descriptions={['지운 일정은 캘린더와 하루 브리핑에서 사라져요.']}
+        confirmLabel="지우기"
+        confirmVariant="danger"
+      />
       <Modal isOpen={addOpen} onClose={closeForm} size="md">
         <div className={styles.modalTitle}>
           <Text variant="headingLg" as="h2" className={styles.headingReset}>

@@ -86,7 +86,20 @@ export const tdShrinkStyle = style({ ...baseTdStyles, paddingRight: '16px' })
 export const cellButtonGroupStyle = style({
   display: 'flex',
   flexWrap: 'wrap',
+  alignItems: 'center',
   gap: '4px',
+})
+
+/** 출석·지각·결석은 칸이 좁아져도 한 줄. 추가 출결은 바깥에서 줄바꿈된다. */
+export const attendanceCoreStyle = style({
+  display: 'inline-flex',
+  flexWrap: 'nowrap',
+  flexShrink: 0,
+  gap: '4px',
+})
+
+export const attendanceCellStyle = style({
+  minWidth: '172px',
 })
 
 export const cellButtonRecipe = recipe({
@@ -270,6 +283,7 @@ export const attendanceThStyle = style({
   paddingRight: '16px',
   height: 'auto',
   minHeight: '40px',
+  minWidth: '172px',
   whiteSpace: 'normal',
   verticalAlign: 'middle',
   overflow: 'hidden',
@@ -396,6 +410,8 @@ export const nameStickyCellStyle = style({
   position: 'sticky',
   left: 0,
   zIndex: 2,
+  whiteSpace: 'nowrap',
+  paddingRight: '12px',
   backgroundColor: colors.white,
   boxShadow: `4px 0 8px -6px ${colors.gray200}`,
   selectors: {
@@ -724,28 +740,34 @@ export const completeHeaderNoteInputStyle = style([
 export const colHeaderWrapStyle = style({
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'space-between',
-  flexWrap: 'wrap',
-  gap: '8px',
+  flexWrap: 'nowrap',
+  gap: '6px',
   width: '100%',
-  maxWidth: '100%',
   minWidth: 0,
 })
 
 export const colHeaderTitleBlockStyle = style({
   display: 'flex',
   flexDirection: 'row',
-  flexWrap: 'wrap',
+  flexWrap: 'nowrap',
   alignItems: 'center',
   gap: '6px',
   minWidth: 0,
-  maxWidth: '100%',
+})
+
+export const colHeaderActionsStyle = style({
+  display: 'flex',
+  flexDirection: 'row',
+  flexWrap: 'nowrap',
+  alignItems: 'center',
+  flexShrink: 0,
+  gap: '4px',
+  marginLeft: 'auto',
 })
 
 export const colHeaderNameStyle = style({
+  flex: '0 1 auto',
   minWidth: 0,
-  maxWidth: '100%',
-  whiteSpace: 'normal',
   overflowWrap: 'anywhere',
 })
 

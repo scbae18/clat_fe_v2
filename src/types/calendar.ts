@@ -12,6 +12,7 @@ export interface CalendarEvent {
   id: number
   event_date: string
   body: string
+  done: boolean
   audience: string
   classes: CalendarEventClass[]
   students: CalendarEventStudent[]

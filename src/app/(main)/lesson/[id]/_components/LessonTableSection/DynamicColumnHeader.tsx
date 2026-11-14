@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react'
 import { createPortal } from 'react-dom'
 import type { LessonStudent } from '@/types/lessonStudent'
 import type { LessonItemDetail } from '@/services/lesson'
@@ -17,7 +17,7 @@ import {
   completeColHeaderStyle,
   completeHeaderNoteInputStyle,
   colHeaderWrapStyle,
-  colHeaderTitleBlockStyle,
+  colHeaderActionsStyle,
   colHeaderNameStyle,
   itemControlButtonStyle,
   partialChipRecipe,
@@ -25,10 +25,12 @@ import {
 } from './LessonTable.css'
 import {
   applyScoreMaxToAllStudents,
+  applyScoreNoteToAllStudents,
   applyCompleteNoteToAllStudents,
   formatScoreColumnMetric,
   getScoreColumnAverage,
   getScoreColumnMax,
+  getScoreColumnNote,
   getCompleteColumnNote,
   isScoreItem,
   isCompleteItem,
@@ -36,6 +38,7 @@ import {
 import { canMarkLessonItemPartial } from '@/lib/lessonProgress'
 
 const PARTIAL_TIP = '입력되지 않은 학생의 문자에 포함되지 않습니다'
+const NOTE_TIP = '항목에 대한 설명을 작성하고 알림톡에도 포함됩니다.'
 
 interface DynamicColumnHeaderProps {
   item: LessonItemDetail
@@ -46,14 +49,20 @@ interface DynamicColumnHeaderProps {
   onTogglePartial?: (item: LessonItemDetail, isPartial: boolean) => void
 }
 
-function PartialInputChip({
-  item,
-  isPartial,
-  onToggle,
+function HeaderChip({
+  label,
+  pressed,
+  tip,
+  ariaLabel,
+  onClick,
+  onMouseDown,
 }: {
-  item: LessonItemDetail
-  isPartial: boolean
-  onToggle: (item: LessonItemDetail, isPartial: boolean) => void
+  label: string
+  pressed: boolean
+  tip: string
+  ariaLabel: string
+  onClick: () => void
+  onMouseDown?: (ev: MouseEvent<HTMLButtonElement>) => void
 }) {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
@@ -87,16 +96,17 @@ function PartialInputChip({
       <button
         ref={buttonRef}
         type="button"
-        className={partialChipRecipe({ on: isPartial })}
-        aria-pressed={isPartial}
-        aria-label={`${item.name} 일부입력. ${PARTIAL_TIP}`}
+        className={partialChipRecipe({ on: pressed })}
+        aria-pressed={pressed}
+        aria-label={ariaLabel}
         onMouseEnter={show}
         onMouseLeave={() => setOpen(false)}
         onFocus={show}
         onBlur={() => setOpen(false)}
-        onClick={() => onToggle(item, !isPartial)}
+        onMouseDown={onMouseDown}
+        onClick={onClick}
       >
-        일부입력
+        {label}
       </button>
       {open
         ? createPortal(
@@ -110,7 +120,7 @@ function PartialInputChip({
                 } as CSSProperties
               }
             >
-              {PARTIAL_TIP}
+              {tip}
             </span>,
             document.body,
           )
@@ -131,53 +141,61 @@ export function DynamicColumnHeader({
   const isComplete = isCompleteItem(item)
   const showPartial = canMarkLessonItemPartial(item) && onTogglePartial != null
   const isPartial = item.is_partial === true
-  const completeNote = isComplete ? getCompleteColumnNote(students, item) : ''
-  const [completeNoteOpen, setCompleteNoteOpen] = useState(false)
-  const completeNoteInputRef = useRef<HTMLInputElement>(null)
-  const showCompleteNote = isComplete && (completeNoteOpen || completeNote.trim() !== '')
-  const isTallHeader = isScore || showCompleteNote
+  const columnNote = isComplete
+    ? getCompleteColumnNote(students, item)
+    : isScore
+      ? getScoreColumnNote(students, item)
+      : ''
+  const [columnNoteOpen, setColumnNoteOpen] = useState(false)
+  const columnNoteInputRef = useRef<HTMLInputElement>(null)
+  const showColumnNote = (isComplete || isScore) && (columnNoteOpen || columnNote.trim() !== '')
+  const isTallHeader = isScore || showColumnNote
 
   useEffect(() => {
-    if (!completeNoteOpen) return
-    completeNoteInputRef.current?.focus()
-  }, [completeNoteOpen])
+    if (!columnNoteOpen) return
+    columnNoteInputRef.current?.focus()
+  }, [columnNoteOpen])
 
   const titleRow = (
     <div className={colHeaderWrapStyle}>
-      <div className={colHeaderTitleBlockStyle}>
-        <span className={colHeaderNameStyle}>{item.name}</span>
+      <span className={colHeaderNameStyle}>{item.name}</span>
+      {isComplete || isScore ? (
+        <HeaderChip
+          label="내용입력"
+          pressed={showColumnNote}
+          tip={NOTE_TIP}
+          ariaLabel={`${item.name} 내용입력. ${NOTE_TIP}`}
+          onMouseDown={(ev) => ev.preventDefault()}
+          onClick={() => {
+            if (columnNoteOpen && columnNote.trim() === '') {
+              setColumnNoteOpen(false)
+              return
+            }
+            setColumnNoteOpen(true)
+          }}
+        />
+      ) : null}
+      <div className={colHeaderActionsStyle}>
         {showPartial && onTogglePartial ? (
-          <PartialInputChip item={item} isPartial={isPartial} onToggle={onTogglePartial} />
+          <HeaderChip
+            label="일부입력"
+            pressed={isPartial}
+            tip={PARTIAL_TIP}
+            ariaLabel={`${item.name} 일부입력. ${PARTIAL_TIP}`}
+            onClick={() => onTogglePartial(item, !isPartial)}
+          />
         ) : null}
-        {isComplete ? (
+        {canRemove ? (
           <button
             type="button"
-            className={partialChipRecipe({ on: showCompleteNote })}
-            aria-pressed={showCompleteNote}
-            aria-label={`${item.name} 내용입력`}
-            onMouseDown={(ev) => ev.preventDefault()}
-            onClick={() => {
-              if (completeNoteOpen && completeNote.trim() === '') {
-                setCompleteNoteOpen(false)
-                return
-              }
-              setCompleteNoteOpen(true)
-            }}
+            className={itemControlButtonStyle}
+            aria-label={`${item.name} 항목 제거`}
+            onClick={() => onRemoveColumn?.(item)}
           >
-            내용입력
+            ×
           </button>
         ) : null}
       </div>
-      {canRemove ? (
-        <button
-          type="button"
-          className={itemControlButtonStyle}
-          aria-label={`${item.name} 항목 제거`}
-          onClick={() => onRemoveColumn?.(item)}
-        >
-          ×
-        </button>
-      ) : null}
     </div>
   )
 
@@ -212,18 +230,44 @@ export function DynamicColumnHeader({
               </span>
             </span>
           </div>
+          {showColumnNote ? (
+            <div className={scoreHeaderMaxRowStyle}>
+              <input
+                ref={columnNoteInputRef}
+                className={completeHeaderNoteInputStyle}
+                type="text"
+                autoComplete="off"
+                value={columnNote}
+                onChange={(ev) =>
+                  onChange(applyScoreNoteToAllStudents(students, item, ev.target.value))
+                }
+                onKeyDown={(ev) => {
+                  ev.stopPropagation()
+                  if (ev.key === 'Escape') {
+                    ev.preventDefault()
+                    if (columnNote.trim() === '') setColumnNoteOpen(false)
+                  }
+                }}
+                onBlur={() => {
+                  if (columnNote.trim() === '') setColumnNoteOpen(false)
+                }}
+                placeholder="선택"
+                aria-label={`${item.name} 내용`}
+              />
+            </div>
+          ) : null}
         </div>
       ) : isComplete ? (
         <div className={completeColHeaderStyle}>
           {titleRow}
-          {showCompleteNote ? (
+          {showColumnNote ? (
             <div className={scoreHeaderMaxRowStyle}>
               <input
-                ref={completeNoteInputRef}
+                ref={columnNoteInputRef}
                 className={completeHeaderNoteInputStyle}
                 type="text"
                 autoComplete="off"
-                value={completeNote}
+                value={columnNote}
                 onChange={(ev) =>
                   onChange(applyCompleteNoteToAllStudents(students, item, ev.target.value))
                 }
@@ -231,11 +275,11 @@ export function DynamicColumnHeader({
                   ev.stopPropagation()
                   if (ev.key === 'Escape') {
                     ev.preventDefault()
-                    if (completeNote.trim() === '') setCompleteNoteOpen(false)
+                    if (columnNote.trim() === '') setColumnNoteOpen(false)
                   }
                 }}
                 onBlur={() => {
-                  if (completeNote.trim() === '') setCompleteNoteOpen(false)
+                  if (columnNote.trim() === '') setColumnNoteOpen(false)
                 }}
                 placeholder="선택"
                 aria-label={`${item.name} 내용`}

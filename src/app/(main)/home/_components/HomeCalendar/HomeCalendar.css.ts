@@ -153,13 +153,34 @@ export const item = style({
   background: colors.white,
 })
 
-export const itemBody = style({
+export const itemBodyButton = style({
   flex: 1,
   minWidth: 0,
   display: 'flex',
   flexDirection: 'column',
+  alignItems: 'flex-start',
   gap: '2px',
+  padding: 0,
+  border: 'none',
+  background: 'transparent',
+  textAlign: 'left',
+  cursor: 'pointer',
   wordBreak: 'break-word',
+})
+
+export const checkButton = style({
+  display: 'inline-flex',
+  flexShrink: 0,
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 0,
+  border: 'none',
+  background: 'transparent',
+  cursor: 'pointer',
+})
+
+export const struck = style({
+  textDecoration: 'line-through',
 })
 
 export const note = style({

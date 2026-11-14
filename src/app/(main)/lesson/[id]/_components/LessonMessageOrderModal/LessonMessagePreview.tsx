@@ -4,6 +4,8 @@ import MessagePreviewShell from '@/components/message/MessagePreviewShell'
 import type { TemplateItem } from '@/app/(main)/template/_types/template'
 import { useUserStore } from '@/stores/userStore'
 import type { LessonStudent } from '@/types/lessonStudent'
+import { completeItemNote } from '@/lib/completeNote'
+import { scoreNoteDraft, splitScoreRecord } from '@/lib/lessonScore'
 import { parseItemRef, matchesLessonItem } from '@/lib/lessonItemRef'
 import type { LessonItemDetail } from '@/services/lesson'
 
@@ -21,6 +23,13 @@ interface LessonMessagePreviewProps {
 function formatLessonDate(isoDate: string): string {
   const d = new Date(isoDate + 'T00:00:00')
   return `${d.getMonth() + 1}월 ${d.getDate()}일`
+}
+
+function notedLabel(label: string, note: string): string {
+  const text = note.trim()
+  if (!text) return label
+  const base = label.replace(' *', '')
+  return `${base} (${text})`
 }
 
 function resolvePreviewValue(
@@ -52,6 +61,10 @@ function resolvePreviewValue(
     if (studentItem?.is_completed === true) return '완료'
     if (studentItem?.is_completed === false) return '미완료'
     return '입력 필요'
+  }
+
+  if (item.itemType === 'number') {
+    return splitScoreRecord(studentItem?.value).score.trim() || '입력 필요'
   }
 
   const value = studentItem?.value?.trim()
@@ -88,11 +101,27 @@ export default function LessonMessagePreview({
       className={className}
       dateLabel={formatLessonDate(lessonDate)}
       emptyMessage="문자에 포함된 항목이 없어요"
-      items={activeItems.map((item) => ({
-        id: item.id,
-        label: item.label,
-        value: resolvePreviewValue(item, commonValues, sampleStudent, lessonItems),
-      }))}
+      items={activeItems.map((item) => {
+        const { source, id } = parseItemRef(item.id)
+        const lessonItem = lessonItems.find(
+          (li) => (li.source ?? 'template') === source && li.id === id,
+        )
+        const studentItem =
+          sampleStudent && lessonItem
+            ? sampleStudent.items.find((row) => matchesLessonItem(row, lessonItem))
+            : undefined
+        const note =
+          item.itemType === 'completion'
+            ? (completeItemNote(studentItem?.value) ?? '')
+            : item.itemType === 'number'
+              ? scoreNoteDraft(studentItem?.value)
+              : ''
+        return {
+          id: item.id,
+          label: notedLabel(item.label, note),
+          value: resolvePreviewValue(item, commonValues, sampleStudent, lessonItems),
+        }
+      })}
     />
   )
 }

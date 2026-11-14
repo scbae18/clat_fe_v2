@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, useRef, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import UsersIcon from '@/assets/icons/icon-users.svg'
 import TrashIcon from '@/assets/icons/icon-trash.svg'
 import StudentNameSearchBar, {
@@ -20,6 +20,7 @@ import type { ItemSource } from '@/lib/lessonItemRef'
 import { isLessonStudentInputComplete } from '@/lib/lessonProgress'
 import { isScoreUnanswered } from '@/lib/lessonScore'
 import {
+  attendanceCellStyle,
   tableStyle,
   tableWrapStyle,
   tdStyle,
@@ -84,6 +85,7 @@ export default function LessonTable({
 }: LessonTableSectionProps) {
   const tour = useTutorial()
   const tableRef = useRef<HTMLTableElement>(null)
+  const [nameColWidth, setNameColWidth] = useState(96)
   const [searchQuery, setSearchQuery] = useState('')
   const [focusedStudentId, setFocusedStudentId] = useState<number | null>(null)
   const [isAddFormOpen, setIsAddFormOpen] = useState(false)
@@ -100,6 +102,17 @@ export default function LessonTable({
     if (!query) return students
     return students.filter((s) => s.name.toLowerCase().includes(query))
   }, [students, searchQuery])
+
+  useLayoutEffect(() => {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    ctx.font = '500 14px Pretendard, sans-serif'
+    const labels = ['학생', ...filteredStudents.map((student) => student.name)]
+    const textWidth = labels.reduce((max, label) => Math.max(max, ctx.measureText(label).width), 0)
+    const next = Math.ceil(textWidth) + 16 + 12 + 28
+    setNameColWidth((prev) => (prev === next ? prev : next))
+  }, [filteredStudents])
 
   const partialItemRefs = useMemo(() => {
     const refs = new Set<string>()
@@ -198,6 +211,9 @@ export default function LessonTable({
             onBlur={handleTableBlur}
             data-tour="lesson-table"
           >
+            <colgroup>
+              <col style={{ width: nameColWidth }} />
+            </colgroup>
             <thead>
               <tr>
                 <th className={`${thCompactStyle} ${nameStickyCellStyle}`}>학생</th>
@@ -260,7 +276,7 @@ export default function LessonTable({
                     </div>
                   </td>
                   <td
-                    className={getTdClassName(tdStyle, student.id, focusedStudentId, isComplete)}
+                    className={`${getTdClassName(tdStyle, student.id, focusedStudentId, isComplete)} ${attendanceCellStyle}`}
                     onMouseDown={() => handleRowFocus(student.id)}
                     onFocusCapture={() => handleRowFocus(student.id)}
                   >

@@ -3,9 +3,10 @@
 import { useLayoutEffect, useRef } from 'react'
 
 import type { Attendance, CompletionStatus } from '@/types/lessonStudent'
-import { joinScoreStorage, splitScoreStorage } from '@/lib/lessonScore'
+import { joinScoreStorage, scoreNoteDraft, splitScoreStorage } from '@/lib/lessonScore'
 import { isCoreAttendanceLabel } from '@/lib/attendanceLabels'
 import {
+  attendanceCoreStyle,
   cellButtonGroupStyle,
   cellButtonRecipe,
   extraCellButtonStyle,
@@ -32,28 +33,30 @@ export function AttendanceCell({
 
   return (
     <div className={cellButtonGroupStyle}>
-      <button
-        type="button"
-        className={cellButtonRecipe({ variant: value === '출석' ? 'attend' : 'default' })}
-        onClick={() => onChange(value === '출석' ? null : '출석')}
-        data-tour={tourAnchor}
-      >
-        출석
-      </button>
-      <button
-        type="button"
-        className={cellButtonRecipe({ variant: value === '지각' ? 'late' : 'default' })}
-        onClick={() => onChange(value === '지각' ? null : '지각')}
-      >
-        지각
-      </button>
-      <button
-        type="button"
-        className={cellButtonRecipe({ variant: value === '결석' ? 'absent' : 'default' })}
-        onClick={() => onChange(value === '결석' ? null : '결석')}
-      >
-        결석
-      </button>
+      <span className={attendanceCoreStyle}>
+        <button
+          type="button"
+          className={cellButtonRecipe({ variant: value === '출석' ? 'attend' : 'default' })}
+          onClick={() => onChange(value === '출석' ? null : '출석')}
+          data-tour={tourAnchor}
+        >
+          출석
+        </button>
+        <button
+          type="button"
+          className={cellButtonRecipe({ variant: value === '지각' ? 'late' : 'default' })}
+          onClick={() => onChange(value === '지각' ? null : '지각')}
+        >
+          지각
+        </button>
+        <button
+          type="button"
+          className={cellButtonRecipe({ variant: value === '결석' ? 'absent' : 'default' })}
+          onClick={() => onChange(value === '결석' ? null : '결석')}
+        >
+          결석
+        </button>
+      </span>
       {extraButtons.map((label) => (
         <button
           type="button"
@@ -131,6 +134,7 @@ export function ScoreEarnedCell({
   onBlur?: () => void
 }) {
   const { earned } = splitScoreStorage(value)
+  const note = scoreNoteDraft(value)
   return (
     <input
       className={scoreInputStyle}
@@ -138,7 +142,7 @@ export function ScoreEarnedCell({
       inputMode="decimal"
       autoComplete="off"
       value={earned}
-      onChange={(ev) => onChange(joinScoreStorage(ev.target.value, columnMax))}
+      onChange={(ev) => onChange(joinScoreStorage(ev.target.value, columnMax, note))}
       onBlur={() => onBlur?.()}
       placeholder="—"
       aria-label="얻은 점수"
