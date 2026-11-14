@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import CheckIcon from '@/assets/icons/icon-check.svg'
 import StarIcon from '@/assets/icons/icon-star.svg'
 import Text from '@/components/common/Text'
 import { listItemRowStyle } from '@/components/common/styles/listItem.css'
@@ -96,9 +95,7 @@ export default function HomeBriefing() {
               className={item.href ? `${listItemRowStyle} ${styles.row}` : listItemRowStyle}
               onClick={item.href ? () => openItem(item) : undefined}
             >
-              <span className={styles.mark} aria-hidden>
-                <CheckIcon width={14} height={14} />
-              </span>
+              <span className={styles.mark} aria-hidden />
               <Text variant="bodyMd" color="gray900" className={styles.title}>
                 {item.title}
               </Text>

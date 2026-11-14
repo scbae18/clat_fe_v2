@@ -53,9 +53,14 @@ export const row = style({
 })
 
 export const mark = style({
-  display: 'inline-flex',
+  display: 'inline-block',
   flexShrink: 0,
-  color: colors.gray300,
+  width: '14px',
+  height: '14px',
+  boxSizing: 'border-box',
+  border: `1.5px solid ${colors.gray200}`,
+  borderRadius: '2px',
+  backgroundColor: colors.gray200,
 })
 
 export const title = style({
