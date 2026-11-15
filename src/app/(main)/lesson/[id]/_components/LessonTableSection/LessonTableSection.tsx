@@ -18,6 +18,7 @@ import useDisclosure from '@/hooks/useDisclosure'
 import { lessonItemRef, matchesLessonItem } from '@/lib/lessonItemRef'
 import type { ItemSource } from '@/lib/lessonItemRef'
 import { isLessonStudentInputComplete } from '@/lib/lessonProgress'
+import { splitColumnNote } from '@/lib/columnNote'
 import { isScoreUnanswered } from '@/lib/lessonScore'
 import {
   attendanceCellStyle,
@@ -97,6 +98,11 @@ export default function LessonTable({
     [templateItems],
   )
 
+  const tableMinWidth = Math.max(
+    720,
+    nameColWidth + 176 + dynamicItems.length * 176 + (onAddItem ? 40 : 0),
+  )
+
   const filteredStudents = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
     if (!query) return students
@@ -142,6 +148,9 @@ export default function LessonTable({
         if (!cell) return false
         if (item.item_type === 'COMPLETE') return cell.is_completed != null
         if (item.item_type === 'SCORE' || item.item_type === 'NUMBER') return !isScoreUnanswered(cell.value)
+        if (item.item_type === 'TEXT' || item.item_type === 'SELECT') {
+          return splitColumnNote(cell.value).value.trim() !== ''
+        }
         return cell.value.trim() !== ''
       })
     })
@@ -208,11 +217,17 @@ export default function LessonTable({
           <table
             ref={tableRef}
             className={tableStyle}
+            style={{ minWidth: tableMinWidth }}
             onBlur={handleTableBlur}
             data-tour="lesson-table"
           >
             <colgroup>
               <col style={{ width: nameColWidth }} />
+              <col />
+              {dynamicItems.map((item) => (
+                <col key={lessonItemRef(item)} />
+              ))}
+              {onAddItem ? <col style={{ width: 40 }} /> : null}
             </colgroup>
             <thead>
               <tr>

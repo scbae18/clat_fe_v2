@@ -17,6 +17,7 @@ import {
   completeColHeaderStyle,
   completeHeaderNoteInputStyle,
   colHeaderWrapStyle,
+  colHeaderControlsStyle,
   colHeaderActionsStyle,
   colHeaderNameStyle,
   itemControlButtonStyle,
@@ -27,13 +28,16 @@ import {
   applyScoreMaxToAllStudents,
   applyScoreNoteToAllStudents,
   applyCompleteNoteToAllStudents,
+  applyValueNoteToAllStudents,
   formatScoreColumnMetric,
   getScoreColumnAverage,
   getScoreColumnMax,
   getScoreColumnNote,
   getCompleteColumnNote,
+  getValueColumnNote,
   isScoreItem,
   isCompleteItem,
+  isValueNoteItem,
 } from './lessonTableUtils'
 import { canMarkLessonItemPartial } from '@/lib/lessonProgress'
 
@@ -139,16 +143,20 @@ export function DynamicColumnHeader({
 }: DynamicColumnHeaderProps) {
   const isScore = isScoreItem(item)
   const isComplete = isCompleteItem(item)
+  const isValueNote = isValueNoteItem(item)
   const showPartial = canMarkLessonItemPartial(item) && onTogglePartial != null
   const isPartial = item.is_partial === true
   const columnNote = isComplete
     ? getCompleteColumnNote(students, item)
     : isScore
       ? getScoreColumnNote(students, item)
-      : ''
+      : isValueNote
+        ? getValueColumnNote(students, item)
+        : ''
   const [columnNoteOpen, setColumnNoteOpen] = useState(false)
   const columnNoteInputRef = useRef<HTMLInputElement>(null)
-  const showColumnNote = (isComplete || isScore) && (columnNoteOpen || columnNote.trim() !== '')
+  const showColumnNote =
+    (isComplete || isScore || isValueNote) && (columnNoteOpen || columnNote.trim() !== '')
   const isTallHeader = isScore || showColumnNote
 
   useEffect(() => {
@@ -159,42 +167,44 @@ export function DynamicColumnHeader({
   const titleRow = (
     <div className={colHeaderWrapStyle}>
       <span className={colHeaderNameStyle}>{item.name}</span>
-      {isComplete || isScore ? (
-        <HeaderChip
-          label="내용입력"
-          pressed={showColumnNote}
-          tip={NOTE_TIP}
-          ariaLabel={`${item.name} 내용입력. ${NOTE_TIP}`}
-          onMouseDown={(ev) => ev.preventDefault()}
-          onClick={() => {
-            if (columnNoteOpen && columnNote.trim() === '') {
-              setColumnNoteOpen(false)
-              return
-            }
-            setColumnNoteOpen(true)
-          }}
-        />
-      ) : null}
-      <div className={colHeaderActionsStyle}>
-        {showPartial && onTogglePartial ? (
+      <div className={colHeaderControlsStyle}>
+        {isComplete || isScore || isValueNote ? (
           <HeaderChip
-            label="일부입력"
-            pressed={isPartial}
-            tip={PARTIAL_TIP}
-            ariaLabel={`${item.name} 일부입력. ${PARTIAL_TIP}`}
-            onClick={() => onTogglePartial(item, !isPartial)}
+            label="내용입력"
+            pressed={showColumnNote}
+            tip={NOTE_TIP}
+            ariaLabel={`${item.name} 내용입력. ${NOTE_TIP}`}
+            onMouseDown={(ev) => ev.preventDefault()}
+            onClick={() => {
+              if (columnNoteOpen && columnNote.trim() === '') {
+                setColumnNoteOpen(false)
+                return
+              }
+              setColumnNoteOpen(true)
+            }}
           />
         ) : null}
-        {canRemove ? (
-          <button
-            type="button"
-            className={itemControlButtonStyle}
-            aria-label={`${item.name} 항목 제거`}
-            onClick={() => onRemoveColumn?.(item)}
-          >
-            ×
-          </button>
-        ) : null}
+        <div className={colHeaderActionsStyle}>
+          {showPartial && onTogglePartial ? (
+            <HeaderChip
+              label="일부입력"
+              pressed={isPartial}
+              tip={PARTIAL_TIP}
+              ariaLabel={`${item.name} 일부입력. ${PARTIAL_TIP}`}
+              onClick={() => onTogglePartial(item, !isPartial)}
+            />
+          ) : null}
+          {canRemove ? (
+            <button
+              type="button"
+              className={itemControlButtonStyle}
+              aria-label={`${item.name} 항목 제거`}
+              onClick={() => onRemoveColumn?.(item)}
+            >
+              ×
+            </button>
+          ) : null}
+        </div>
       </div>
     </div>
   )
@@ -257,7 +267,7 @@ export function DynamicColumnHeader({
             </div>
           ) : null}
         </div>
-      ) : isComplete ? (
+      ) : isComplete || isValueNote ? (
         <div className={completeColHeaderStyle}>
           {titleRow}
           {showColumnNote ? (
@@ -269,7 +279,11 @@ export function DynamicColumnHeader({
                 autoComplete="off"
                 value={columnNote}
                 onChange={(ev) =>
-                  onChange(applyCompleteNoteToAllStudents(students, item, ev.target.value))
+                  onChange(
+                    isComplete
+                      ? applyCompleteNoteToAllStudents(students, item, ev.target.value)
+                      : applyValueNoteToAllStudents(students, item, ev.target.value),
+                  )
                 }
                 onKeyDown={(ev) => {
                   ev.stopPropagation()

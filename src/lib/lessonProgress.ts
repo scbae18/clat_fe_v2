@@ -1,6 +1,7 @@
 import type { LessonStudent } from '@/types/lessonStudent'
 import type { LessonItemDetail } from '@/services/lesson'
 import { itemRef } from '@/lib/lessonItemRef'
+import { splitColumnNote } from '@/lib/columnNote'
 import { isScoreUnanswered } from '@/lib/lessonScore'
 
 export function canMarkLessonItemPartial(
@@ -47,6 +48,9 @@ export function isLessonStudentInputComplete(
     }
     if (itemType === 'SCORE' || itemType === 'NUMBER') {
       return !isScoreUnanswered(item.value)
+    }
+    if (itemType === 'TEXT' || itemType === 'SELECT') {
+      return splitColumnNote(item.value).value.trim() !== ''
     }
     if (item.is_completed !== null && item.is_completed !== undefined) return true
     return item.value.trim() !== ''

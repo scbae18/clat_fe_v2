@@ -740,8 +740,9 @@ export const completeHeaderNoteInputStyle = style([
 export const colHeaderWrapStyle = style({
   display: 'flex',
   alignItems: 'center',
-  flexWrap: 'nowrap',
-  gap: '6px',
+  flexWrap: 'wrap',
+  columnGap: '6px',
+  rowGap: '6px',
   width: '100%',
   minWidth: 0,
 })
@@ -755,6 +756,16 @@ export const colHeaderTitleBlockStyle = style({
   minWidth: 0,
 })
 
+export const colHeaderControlsStyle = style({
+  display: 'flex',
+  flexDirection: 'row',
+  flexWrap: 'nowrap',
+  alignItems: 'center',
+  flex: '1 0 auto',
+  gap: '4px',
+  minWidth: 'max-content',
+})
+
 export const colHeaderActionsStyle = style({
   display: 'flex',
   flexDirection: 'row',
@@ -766,8 +777,8 @@ export const colHeaderActionsStyle = style({
 })
 
 export const colHeaderNameStyle = style({
-  flex: '0 1 auto',
-  minWidth: 0,
+  flex: '0 0 auto',
+  maxWidth: '100%',
   overflowWrap: 'anywhere',
 })
 

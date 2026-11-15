@@ -1,5 +1,6 @@
 import type { LessonStudent } from '@/types/lessonStudent'
 import type { LessonItemDetail, CreateLessonAdhocItemBody } from '@/services/lesson'
+import { columnNoteDraft, joinColumnNote, splitColumnNote } from '@/lib/columnNote'
 import { cohortScoreMetric, joinScoreStorage, scoreNoteDraft, splitScoreStorage } from '@/lib/lessonScore'
 import { completeItemNoteDraft } from '@/lib/completeNote'
 import { matchesLessonItem } from '@/lib/lessonItemRef'
@@ -102,6 +103,10 @@ export function isCompleteItem(item: LessonItemDetail) {
   return item.item_type === 'COMPLETE'
 }
 
+export function isValueNoteItem(item: LessonItemDetail) {
+  return item.item_type === 'TEXT' || item.item_type === 'SELECT'
+}
+
 export function getCompleteColumnNote(students: LessonStudent[], item: LessonItemDetail): string {
   for (const s of students) {
     const v = s.items.find((i) => matchesLessonItem(i, item))?.value ?? ''
@@ -131,6 +136,31 @@ export function applyScoreNoteToAllStudents(
       ...s,
       items: s.items.map((i) =>
         matchesLessonItem(i, item) ? { ...i, value: joinScoreStorage(earned, max, note) } : i,
+      ),
+    }
+  })
+}
+
+export function getValueColumnNote(students: LessonStudent[], item: LessonItemDetail): string {
+  for (const s of students) {
+    const note = columnNoteDraft(s.items.find((i) => matchesLessonItem(i, item))?.value ?? '')
+    if (note !== '') return note
+  }
+  return ''
+}
+
+export function applyValueNoteToAllStudents(
+  students: LessonStudent[],
+  item: LessonItemDetail,
+  note: string,
+): LessonStudent[] {
+  return students.map((s) => {
+    const it = s.items.find((i) => matchesLessonItem(i, item))
+    const { value } = splitColumnNote(it?.value ?? '')
+    return {
+      ...s,
+      items: s.items.map((i) =>
+        matchesLessonItem(i, item) ? { ...i, value: joinColumnNote(value, note) } : i,
       ),
     }
   })

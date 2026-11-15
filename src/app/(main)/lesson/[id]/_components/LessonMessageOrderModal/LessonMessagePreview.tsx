@@ -4,6 +4,7 @@ import MessagePreviewShell from '@/components/message/MessagePreviewShell'
 import type { TemplateItem } from '@/app/(main)/template/_types/template'
 import { useUserStore } from '@/stores/userStore'
 import type { LessonStudent } from '@/types/lessonStudent'
+import { columnNoteDraft, splitColumnNote } from '@/lib/columnNote'
 import { completeItemNote } from '@/lib/completeNote'
 import { scoreNoteDraft, splitScoreRecord } from '@/lib/lessonScore'
 import { parseItemRef, matchesLessonItem } from '@/lib/lessonItemRef'
@@ -67,6 +68,10 @@ function resolvePreviewValue(
     return splitScoreRecord(studentItem?.value).score.trim() || '입력 필요'
   }
 
+  if (item.itemType === 'text' || item.itemType === 'choice') {
+    return splitColumnNote(studentItem?.value).value.trim() || '입력 필요'
+  }
+
   const value = studentItem?.value?.trim()
   if (value) return value
   if (item.itemType === 'choice') return item.choices?.[0] ?? '입력 필요'
@@ -115,7 +120,9 @@ export default function LessonMessagePreview({
             ? (completeItemNote(studentItem?.value) ?? '')
             : item.itemType === 'number'
               ? scoreNoteDraft(studentItem?.value)
-              : ''
+              : item.itemType === 'text' || item.itemType === 'choice'
+                ? columnNoteDraft(studentItem?.value)
+                : ''
         return {
           id: item.id,
           label: notedLabel(item.label, note),

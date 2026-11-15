@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef } from 'react'
 
 import type { Attendance, CompletionStatus } from '@/types/lessonStudent'
+import { joinColumnNote, splitColumnNote } from '@/lib/columnNote'
 import { joinScoreStorage, scoreNoteDraft, splitScoreStorage } from '@/lib/lessonScore'
 import { isCoreAttendanceLabel } from '@/lib/attendanceLabels'
 import {
@@ -107,13 +108,14 @@ export function SelectCell({
   value: string
   onChange: (v: string) => void
 }) {
+  const { value: choice, note } = splitColumnNote(value)
   return (
     <div className={cellButtonGroupStyle}>
       {options.map((opt) => (
         <button
           key={opt.id}
-          className={cellButtonRecipe({ variant: value === opt.label ? 'attend' : 'default' })}
-          onClick={() => onChange(value === opt.label ? '' : opt.label)}
+          className={cellButtonRecipe({ variant: choice === opt.label ? 'attend' : 'default' })}
+          onClick={() => onChange(joinColumnNote(choice === opt.label ? '' : opt.label, note))}
         >
           {opt.label}
         </button>
@@ -159,6 +161,7 @@ export function TextInputCell({
   onChange: (v: string) => void
   onBlur?: () => void
 }) {
+  const { value: body, note } = splitColumnNote(value)
   const wrapRef = useRef<HTMLDivElement>(null)
   const areaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -178,7 +181,7 @@ export function TextInputCell({
     fit()
     window.addEventListener('resize', fit)
     return () => window.removeEventListener('resize', fit)
-  }, [value])
+  }, [body])
 
   return (
     <div ref={wrapRef} className={textCellWrapStyle}>
@@ -186,9 +189,9 @@ export function TextInputCell({
         ref={areaRef}
         className={textCellAreaStyle}
         rows={1}
-        value={value}
+        value={body}
         placeholder="—"
-        onChange={(ev) => onChange(ev.target.value)}
+        onChange={(ev) => onChange(joinColumnNote(ev.target.value, note))}
         onBlur={() => onBlur?.()}
       />
     </div>
