@@ -74,7 +74,6 @@ function resolvePreviewValue(
 
   const value = studentItem?.value?.trim()
   if (value) return value
-  if (item.itemType === 'choice') return item.choices?.[0] ?? '입력 필요'
   return '입력 필요'
 }
 
