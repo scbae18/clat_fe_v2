@@ -17,6 +17,10 @@ export function maskPhone(phone: string): string {
   return `${d.slice(0, 3)}-****-${d.slice(-4)}`
 }
 
+function groupHasFailure(group: GroupedStudentMessages): boolean {
+  return group.student?.status === 'FAIL' || group.parent?.status === 'FAIL'
+}
+
 export function groupMessages(messages: AlimtalkBatchMessage[]) {
   const m = new Map<number, GroupedStudentMessages>()
   for (const msg of messages) {
@@ -27,7 +31,12 @@ export function groupMessages(messages: AlimtalkBatchMessage[]) {
     else cur.parent = msg
     m.set(studentId, cur)
   }
-  return Array.from(m.entries()).sort((a, b) => a[1].name.localeCompare(b[1].name, 'ko'))
+  return Array.from(m.entries()).sort((a, b) => {
+    const aFail = groupHasFailure(a[1])
+    const bFail = groupHasFailure(b[1])
+    if (aFail !== bFail) return aFail ? -1 : 1
+    return a[1].name.localeCompare(b[1].name, 'ko')
+  })
 }
 
 export const MANUAL_TEXT_LABEL = '직접 문자 발송 필요'

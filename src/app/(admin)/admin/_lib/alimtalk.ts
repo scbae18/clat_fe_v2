@@ -25,6 +25,10 @@ export type GroupedRecipient = {
   parent?: AdminAlimtalkBatchMessage
 }
 
+function recipientHasFailure(group: GroupedRecipient): boolean {
+  return group.student?.status === 'FAIL' || group.parent?.status === 'FAIL'
+}
+
 export function groupBatchMessages(messages: AdminAlimtalkBatchMessage[]): GroupedRecipient[] {
   const map = new Map<number, GroupedRecipient>()
   for (const msg of messages) {
@@ -37,5 +41,10 @@ export function groupBatchMessages(messages: AdminAlimtalkBatchMessage[]): Group
     else cur.parent = msg
     map.set(msg.student_id, cur)
   }
-  return [...map.values()].sort((a, b) => a.student_name.localeCompare(b.student_name, 'ko'))
+  return [...map.values()].sort((a, b) => {
+    const aFail = recipientHasFailure(a)
+    const bFail = recipientHasFailure(b)
+    if (aFail !== bFail) return aFail ? -1 : 1
+    return a.student_name.localeCompare(b.student_name, 'ko')
+  })
 }
