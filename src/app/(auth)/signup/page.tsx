@@ -23,6 +23,7 @@ import Text from '@/components/common/Text/Text'
 import Logo from '@/assets/logo/logo-full.svg'
 import SignupConsent, { signupConsentReady } from '@/components/auth/SignupConsent'
 import { formatPhoneInput, normalizeKoreanMobile } from '@/lib/phone'
+import { useCodeTimer } from '@/hooks/useCodeTimer'
 
 const MIN_PASSWORD_LEN = 8
 
@@ -43,6 +44,7 @@ function SignupContent() {
   const passwordConfirmRef = useRef<HTMLInputElement>(null)
   const [pending, setPending] = useState<'send' | 'confirm' | 'submit' | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const codeTimer = useCodeTimer()
 
   const passwordsMismatch = passwordConfirm.length > 0 && password !== passwordConfirm
   const passwordTooShort = password.length > 0 && password.length < MIN_PASSWORD_LEN
@@ -66,6 +68,7 @@ function SignupContent() {
     try {
       await auth.sendSignupCode(normalizedPhone)
       setCodeSent(true)
+      codeTimer.start()
     } catch (err: unknown) {
       setError(apiErrorMessage(err, '인증 문자를 보내지 못했습니다.'))
     } finally {
@@ -116,6 +119,7 @@ function SignupContent() {
       setPhoneProof(null)
       setCode('')
       setCodeSent(false)
+      codeTimer.clear()
       setError(apiErrorMessage(err, '회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.'))
     } finally {
       setPending(null)
@@ -148,11 +152,13 @@ function SignupContent() {
               setPhoneProof(null)
               setCodeSent(false)
               setCode('')
+              codeTimer.clear()
             }}
             type="tel"
             inputMode="tel"
             autoComplete="tel"
             disabled={phoneProof != null}
+            trailing={phoneProof == null ? codeTimer.label : null}
           />
           {phoneProof == null && (
             <Button variant="secondary" size="lg" shape="capsule" fullWidth type="button" disabled={!normalizedPhone || pending != null} onClick={sendCode}>

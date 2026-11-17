@@ -1,15 +1,29 @@
-import { forwardRef, InputHTMLAttributes } from 'react'
-import { inputRecipe } from './Input.css'
+import { forwardRef, InputHTMLAttributes, ReactNode } from 'react'
+import { fieldWrapStyle, inputRecipe, trailingStyle } from './Input.css'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   variant?: 'default' | 'gray'
   shape?: 'square' | 'capsule'
   hasError?: boolean
+  trailing?: ReactNode
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ variant = 'default', shape = 'square', hasError = false, ...props }, ref) => {
-    return <input ref={ref} className={inputRecipe({ variant, shape, hasError })} {...props} />
+  ({ variant = 'default', shape = 'square', hasError = false, trailing, className, ...props }, ref) => {
+    const field = (
+      <input
+        ref={ref}
+        className={[inputRecipe({ variant, shape, hasError, hasTrailing: Boolean(trailing) }), className].filter(Boolean).join(' ')}
+        {...props}
+      />
+    )
+    if (!trailing) return field
+    return (
+      <div className={fieldWrapStyle}>
+        {field}
+        <span className={trailingStyle}>{trailing}</span>
+      </div>
+    )
   }
 )
 

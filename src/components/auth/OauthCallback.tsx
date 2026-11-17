@@ -16,6 +16,7 @@ import Input from '@/components/common/Input/Input'
 import Button from '@/components/common/Button/Button'
 import Text from '@/components/common/Text/Text'
 import { formatPhoneInput, normalizeKoreanMobile } from '@/lib/phone'
+import { useCodeTimer } from '@/hooks/useCodeTimer'
 import SignupConsent, { signupConsentReady } from '@/components/auth/SignupConsent'
 
 const callbackInflight = new Map<string, Promise<OauthCallbackResult>>()
@@ -41,6 +42,7 @@ export default function OauthCallback({ provider }: { provider: OauthProvider })
   const [agreePrivacy, setAgreePrivacy] = useState(false)
   const [agreeEntrust, setAgreeEntrust] = useState(false)
   const normalizedPhone = normalizeKoreanMobile(phone)
+  const codeTimer = useCodeTimer()
 
   const finish = (user: Parameters<typeof setUser>[0]) => {
     setUser(user)
@@ -123,6 +125,7 @@ export default function OauthCallback({ provider }: { provider: OauthProvider })
     setCode('')
     setCodeSent(false)
     setSmsMode(false)
+    codeTimer.clear()
     if (next === 'connect') {
       setName('')
       setEmail('')
@@ -139,6 +142,7 @@ export default function OauthCallback({ provider }: { provider: OauthProvider })
     try {
       await auth.sendAccountCode('link', email.trim(), linkToken, normalizedPhone)
       setCodeSent(true)
+      codeTimer.start()
     } catch (err: unknown) {
       setError(apiErrorMessage(err, '인증 문자를 보내지 못했습니다.'))
     } finally {
@@ -153,6 +157,7 @@ export default function OauthCallback({ provider }: { provider: OauthProvider })
     try {
       await auth.sendSignupCode(normalizedPhone)
       setCodeSent(true)
+      codeTimer.start()
     } catch (err: unknown) {
       setError(apiErrorMessage(err, '인증 문자를 보내지 못했습니다.'))
     } finally {
@@ -197,6 +202,7 @@ export default function OauthCallback({ provider }: { provider: OauthProvider })
                 setEmail(e.target.value)
                 setCodeSent(false)
                 setCode('')
+                codeTimer.clear()
               }}
               type="email"
             />
@@ -210,9 +216,11 @@ export default function OauthCallback({ provider }: { provider: OauthProvider })
                     setPhone(formatPhoneInput(e.target.value))
                     setCodeSent(false)
                     setCode('')
+                    codeTimer.clear()
                   }}
                   type="tel"
                   inputMode="tel"
+                  trailing={codeTimer.label}
                 />
                 <Button variant="secondary" size="md" shape="capsule" type="button" disabled={!normalizedPhone || isLoading} onClick={sendSignupCode}>
                   {isLoading && !codeSent ? '보내는 중...' : '인증번호 받기'}
@@ -240,9 +248,11 @@ export default function OauthCallback({ provider }: { provider: OauthProvider })
                     setPhone(formatPhoneInput(e.target.value))
                     setCodeSent(false)
                     setCode('')
+                    codeTimer.clear()
                   }}
                   type="tel"
                   inputMode="tel"
+                  trailing={codeTimer.label}
                 />
                 <Button variant="secondary" size="md" shape="capsule" type="button" disabled={!email.trim() || !normalizedPhone || isLoading} onClick={sendLinkCode}>
                   {isLoading && !codeSent ? '보내는 중...' : '인증번호 받기'}
@@ -250,7 +260,7 @@ export default function OauthCallback({ provider }: { provider: OauthProvider })
                 {codeSent && (
                   <Input placeholder="인증번호 6자리" shape="capsule" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" />
                 )}
-                <Button variant="outlined" size="md" shape="capsule" type="button" onClick={() => { setSmsMode(false); setPhone(''); setCode(''); setCodeSent(false) }}>
+                <Button variant="outlined" size="md" shape="capsule" type="button" onClick={() => { setSmsMode(false); setPhone(''); setCode(''); setCodeSent(false); codeTimer.clear() }}>
                   비밀번호로 연결
                 </Button>
               </>

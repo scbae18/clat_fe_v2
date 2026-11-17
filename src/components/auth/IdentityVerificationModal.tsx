@@ -10,6 +10,7 @@ import { apiErrorMessage } from '@/lib/api/http'
 import { useLogout } from '@/hooks/useLogout'
 import { useUserStore } from '@/stores/userStore'
 import { formatPhoneInput, normalizeKoreanMobile } from '@/lib/phone'
+import { useCodeTimer } from '@/hooks/useCodeTimer'
 import { SIGNUP_APPROVAL_PHONE } from './PendingApprovalModal'
 import SignupConsent, { signupConsentReady } from './SignupConsent'
 import { phoneBlockStyle, phoneChangeButtonStyle, phoneHelpStyle, stackStyle } from './IdentityVerificationModal.css'
@@ -27,6 +28,7 @@ export default function IdentityVerificationModal() {
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [agreePrivacy, setAgreePrivacy] = useState(false)
   const [agreeEntrust, setAgreeEntrust] = useState(false)
+  const codeTimer = useCodeTimer()
   const consentReady = signupConsentReady({ terms: agreeTerms, privacy: agreePrivacy, entrust: agreeEntrust })
   const open = Boolean(user?.needs_identity_verification)
   const storedPhone = user?.phone ? normalizeKoreanMobile(user.phone) : null
@@ -45,6 +47,7 @@ export default function IdentityVerificationModal() {
     setIsLoading(true)
     try {
       await auth.sendVerifyCode(normalized)
+      codeTimer.start()
     } catch (err: unknown) {
       setError(apiErrorMessage(err, '인증 문자를 보내지 못했습니다.'))
     } finally {
@@ -84,10 +87,12 @@ export default function IdentityVerificationModal() {
             onChange={(e) => {
               if (storedPhone) return
               setPhone(formatPhoneInput(e.target.value))
+              codeTimer.clear()
             }}
             type="tel"
             inputMode="tel"
             readOnly={Boolean(storedPhone)}
+            trailing={codeTimer.label}
           />
           {storedPhone && (
             <button type="button" className={phoneChangeButtonStyle} onClick={() => setShowPhoneHelp(true)}>

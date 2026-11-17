@@ -1,6 +1,24 @@
+import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+
+export const fieldWrapStyle = style({
+  position: 'relative',
+  width: '100%',
+})
+
+export const trailingStyle = style({
+  position: 'absolute',
+  right: '22px',
+  top: '50%',
+  transform: 'translateY(-50%)',
+  color: colors.primary500,
+  fontSize: '14px',
+  fontWeight: 600,
+  lineHeight: 1,
+  pointerEvents: 'none',
+})
 
 export const inputRecipe = recipe({
   base: {
@@ -60,9 +78,24 @@ export const inputRecipe = recipe({
         border: `1px solid ${colors.gray200}`,
       },
     },
+    hasTrailing: {
+      true: {},
+      false: {},
+    },
   },
+  compoundVariants: [
+    {
+      variants: { shape: 'capsule', hasTrailing: true },
+      style: { padding: '0 76px 0 32px' },
+    },
+    {
+      variants: { shape: 'square', hasTrailing: true },
+      style: { paddingRight: '76px' },
+    },
+  ],
   defaultVariants: {
     variant: 'default',
     shape: 'square',
+    hasTrailing: false,
   },
 })
