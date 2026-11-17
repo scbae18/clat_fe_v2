@@ -21,6 +21,7 @@ import Input from '@/components/common/Input/Input'
 import Button from '@/components/common/Button/Button'
 import Text from '@/components/common/Text/Text'
 import Logo from '@/assets/logo/logo-full.svg'
+import SignupConsent, { signupConsentReady } from '@/components/auth/SignupConsent'
 import { formatPhoneInput, normalizeKoreanMobile } from '@/lib/phone'
 
 const MIN_PASSWORD_LEN = 8
@@ -34,6 +35,9 @@ function SignupContent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
+  const [agreeTerms, setAgreeTerms] = useState(false)
+  const [agreePrivacy, setAgreePrivacy] = useState(false)
+  const [agreeEntrust, setAgreeEntrust] = useState(false)
 
   const router = useRouter()
   const passwordConfirmRef = useRef<HTMLInputElement>(null)
@@ -49,6 +53,7 @@ function SignupContent() {
     email.length > 0 &&
     password.length >= MIN_PASSWORD_LEN &&
     password === passwordConfirm &&
+    signupConsentReady({ terms: agreeTerms, privacy: agreePrivacy, entrust: agreeEntrust }) &&
     pending == null
 
   const sendCode = async () => {
@@ -108,6 +113,9 @@ function SignupContent() {
       })
       router.push('/login?joined=1')
     } catch (err: unknown) {
+      setPhoneProof(null)
+      setCode('')
+      setCodeSent(false)
       setError(apiErrorMessage(err, '회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.'))
     } finally {
       setPending(null)
@@ -171,6 +179,14 @@ function SignupContent() {
               전화번호 인증이 끝났습니다.
             </Text>
           )}
+          <SignupConsent
+            terms={agreeTerms}
+            privacy={agreePrivacy}
+            entrust={agreeEntrust}
+            onTerms={setAgreeTerms}
+            onPrivacy={setAgreePrivacy}
+            onEntrust={setAgreeEntrust}
+          />
           <Button variant="primary" size="lg" shape="capsule" fullWidth type="submit" className={submitButtonStyle} disabled={!canSubmit}>
             {pending === 'submit' ? '가입 중...' : '회원가입'}
           </Button>

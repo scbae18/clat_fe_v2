@@ -11,6 +11,7 @@ import { useLogout } from '@/hooks/useLogout'
 import { useUserStore } from '@/stores/userStore'
 import { formatPhoneInput, normalizeKoreanMobile } from '@/lib/phone'
 import { SIGNUP_APPROVAL_PHONE } from './PendingApprovalModal'
+import SignupConsent, { signupConsentReady } from './SignupConsent'
 import { phoneBlockStyle, phoneChangeButtonStyle, phoneHelpStyle, stackStyle } from './IdentityVerificationModal.css'
 
 export default function IdentityVerificationModal() {
@@ -23,6 +24,10 @@ export default function IdentityVerificationModal() {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showPhoneHelp, setShowPhoneHelp] = useState(false)
+  const [agreeTerms, setAgreeTerms] = useState(false)
+  const [agreePrivacy, setAgreePrivacy] = useState(false)
+  const [agreeEntrust, setAgreeEntrust] = useState(false)
+  const consentReady = signupConsentReady({ terms: agreeTerms, privacy: agreePrivacy, entrust: agreeEntrust })
   const open = Boolean(user?.needs_identity_verification)
   const storedPhone = user?.phone ? normalizeKoreanMobile(user.phone) : null
   const normalized = normalizeKoreanMobile(phone)
@@ -105,7 +110,15 @@ export default function IdentityVerificationModal() {
           onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
           inputMode="numeric"
         />
-        <Button variant="primary" size="md" shape="capsule" fullWidth type="button" disabled={code.length !== 6 || isLoading} onClick={confirm}>
+        <SignupConsent
+          terms={agreeTerms}
+          privacy={agreePrivacy}
+          entrust={agreeEntrust}
+          onTerms={setAgreeTerms}
+          onPrivacy={setAgreePrivacy}
+          onEntrust={setAgreeEntrust}
+        />
+        <Button variant="primary" size="md" shape="capsule" fullWidth type="button" disabled={code.length !== 6 || !consentReady || isLoading} onClick={confirm}>
           전화번호 인증
         </Button>
         {error && <Text variant="bodyMd" color="error500">{error}</Text>}

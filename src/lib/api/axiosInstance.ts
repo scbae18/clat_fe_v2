@@ -1,9 +1,10 @@
 import axios from 'axios'
-import { deleteCookie, getCookie, setCookie } from 'cookies-next'
+import { clearSignedIn, markSignedIn } from '@/lib/api/session'
 
 const axiosInstance = axios.create({
   baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api/v1`,
   timeout: 10000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -12,12 +13,6 @@ const axiosInstance = axios.create({
 // 요청 인터셉터: 액세스 토큰 자동 부착
 axiosInstance.interceptors.request.use(
   (config) => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('accessToken')
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`
-      }
-    }
     if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
       const headers = config.headers
       if (headers && typeof headers.delete === 'function') {
@@ -58,53 +53,48 @@ axiosInstance.interceptors.response.use(
       originalRequest.url?.includes('/auth/password-reset') ||
       originalRequest.url?.includes('/auth/refresh')
 
-    // 인증 관련 요청은 인터셉터에서 처리하지 않음
     if (isAuthRequest) return Promise.reject(error)
+
+    const errorCode = error.response?.data?.error?.code
+    const url = String(originalRequest.url ?? '')
+    const method = String(originalRequest.method ?? '').toLowerCase()
+    const isCredentialFailure =
+      errorCode === 'INVALID_PASSWORD' ||
+      errorCode === 'INVALID_CREDENTIALS' ||
+      errorCode === 'SOCIAL_LOGIN_FAILED' ||
+      errorCode === 'PHONE_PROOF_INVALID' ||
+      errorCode === 'PASSWORD_NOT_SET' ||
+      url.includes('/auth/oauth/') ||
+      url.includes('/auth/phone/') ||
+      url.includes('/auth/password') ||
+      url.includes('/auth/withdraw') ||
+      (url.includes('/auth/me') && method === 'patch')
+
+    if (isCredentialFailure) return Promise.reject(error)
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         // 이미 refresh 중이면 대기열에 추가
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
-        }).then((token) => {
-          originalRequest.headers.Authorization = `Bearer ${token}`
-          return axiosInstance(originalRequest)
-        })
+        }).then(() => axiosInstance(originalRequest))
       }
 
       originalRequest._retry = true
       isRefreshing = true
 
       try {
-        const refreshToken = getCookie('refreshToken')
-        if (!refreshToken) throw new Error('No refresh token')
+        const { data } = await axiosInstance.post('/auth/refresh', {})
 
-        const { data } = await axiosInstance.post('/auth/refresh', {
-          refresh_token: refreshToken,
-        })
-
+        markSignedIn()
         const newAccessToken = data.data.access_token
-        const newRefreshToken = data.data.refresh_token
-
-        // 토큰 갱신
-        localStorage.setItem('accessToken', newAccessToken)
-        setCookie('accessToken', newAccessToken, { maxAge: 60 * 60 * 24 * 7, path: '/' })
-        setCookie('refreshToken', newRefreshToken, { maxAge: 60 * 60 * 24 * 7, path: '/' })
-
         processQueue(null, newAccessToken)
 
-        // 원래 요청 재시도
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
         return axiosInstance(originalRequest)
       } catch (refreshError) {
         processQueue(refreshError, null)
-
-        // refresh 실패 → 로그아웃
-        localStorage.removeItem('accessToken')
-        deleteCookie('accessToken', { path: '/' })
-        deleteCookie('refreshToken', { path: '/' })
+        clearSignedIn()
         window.location.href = '/login'
-
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false

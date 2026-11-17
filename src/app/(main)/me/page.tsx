@@ -36,6 +36,11 @@ export default function MyProfilePage() {
         nameError={profile.nameError}
         nameSaving={profile.nameSaving}
         canSaveName={profile.canSaveName}
+        phoneSecret={profile.phoneSecret}
+        onPhoneSecretChange={profile.setPhoneSecret}
+        phoneChanged={profile.phoneChanged}
+        codeSending={profile.codeSending}
+        onSendAccountCode={() => void profile.sendAccountCode()}
         onStartEditName={profile.startEditName}
         onCancelEditName={profile.cancelEditName}
         onSaveName={() => void profile.onSaveName()}
@@ -52,6 +57,9 @@ export default function MyProfilePage() {
         onEmailPassChange={profile.setEmailPass}
         emailSaving={profile.emailSaving}
         emailError={profile.emailError}
+        hasPassword={profile.hasPassword}
+        codeSending={profile.codeSending}
+        onSendAccountCode={() => void profile.sendAccountCode()}
         onCloseEmailModal={profile.closeEmailModal}
         onSaveEmail={() => void profile.onSaveEmail()}
         passModalOpen={profile.passModalOpen}

@@ -47,6 +47,8 @@ export function useMyProfile() {
   const [withdrawPass, setWithdrawPass] = useState('')
   const [withdrawSubmitting, setWithdrawSubmitting] = useState(false)
   const [withdrawError, setWithdrawError] = useState<string | null>(null)
+  const [phoneSecret, setPhoneSecret] = useState('')
+  const [codeSending, setCodeSending] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -89,12 +91,15 @@ export function useMyProfile() {
   const phoneInvalid = trimmedPhone.length > 0 && !normalizedPhone
   const nameChanged = !!user && name.trim() !== user.name.trim()
   const phoneChanged = !!user && normalizedPhone !== (user.phone ?? '')
-  const canSaveName = !!user && (nameChanged || phoneChanged) && !phoneInvalid && !nameSaving
+  const hasPassword = user?.has_password !== false
+  const phoneSecretReady = !phoneChanged || (hasPassword ? phoneSecret.length > 0 : phoneSecret.length === 6)
+  const canSaveName = !!user && (nameChanged || phoneChanged) && !phoneInvalid && !nameSaving && phoneSecretReady
 
   const startEditName = () => {
     if (!user) return
     setName(user.name)
     setPhone(user.phone ?? '')
+    setPhoneSecret('')
     setNameError(null)
     setEditingName(true)
   }
@@ -103,6 +108,7 @@ export function useMyProfile() {
     if (!user) return
     setName(user.name)
     setPhone(user.phone ?? '')
+    setPhoneSecret('')
     setNameError(null)
     setEditingName(false)
   }
@@ -118,16 +124,26 @@ export function useMyProfile() {
       setNameError(MSG.invalidPhone)
       return
     }
+    if (phoneChanged && !phoneSecretReady) {
+      setNameError(hasPassword ? MSG.needPhonePass : MSG.needPhoneCode)
+      return
+    }
     setNameError(null)
     setNameSaving(true)
     try {
       const updated = await auth.updateMe({
         name: trimmedName,
         phone: normalizedPhone ?? '',
+        ...(phoneChanged
+          ? hasPassword
+            ? { current_password: phoneSecret }
+            : { code: phoneSecret }
+          : {}),
       })
       setUser(updated)
       setName(updated.name)
       setPhone(updated.phone ?? '')
+      setPhoneSecret('')
       setEditingName(false)
       toast.success(phoneChanged ? MSG.saveBasicOk : MSG.saveOk)
     } catch (e) {
@@ -164,7 +180,7 @@ export function useMyProfile() {
       return
     }
     if (!emailPass) {
-      setEmailError(MSG.needCurrentPass)
+      setEmailError(hasPassword ? MSG.needCurrentPass : MSG.needCode)
       return
     }
     setEmailError(null)
@@ -172,7 +188,7 @@ export function useMyProfile() {
     try {
       await auth.updateMe({
         email: trimmedEmail,
-        current_password: emailPass,
+        ...(hasPassword ? { current_password: emailPass } : { code: emailPass }),
       })
       toast.success(MSG.emailOk)
       setEmailModalOpen(false)
@@ -186,6 +202,10 @@ export function useMyProfile() {
   }
 
   const openPassModal = () => {
+    if (user?.has_password === false) {
+      router.push('/find-password')
+      return
+    }
     setCurrentPass('')
     setNewPass('')
     setNewPassConfirm('')
@@ -234,11 +254,9 @@ export function useMyProfile() {
         new_password: newPass,
       })
       toast.success(MSG.passOk)
-      setPassModalOpen(false)
-      setCurrentPass('')
-      setNewPass('')
-      setNewPassConfirm('')
-      setPassError(null)
+      clearTokens()
+      useUserStore.getState().setUser(null)
+      window.location.href = '/login'
     } catch (e) {
       setPassError(extractErrorMessage(e, MSG.genericFail))
     } finally {
@@ -256,14 +274,14 @@ export function useMyProfile() {
   }
 
   const onWithdraw = async () => {
-    if (!withdrawPass) {
-      setWithdrawError(MSG.needCurrentPass)
+    if (!withdrawPass || (!hasPassword && withdrawPass.length !== 6)) {
+      setWithdrawError(hasPassword ? MSG.needCurrentPass : MSG.needCode)
       return
     }
     setWithdrawError(null)
     setWithdrawSubmitting(true)
     try {
-      await auth.withdraw({ password: withdrawPass })
+      await auth.withdraw(hasPassword ? { password: withdrawPass } : { code: withdrawPass })
       setUser(null)
       toast.success(MSG.withdrawOk)
       setWithdrawStep(null)
@@ -272,6 +290,18 @@ export function useMyProfile() {
       setWithdrawError(extractErrorMessage(e, MSG.genericFail))
     } finally {
       setWithdrawSubmitting(false)
+    }
+  }
+
+  const sendAccountCode = async () => {
+    setCodeSending(true)
+    try {
+      await auth.sendSensitiveCode()
+      toast.success(MSG.codeSent)
+    } catch (e) {
+      toast.error(extractErrorMessage(e, MSG.genericFail))
+    } finally {
+      setCodeSending(false)
     }
   }
 
@@ -288,6 +318,12 @@ export function useMyProfile() {
     nameSaving,
     nameError,
     canSaveName,
+    phoneSecret,
+    setPhoneSecret,
+    phoneChanged,
+    hasPassword,
+    codeSending,
+    sendAccountCode,
     startEditName,
     cancelEditName,
     onSaveName,

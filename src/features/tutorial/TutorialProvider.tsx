@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import { getCookie } from 'cookies-next'
 import Modal from '@/components/common/Modal'
 import Button from '@/components/common/Button'
 import Text from '@/components/common/Text'
@@ -138,7 +139,7 @@ export default function TutorialProvider({ children }: { children: ReactNode }) 
 
   useEffect(() => {
     let cancelled = false
-    if (typeof window === 'undefined' || !localStorage.getItem('accessToken')) {
+    if (typeof window === 'undefined' || !getCookie('signedIn')) {
       setReady(true)
       return
     }

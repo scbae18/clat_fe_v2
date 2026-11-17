@@ -26,6 +26,12 @@ export const MSG = {
   nameTooShort: '이름을 입력해 주세요.',
   invalidEmail: '올바른 이메일 형식이 아니에요.',
   needCurrentPass: '이메일 변경 시 비밀번호가 필요해요.',
+  needPhonePass: '번호를 바꿀 때는 현재 비밀번호가 필요해요.',
+  needPhoneCode: '번호를 바꿀 때는 인증된 번호로 받은 인증번호가 필요해요.',
+  needCode: '인증된 전화번호로 받은 인증번호가 필요해요.',
+  codeSent: '인증번호를 보냈어요.',
+  sendCode: '인증번호 받기',
+  codeLabel: '인증번호',
   passTooShort: '비밀번호는 8자 이상이어야 해요.',
   passMismatch: '새 비밀번호가 서로 달라요.',
   passSameAsCurrent: '새 비밀번호는 현재 비밀번호와 달라야 해요.',
@@ -38,6 +44,8 @@ export const MSG = {
   emailModalTitle: '이메일 변경',
   emailModalDesc:
     '새 이메일과 현재 비밀번호를 입력해 주세요. 변경 후에는 다시 로그인해야 해요.',
+  emailModalDescNoPassword:
+    '새 이메일과 인증번호를 입력해 주세요. 인증번호는 계정에 인증된 번호로 보내요. 변경 후에는 다시 로그인해야 해요.',
   newEmailLabel: '새 이메일',
   currentPassLabel: '현재 비밀번호',
   passModalTitle: '비밀번호 변경',
@@ -52,6 +60,7 @@ export const MSG = {
   withdrawContinue: '계속',
   withdrawStep2Title: '비밀번호를 확인해 주세요',
   withdrawStep2Desc: '본인 확인을 위해 현재 비밀번호를 입력해 주세요.',
+  withdrawStep2DescNoPassword: '본인 확인을 위해 인증된 전화번호로 받은 인증번호를 입력해 주세요.',
   withdrawAction: '탈퇴하기',
 } as const
 

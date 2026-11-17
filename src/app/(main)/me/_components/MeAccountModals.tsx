@@ -15,6 +15,9 @@ type MeAccountModalsProps = {
   onEmailPassChange: (v: string) => void
   emailSaving: boolean
   emailError: string | null
+  hasPassword: boolean
+  codeSending: boolean
+  onSendAccountCode: () => void
   onCloseEmailModal: () => void
   onSaveEmail: () => void
   passModalOpen: boolean
@@ -47,6 +50,9 @@ export function MeAccountModals({
   onEmailPassChange,
   emailSaving,
   emailError,
+  hasPassword,
+  codeSending,
+  onSendAccountCode,
   onCloseEmailModal,
   onSaveEmail,
   passModalOpen,
@@ -77,7 +83,7 @@ export function MeAccountModals({
           {MSG.emailModalTitle}
         </Text>
         <p className={styles.sectionDesc} style={{ marginTop: 8 }}>
-          {MSG.emailModalDesc}
+          {hasPassword ? MSG.emailModalDesc : MSG.emailModalDescNoPassword}
         </p>
         <div className={styles.modalFieldStack}>
           <div className={styles.modalField}>
@@ -92,15 +98,21 @@ export function MeAccountModals({
             />
           </div>
           <div className={styles.modalField}>
-            <span className={styles.fieldLabel}>{MSG.currentPassLabel}</span>
+            <span className={styles.fieldLabel}>{hasPassword ? MSG.currentPassLabel : MSG.codeLabel}</span>
             <input
               className={styles.input}
-              type="password"
+              type={hasPassword ? 'password' : 'text'}
+              inputMode={hasPassword ? undefined : 'numeric'}
               value={emailPass}
-              onChange={(e) => onEmailPassChange(e.target.value)}
-              autoComplete="current-password"
+              onChange={(e) => onEmailPassChange(hasPassword ? e.target.value : e.target.value.replace(/\D/g, '').slice(0, 6))}
+              autoComplete={hasPassword ? 'current-password' : 'one-time-code'}
             />
           </div>
+          {!hasPassword ? (
+            <Button variant="ghost" size="sm" onClick={onSendAccountCode} disabled={codeSending || emailSaving}>
+              {codeSending ? '보내는 중…' : MSG.sendCode}
+            </Button>
+          ) : null}
           {emailError ? <p className={styles.errorText}>{emailError}</p> : null}
         </div>
         <div className={styles.modalActions}>
@@ -118,7 +130,7 @@ export function MeAccountModals({
             size="md"
             fullWidth
             onClick={onSaveEmail}
-            disabled={emailSaving || !nextEmail.trim() || !emailPass}
+            disabled={emailSaving || !nextEmail.trim() || (hasPassword ? !emailPass : emailPass.length !== 6)}
           >
             {emailSaving ? '변경 중…' : MSG.changeEmail}
           </Button>
@@ -204,19 +216,25 @@ export function MeAccountModals({
           {MSG.withdrawStep2Title}
         </Text>
         <p className={styles.sectionDesc} style={{ marginTop: 8 }}>
-          {MSG.withdrawStep2Desc}
+          {hasPassword ? MSG.withdrawStep2Desc : MSG.withdrawStep2DescNoPassword}
         </p>
         <div className={styles.modalFieldStack}>
           <div className={styles.modalField}>
-            <span className={styles.fieldLabel}>{MSG.currentPassLabel}</span>
+            <span className={styles.fieldLabel}>{hasPassword ? MSG.currentPassLabel : MSG.codeLabel}</span>
             <input
               className={styles.input}
-              type="password"
+              type={hasPassword ? 'password' : 'text'}
+              inputMode={hasPassword ? undefined : 'numeric'}
               value={withdrawPass}
-              onChange={(e) => onWithdrawPassChange(e.target.value)}
-              autoComplete="current-password"
+              onChange={(e) => onWithdrawPassChange(hasPassword ? e.target.value : e.target.value.replace(/\D/g, '').slice(0, 6))}
+              autoComplete={hasPassword ? 'current-password' : 'one-time-code'}
             />
           </div>
+          {!hasPassword ? (
+            <Button variant="ghost" size="sm" onClick={onSendAccountCode} disabled={codeSending || withdrawSubmitting}>
+              {codeSending ? '보내는 중…' : MSG.sendCode}
+            </Button>
+          ) : null}
           {withdrawError ? <p className={styles.errorText}>{withdrawError}</p> : null}
         </div>
         <div className={styles.modalActions}>
@@ -234,7 +252,7 @@ export function MeAccountModals({
             size="md"
             fullWidth
             onClick={onWithdraw}
-            disabled={withdrawSubmitting || !withdrawPass}
+            disabled={withdrawSubmitting || (hasPassword ? !withdrawPass : withdrawPass.length !== 6)}
           >
             {withdrawSubmitting ? '처리 중…' : MSG.withdrawAction}
           </Button>

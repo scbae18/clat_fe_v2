@@ -16,6 +16,7 @@ import Input from '@/components/common/Input/Input'
 import Button from '@/components/common/Button/Button'
 import Text from '@/components/common/Text/Text'
 import { formatPhoneInput, normalizeKoreanMobile } from '@/lib/phone'
+import SignupConsent, { signupConsentReady } from '@/components/auth/SignupConsent'
 
 const callbackInflight = new Map<string, Promise<OauthCallbackResult>>()
 
@@ -36,6 +37,9 @@ export default function OauthCallback({ provider }: { provider: OauthProvider })
   const [mode, setMode] = useState<'signup' | 'connect'>('signup')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [agreeTerms, setAgreeTerms] = useState(false)
+  const [agreePrivacy, setAgreePrivacy] = useState(false)
+  const [agreeEntrust, setAgreeEntrust] = useState(false)
   const normalizedPhone = normalizeKoreanMobile(phone)
 
   const finish = (user: Parameters<typeof setUser>[0]) => {
@@ -159,7 +163,11 @@ export default function OauthCallback({ provider }: { provider: OauthProvider })
   const canContinue =
     !isLoading &&
     (mode === 'signup'
-      ? name.trim().length > 0 && email.trim().length > 0 && Boolean(normalizedPhone) && code.length === 6
+      ? name.trim().length > 0 &&
+        email.trim().length > 0 &&
+        Boolean(normalizedPhone) &&
+        code.length === 6 &&
+        signupConsentReady({ terms: agreeTerms, privacy: agreePrivacy, entrust: agreeEntrust })
       : email.trim().length > 0 && (smsMode ? code.length === 6 : password.length > 0))
 
   return (
@@ -246,6 +254,16 @@ export default function OauthCallback({ provider }: { provider: OauthProvider })
                   비밀번호로 연결
                 </Button>
               </>
+            )}
+            {mode === 'signup' && (
+              <SignupConsent
+                terms={agreeTerms}
+                privacy={agreePrivacy}
+                entrust={agreeEntrust}
+                onTerms={setAgreeTerms}
+                onPrivacy={setAgreePrivacy}
+                onEntrust={setAgreeEntrust}
+              />
             )}
             <Button variant="primary" size="lg" shape="capsule" fullWidth type="submit" className={submitButtonStyle} disabled={!canContinue}>
               {isLoading ? '확인 중...' : '계속'}

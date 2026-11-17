@@ -89,3 +89,23 @@ export const logoMarkStyle = style({
   height: 80,
   width: 'auto',
 })
+
+export const consentListStyle = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '10px',
+})
+
+export const consentRowStyle = style({
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: '8px',
+  color: colors.gray700,
+  fontSize: '14px',
+  lineHeight: '1.45',
+})
+
+export const consentLinkStyle = style({
+  color: colors.primary500,
+  textDecoration: 'underline',
+})

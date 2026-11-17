@@ -1,5 +1,5 @@
 import axiosInstance from '@/lib/api/axiosInstance'
-import { setCookie, deleteCookie, getCookie } from 'cookies-next'
+import { clearSignedIn, markSignedIn } from '@/lib/api/session'
 import type { User } from '@/types/user'
 
 interface LoginRequest {
@@ -48,6 +48,7 @@ interface UpdateMeRequest {
   email?: string
   phone?: string
   current_password?: string
+  code?: string
 }
 
 interface UpdateMeResponse {
@@ -61,7 +62,8 @@ interface ChangePasswordRequest {
 }
 
 interface WithdrawRequest {
-  password: string
+  password?: string
+  code?: string
 }
 
 interface ResetPasswordRequest {
@@ -88,16 +90,12 @@ interface OauthChoose {
 
 export type OauthCallbackResult = OauthAuthenticated | OauthChoose
 
-const setTokens = (accessToken: string, refreshToken: string) => {
-  setCookie('accessToken', accessToken, { maxAge: 60 * 60 * 24 * 7, path: '/' })
-  setCookie('refreshToken', refreshToken, { maxAge: 60 * 60 * 24 * 7, path: '/' })
-  localStorage.setItem('accessToken', accessToken)
+const setTokens = (_accessToken: string, _refreshToken: string) => {
+  markSignedIn()
 }
 
 const clearTokens = () => {
-  deleteCookie('accessToken', { path: '/' })
-  deleteCookie('refreshToken', { path: '/' })
-  localStorage.removeItem('accessToken')
+  clearSignedIn()
 }
 
 /** HTTP + token helpers only — callers own Zustand user state. */
@@ -120,20 +118,16 @@ export const auth = {
   },
 
   async logout() {
-    const refreshToken = getCookie('refreshToken')
     try {
-      await axiosInstance.post('/auth/logout', { refresh_token: refreshToken })
+      await axiosInstance.post('/auth/logout', {})
     } finally {
       clearTokens()
     }
   },
 
   async refresh() {
-    const refreshToken = getCookie('refreshToken')
-    const { data } = await axiosInstance.post<RefreshResponse>('/auth/refresh', {
-      refresh_token: refreshToken,
-    })
-    setTokens(data.data.access_token, data.data.refresh_token)
+    const { data } = await axiosInstance.post<RefreshResponse>('/auth/refresh', {})
+    markSignedIn()
     return data.data.access_token
   },
 
@@ -178,6 +172,10 @@ export const auth = {
 
   async sendVerifyCode(phone: string) {
     await axiosInstance.post('/auth/phone/verify/codes', { phone })
+  },
+
+  async sendSensitiveCode() {
+    await axiosInstance.post('/auth/account/code')
   },
 
   async verifyPhone(phone: string, code: string) {

@@ -18,9 +18,8 @@ const NAV_ITEMS = [
 
 function resolveStartHref(): string {
   if (typeof window === 'undefined') return LOGIN_URL
-  const fromCookie = getCookie('accessToken')
-  const fromStorage = window.localStorage.getItem('accessToken')
-  return fromCookie || fromStorage ? '/home' : LOGIN_URL
+  const fromCookie = getCookie('signedIn')
+  return fromCookie ? '/home' : LOGIN_URL
 }
 
 export default function Header() {

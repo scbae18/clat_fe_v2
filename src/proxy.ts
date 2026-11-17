@@ -20,7 +20,8 @@ function isPublicAppRoute(pathname: string): boolean {
     pathname.startsWith('/parent') ||
     pathname.startsWith('/check') ||
     pathname.startsWith('/terms') ||
-    pathname.startsWith('/privacy')
+    pathname.startsWith('/privacy') ||
+    pathname.startsWith('/refund')
   )
 }
 
@@ -32,7 +33,7 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // proxy에서는 localStorage 접근 불가 -> 쿠키 기반 토큰 확인
-  const token = request.cookies.get('accessToken')?.value
+  const token = request.cookies.get('signedIn')?.value
 
   if (isOauthCallback(pathname) || isPublicAppRoute(pathname)) {
     return NextResponse.next()
