@@ -8,6 +8,7 @@ import ConfirmModal from '@/components/common/ConfirmModal/ConfirmModal'
 import Input from '@/components/common/Input'
 import Text from '@/components/common/Text'
 import PlanCompare from '@/components/billing/PlanCompare'
+import BusinessInfo from '@/components/legal/BusinessInfo'
 import { apiErrorMessage } from '@/lib/api/http'
 import { isEnforcedBilling, moneyLabel, resetDayLabel } from '@/lib/billingView'
 import { billingService, type BillingInvoice, type PlanPreview } from '@/services/billing'
@@ -549,9 +550,7 @@ export default function BillingPage() {
                       <p className={styles.sectionDesc}>
                         결제일부터 7일 이내이고, 그 기간에 알림톡을 30통 이하로 보냈으면 결제 내역에서 전액을 돌려받을 수 있어요.
                       </p>
-                      <p className={styles.sectionDesc}>
-                        상호 클랫 · 전화 010-7324-7708 · 인스타그램 @clat.official. 주소, 사업자등록번호, 통신판매업 신고번호는 등록이 끝나면 여기에 표시돼요.
-                      </p>
+                      <BusinessInfo tone="light" />
                     </>
                   ) : null}
                   {payPanel.mode === 'upgrade' ? (

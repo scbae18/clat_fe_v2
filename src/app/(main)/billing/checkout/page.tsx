@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { loadTossPayments } from '@tosspayments/tosspayments-sdk'
 import Button from '@/components/common/Button'
+import BusinessInfo from '@/components/legal/BusinessInfo'
 import Text from '@/components/common/Text'
 import { apiErrorMessage } from '@/lib/api/http'
 import { isEnforcedBilling, moneyLabel } from '@/lib/billingView'
@@ -117,8 +118,7 @@ function CheckoutForm() {
         </div>
         <div>
           <h2 className={styles.sectionTitle}>사업자 정보</h2>
-          <p className={styles.sectionDesc}>상호 클랫 · 전화 010-7324-7708 · 인스타그램 @clat.official</p>
-          <p className={styles.sectionDesc}>주소, 사업자등록번호, 통신판매업 신고번호는 등록이 끝나면 이 화면에 표시됩니다.</p>
+          <BusinessInfo tone="light" />
         </div>
         <label className={styles.sectionDesc}>
           <input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} /> 위 내용을 확인했고 결제에 동의합니다.

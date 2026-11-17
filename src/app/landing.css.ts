@@ -1554,7 +1554,14 @@ export const footer = style({
   '@media': { [media.desktop]: { padding: '32px 0' } },
 })
 
-export const footerText = style({ fontSize: '14px', color: colors.gray500, textAlign: 'center' })
+export const footerBody = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+  alignItems: 'flex-start',
+})
+
+export const footerText = style({ fontSize: '13px', color: colors.gray500 })
 
 export const mobileStickyBar = style({
   position: 'fixed',
