@@ -32,16 +32,16 @@ export function useLessonList(selectedDate: Date, currentWeek: Date) {
     queries: weekDates.map((date) => ({
       queryKey: queryKeys.lessons.day(date),
       queryFn: () => fetchDayLessons(date),
-      refetchOnMount: 'always' as const,
-      refetchInterval: 15_000,
+      staleTime: 60_000,
+      refetchInterval: 60_000,
     })),
   })
 
   const dayQuery = useQuery({
     queryKey: queryKeys.lessons.day(selectedDateKey),
     queryFn: () => fetchDayLessons(selectedDateKey),
-    refetchOnMount: 'always',
-    refetchInterval: 15_000,
+    staleTime: 60_000,
+    refetchInterval: 60_000,
   })
 
   const weekLessons = useMemo(() => {
