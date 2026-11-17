@@ -16,6 +16,7 @@ import Button from '@/components/common/Button'
 import Text from '@/components/common/Text'
 import ConfirmModal from '@/components/common/ConfirmModal'
 import { useToastStore } from '@/stores/toastStore'
+import { useUserStore } from '@/stores/userStore'
 import { isTutorialGateOpen, setTutorialActionHandler, type TutorialAction } from './tutorialEvents'
 import { tutorialApi, type TutorialScreen, type TutorialState } from './tutorialApi'
 import {
@@ -91,6 +92,8 @@ export function useTutorial(): TutorialContextValue {
 export default function TutorialProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
   const pathname = usePathname() ?? ''
+  const user = useUserStore((s) => s.user)
+  const authGateOpen = Boolean(user?.needs_identity_verification || user?.needs_social_prompt)
   const addToast = useToastStore((s) => s.addToast)
   const [state, setState] = useState<TutorialState>(tutorialApi.empty)
   const [ready, setReady] = useState(false)
@@ -198,8 +201,12 @@ export default function TutorialProvider({ children }: { children: ReactNode }) 
   useEffect(() => {
     if (!ready || state.status !== 'none' || !state.auto_open || pathname !== '/home') return
     if (introDismissed || sessionStorage.getItem(DISMISS_KEY) === '1') return
+    if (!user || authGateOpen) {
+      setStartOpen(false)
+      return
+    }
     setStartOpen(true)
-  }, [introDismissed, ready, state.status, state.auto_open, pathname])
+  }, [authGateOpen, introDismissed, pathname, ready, state.auto_open, state.status, user])
 
   useEffect(() => {
     if (state.status !== 'in_progress') {

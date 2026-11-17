@@ -62,6 +62,7 @@ export type AdminUserListItem = {
   email: string
   name: string
   phone: string | null
+  phone_verified: boolean
   created_at: string
   withdrawal_requested_at: string | null
   approval_status?: 'PENDING' | 'APPROVED' | 'REJECTED'
@@ -97,6 +98,7 @@ export type AdminUserDetail = {
   email: string
   name: string
   phone: string | null
+  phone_verified: boolean
   created_at: string
   withdrawal_requested_at: string | null
   approval_status?: 'PENDING' | 'APPROVED' | 'REJECTED'

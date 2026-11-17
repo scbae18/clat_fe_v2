@@ -91,6 +91,9 @@ export default function OauthCallback({ provider }: { provider: OauthProvider })
     setError(null)
     setIsLoading(true)
     try {
+      const phoneProof = mode === 'signup'
+        ? await auth.confirmSignupCode(normalizedPhone ?? '', code.trim())
+        : undefined
       const user = await auth.oauthComplete({
         linkToken,
         action: mode,
@@ -98,6 +101,8 @@ export default function OauthCallback({ provider }: { provider: OauthProvider })
         email: email.trim(),
         password: mode === 'connect' && !smsMode ? password : undefined,
         code: mode === 'connect' && smsMode ? code.trim() : undefined,
+        phone: mode === 'signup' ? normalizedPhone ?? undefined : undefined,
+        phoneProof,
       })
       finish(user)
     } catch (err: unknown) {
@@ -137,10 +142,24 @@ export default function OauthCallback({ provider }: { provider: OauthProvider })
     }
   }
 
+  const sendSignupCode = async () => {
+    if (!normalizedPhone) return
+    setError(null)
+    setIsLoading(true)
+    try {
+      await auth.sendSignupCode(normalizedPhone)
+      setCodeSent(true)
+    } catch (err: unknown) {
+      setError(apiErrorMessage(err, '인증 문자를 보내지 못했습니다.'))
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const canContinue =
     !isLoading &&
     (mode === 'signup'
-      ? name.trim().length > 0 && email.trim().length > 0
+      ? name.trim().length > 0 && email.trim().length > 0 && Boolean(normalizedPhone) && code.length === 6
       : email.trim().length > 0 && (smsMode ? code.length === 6 : password.length > 0))
 
   return (
@@ -157,6 +176,9 @@ export default function OauthCallback({ provider }: { provider: OauthProvider })
               기존 계정 연결
             </Button>
             {mode === 'signup' && (
+              <Text variant="bodyMd" color="gray500">휴대폰 번호를 인증해야 가입이 끝납니다. 인증한 번호가 계정에 저장됩니다.</Text>
+            )}
+            {mode === 'signup' && (
               <Input placeholder="이름" shape="capsule" value={name} onChange={(e) => setName(e.target.value)} />
             )}
             <Input
@@ -170,6 +192,28 @@ export default function OauthCallback({ provider }: { provider: OauthProvider })
               }}
               type="email"
             />
+            {mode === 'signup' && (
+              <>
+                <Input
+                  placeholder="전화번호 (010-0000-0000)"
+                  shape="capsule"
+                  value={phone}
+                  onChange={(e) => {
+                    setPhone(formatPhoneInput(e.target.value))
+                    setCodeSent(false)
+                    setCode('')
+                  }}
+                  type="tel"
+                  inputMode="tel"
+                />
+                <Button variant="secondary" size="md" shape="capsule" type="button" disabled={!normalizedPhone || isLoading} onClick={sendSignupCode}>
+                  {isLoading && !codeSent ? '보내는 중...' : '인증번호 받기'}
+                </Button>
+                {codeSent && (
+                  <Input placeholder="인증번호 6자리" shape="capsule" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" />
+                )}
+              </>
+            )}
             {mode === 'connect' && !smsMode && (
               <>
                 <Input placeholder="비밀번호" shape="capsule" value={password} onChange={(e) => setPassword(e.target.value)} type="password" />

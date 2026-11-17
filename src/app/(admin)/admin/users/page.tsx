@@ -218,6 +218,7 @@ export default function AdminUsersPage() {
               <tr>
                 <th className={styles.th}>이름 / 이메일</th>
                 <th className={styles.th}>전화번호</th>
+                <th className={styles.th}>전화 인증</th>
                 <th className={styles.th}>가입일</th>
                 <th className={styles.th}>반</th>
                 <th className={styles.th}>학생</th>
@@ -230,13 +231,13 @@ export default function AdminUsersPage() {
             <tbody>
               {isLoading || isPlaceholderData ? (
                 <tr>
-                  <td className={styles.td} colSpan={9}>
+                  <td className={styles.td} colSpan={10}>
                     <p className={styles.loading}>사용자 목록을 불러오는 중…</p>
                   </td>
                 </tr>
               ) : isError || !list ? (
                 <tr>
-                  <td className={styles.td} colSpan={9}>
+                  <td className={styles.td} colSpan={10}>
                     <p className={styles.loading}>{adminErrorMessage(error)}</p>
                   </td>
                 </tr>
@@ -253,6 +254,13 @@ export default function AdminUsersPage() {
                     </div>
                   </td>
                   <td className={styles.td}>{u.phone ?? '전화번호 없음'}</td>
+                  <td className={styles.td}>
+                    {u.phone_verified ? (
+                      <span className={styles.badge.green}>인증</span>
+                    ) : (
+                      <span className={styles.badge.yellow}>미인증</span>
+                    )}
+                  </td>
                   <td className={styles.td}>
                     <div className={styles.cellStack}>
                       <span>{formatYmd(u.created_at)}</span>
@@ -306,7 +314,7 @@ export default function AdminUsersPage() {
               )}
               {list && list.items.length === 0 ? (
                 <tr>
-                  <td className={styles.td} colSpan={9}>
+                  <td className={styles.td} colSpan={10}>
                     <p className={styles.empty}>{EMPTY_COPY[tab]}</p>
                   </td>
                 </tr>

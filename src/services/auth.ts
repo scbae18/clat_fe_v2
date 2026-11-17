@@ -185,6 +185,11 @@ export const auth = {
     return data.data
   },
 
+  async dismissSocialPrompt() {
+    const { data } = await axiosInstance.post<MeResponse>('/auth/social-prompt/dismiss', {})
+    return data.data
+  },
+
   async oauthUrl(provider: OauthProvider) {
     const { data } = await axiosInstance.post<{ success: boolean; data: { url: string } }>(
       `/auth/oauth/${provider}/url`,
@@ -217,6 +222,8 @@ export const auth = {
     email?: string
     password?: string
     code?: string
+    phone?: string
+    phoneProof?: string
   }) {
     const { data } = await axiosInstance.post<{ success: boolean; data: OauthAuthenticated }>(
       '/auth/oauth/complete',
@@ -227,6 +234,8 @@ export const auth = {
         email: payload.email,
         password: payload.password,
         code: payload.code,
+        phone: payload.phone,
+        phone_proof: payload.phoneProof,
       },
     )
     setTokens(data.data.access_token, data.data.refresh_token)

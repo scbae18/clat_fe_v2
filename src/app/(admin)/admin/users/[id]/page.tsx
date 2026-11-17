@@ -113,6 +113,9 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
               <span>
                 <Phone size={14} /> {data.phone ?? '전화번호 없음'}
               </span>
+              <span className={styles.badge[data.phone_verified ? 'green' : 'yellow']}>
+                {data.phone_verified ? '전화 인증' : '전화 미인증'}
+              </span>
               <span>
                 <Calendar size={14} /> 가입 {formatYmd(data.created_at)}
               </span>
