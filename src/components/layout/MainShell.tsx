@@ -7,6 +7,7 @@ import { ToastContainer } from '@/components/common/Toast'
 import UserInitializer from '@/components/common/UserInitializer'
 import AttendanceFloatingBarHost from '@/components/attendance/AttendanceFloatingBarHost'
 import WhatsNewModalHost from '@/components/whats-new/WhatsNewModal/WhatsNewModalHost'
+import IdentityVerificationModal from '@/components/auth/IdentityVerificationModal'
 import GrantNoticeHost from '@/components/billing/GrantNoticeHost'
 import HelpChat from '@/components/help/HelpChat/HelpChat'
 import { useUiStore } from '@/stores/uiStore'
@@ -49,6 +50,7 @@ export default function MainShell({ children }: { children: React.ReactNode }) {
       <ToastContainer />
       <AttendanceFloatingBarHost />
       <WhatsNewModalHost />
+      <IdentityVerificationModal />
       <GrantNoticeHost />
     </div>
   )

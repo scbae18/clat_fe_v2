@@ -65,4 +65,27 @@ export const footerLinkAnchorStyle = style({
   textDecoration: 'none',
   cursor: 'pointer',
   color: 'inherit',
+  background: 'none',
+  border: 'none',
+  padding: 0,
+})
+
+export const socialRowWrapStyle = style({
+  marginTop: '28px',
+})
+
+export const dividerStyle = style({
+  width: 1,
+  height: 16,
+  backgroundColor: colors.gray300,
+})
+
+export const noticeStyle = style({
+  whiteSpace: 'pre-line',
+  marginTop: '16px',
+})
+
+export const logoMarkStyle = style({
+  height: 80,
+  width: 'auto',
 })

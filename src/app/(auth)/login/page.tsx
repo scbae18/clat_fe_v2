@@ -14,12 +14,18 @@ import {
   submitButtonStyle,
   footerLinkStyle,
   footerLinkAnchorStyle,
+  socialRowWrapStyle,
+  dividerStyle,
+  noticeStyle,
+  logoMarkStyle,
 } from './login.css'
+import SocialStartButtons from '@/components/auth/SocialStartButtons'
 import Input from '@/components/common/Input/Input'
 import Button from '@/components/common/Button/Button'
 import Text from '@/components/common/Text/Text'
 import Logo from '@/assets/logo/logo-full.svg'
-import { colors } from '@/styles/tokens/colors'
+import { apiErrorMessage } from '@/lib/api/http'
+import type { OauthProvider } from '@/services/auth'
 
 function LoginContent() {
   const [email, setEmail] = useState('')
@@ -28,7 +34,9 @@ function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const passwordRef = useRef<HTMLInputElement>(null)
+  const joined = searchParams.get('joined') === '1'
   const [isLoading, setIsLoading] = useState(false)
+  const [socialLoading, setSocialLoading] = useState<OauthProvider | null>(null)
   const [error, setError] = useState<string | null>(null)
   const setUser = useUserStore((s) => s.setUser)
 
@@ -66,18 +74,29 @@ function LoginContent() {
     }
   }
 
+  const startSocial = async (provider: OauthProvider) => {
+    setError(null)
+    setSocialLoading(provider)
+    try {
+      const url = await auth.oauthUrl(provider)
+      window.location.assign(url)
+    } catch (err: unknown) {
+      setError(apiErrorMessage(err, '소셜 로그인을 열지 못했어요.'))
+      setSocialLoading(null)
+    }
+  }
+
   return (
     <div className={containerStyle}>
       <div className={loginBoxStyle}>
         {/* 로고 섹션 */}
         <div className={logoSectionStyle}>
-          <Logo height={80} style={{ width: 'auto' }} />
+          <Logo className={logoMarkStyle} />
           <Text variant="headingMd" color="gray500">
             학원 강사 행정 자동화 AI 수업 운영 플랫폼
           </Text>
         </div>
 
-        {/* 로그인 폼 */}
         <form className={formStyle} onSubmit={handleLogin}>
           <Input
             placeholder="이메일"
@@ -108,27 +127,42 @@ function LoginContent() {
             {isLoading ? '로그인 중...' : '로그인'}
           </Button>
 
-          {error && (
-            <div style={{ whiteSpace: 'pre-line' }}>
-              <Text variant="bodyMd" color="error500">
-                {error}
-              </Text>
-            </div>
+          {joined && !error && (
+            <Text variant="bodyMd" color="gray500">
+              가입되었습니다. 로그인해 주세요.
+            </Text>
           )}
         </form>
 
-        {/* 하단 링크 */}
         <div className={footerLinkStyle}>
           <Link href="/signup" className={footerLinkAnchorStyle}>
             <Text variant="bodyLg" color="gray300">
               회원가입
             </Text>
           </Link>
-          <div style={{ width: 1, height: 16, backgroundColor: colors.gray300 }} />
-          <Text variant="bodyLg" color="gray300">
-            비밀번호 찾기
-          </Text>
+          <div className={dividerStyle} />
+          <Link href="/find-password" className={footerLinkAnchorStyle}>
+            <Text variant="bodyLg" color="gray300">
+              비밀번호 찾기
+            </Text>
+          </Link>
         </div>
+
+        <div className={socialRowWrapStyle}>
+          <SocialStartButtons
+            disabled={socialLoading != null}
+            onKakao={() => startSocial('kakao')}
+            onGoogle={() => startSocial('google')}
+          />
+        </div>
+
+        {error && (
+          <div className={noticeStyle}>
+            <Text variant="bodyMd" color="error500">
+              {error}
+            </Text>
+          </div>
+        )}
       </div>
     </div>
   )

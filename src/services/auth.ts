@@ -66,9 +66,27 @@ interface WithdrawRequest {
 
 interface ResetPasswordRequest {
   email: string
-  phone: string
+  code: string
   new_password: string
 }
+
+export type OauthProvider = 'kakao' | 'google'
+
+interface OauthAuthenticated {
+  status: 'authenticated' | 'linked'
+  access_token: string
+  refresh_token: string
+  user: User
+}
+
+interface OauthChoose {
+  status: 'choose'
+  link_token: string
+  name_hint: string | null
+  email_hint: string | null
+}
+
+export type OauthCallbackResult = OauthAuthenticated | OauthChoose
 
 const setTokens = (accessToken: string, refreshToken: string) => {
   setCookie('accessToken', accessToken, { maxAge: 60 * 60 * 24 * 7, path: '/' })
@@ -90,12 +108,13 @@ export const auth = {
     return data.data.user
   },
 
-  async signup({ email, password, name, phone }: SignupRequest) {
+  async signup({ email, password, name, phone, phoneProof }: SignupRequest & { phoneProof: string }) {
     const { data } = await axiosInstance.post<SignupResponse>('/auth/signup', {
       email,
       password,
       name,
       phone,
+      phone_proof: phoneProof,
     })
     return data.data.user
   },
@@ -134,6 +153,84 @@ export const auth = {
 
   async resetPassword(payload: ResetPasswordRequest) {
     await axiosInstance.post('/auth/password-reset', payload)
+  },
+
+  async sendSignupCode(phone: string) {
+    await axiosInstance.post('/auth/phone/codes', { purpose: 'signup', phone })
+  },
+
+  async confirmSignupCode(phone: string, code: string) {
+    const { data } = await axiosInstance.post<{ success: boolean; data: { phone_proof: string } }>(
+      '/auth/phone/proof',
+      { phone, code },
+    )
+    return data.data.phone_proof
+  },
+
+  async sendAccountCode(purpose: 'reset' | 'link', email: string, linkToken?: string, phone?: string) {
+    await axiosInstance.post('/auth/phone/codes', {
+      purpose,
+      email,
+      phone,
+      link_token: linkToken,
+    })
+  },
+
+  async sendVerifyCode(phone: string) {
+    await axiosInstance.post('/auth/phone/verify/codes', { phone })
+  },
+
+  async verifyPhone(phone: string, code: string) {
+    const { data } = await axiosInstance.post<MeResponse>('/auth/phone/verify', { phone, code })
+    return data.data
+  },
+
+  async oauthUrl(provider: OauthProvider) {
+    const { data } = await axiosInstance.post<{ success: boolean; data: { url: string } }>(
+      `/auth/oauth/${provider}/url`,
+    )
+    return data.data.url
+  },
+
+  async oauthLinkUrl(provider: OauthProvider) {
+    const { data } = await axiosInstance.post<{ success: boolean; data: { url: string } }>(
+      `/auth/oauth/${provider}/link-url`,
+    )
+    return data.data.url
+  },
+
+  async oauthCallback(provider: OauthProvider, code: string, state: string): Promise<OauthCallbackResult> {
+    const { data } = await axiosInstance.post<{ success: boolean; data: OauthCallbackResult }>(
+      `/auth/oauth/${provider}/callback`,
+      { code, state },
+    )
+    if (data.data.status !== 'choose') {
+      setTokens(data.data.access_token, data.data.refresh_token)
+    }
+    return data.data
+  },
+
+  async oauthComplete(payload: {
+    linkToken: string
+    action: 'signup' | 'connect'
+    name?: string
+    email?: string
+    password?: string
+    code?: string
+  }) {
+    const { data } = await axiosInstance.post<{ success: boolean; data: OauthAuthenticated }>(
+      '/auth/oauth/complete',
+      {
+        link_token: payload.linkToken,
+        action: payload.action,
+        name: payload.name,
+        email: payload.email,
+        password: payload.password,
+        code: payload.code,
+      },
+    )
+    setTokens(data.data.access_token, data.data.refresh_token)
+    return data.data.user
   },
 
   async withdraw(payload: WithdrawRequest) {

@@ -9,6 +9,10 @@ function isAuthRoute(pathname: string): boolean {
   )
 }
 
+function isOauthCallback(pathname: string): boolean {
+  return pathname === '/auth/kakao/callback' || pathname === '/auth/google/callback'
+}
+
 /** 로그인 없이 열 수 있는 라우트 (토큰이 있어도 그대로 허용 — 랜딩·학부모 링크·출결 등) */
 function isPublicAppRoute(pathname: string): boolean {
   return (
@@ -30,7 +34,7 @@ export function proxy(request: NextRequest) {
   // proxy에서는 localStorage 접근 불가 -> 쿠키 기반 토큰 확인
   const token = request.cookies.get('accessToken')?.value
 
-  if (isPublicAppRoute(pathname)) {
+  if (isOauthCallback(pathname) || isPublicAppRoute(pathname)) {
     return NextResponse.next()
   }
 
