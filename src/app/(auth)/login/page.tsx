@@ -128,9 +128,11 @@ function LoginContent() {
           </Button>
 
           {joined && !error && (
-            <Text variant="bodyMd" color="gray500">
-              가입되었습니다. 로그인해 주세요.
-            </Text>
+            <div className={noticeStyle}>
+              <Text variant="bodyMd" color="gray500">
+                {`가입 신청이 완료됐어요.\n${ACCOUNT_PENDING_MESSAGE}`}
+              </Text>
+            </div>
           )}
         </form>
 
