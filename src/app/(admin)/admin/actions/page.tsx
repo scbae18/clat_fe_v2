@@ -14,6 +14,7 @@ const ACTION_LABEL: Record<AdminActionType, string> = {
   DELETE: '삭제',
   SUSPEND: '정지',
   RESET_PASSWORD: '비밀번호 재설정',
+  UPDATE_PROFILE: '정보 수정',
   GRANT_CREATE: '요금제 적용',
   GRANT_UPDATE: '요금제 적용 변경',
   GRANT_REVOKE: '요금제 적용 취소',
@@ -33,7 +34,10 @@ export default function AdminActionsPage() {
 
   return (
     <div className={styles.stack}>
-      <AdminHeader title="기록" subtitle="승인, 거절, 삭제, 정지, 비밀번호 재설정을 누가 언제 했는지 남깁니다." />
+      <AdminHeader
+        title="기록"
+        subtitle="승인, 거절, 삭제, 정지, 비밀번호 재설정, 정보 수정을 누가 언제 했는지 남깁니다."
+      />
       <section className={styles.card}>
         {data.items.length === 0 ? (
           <p className={styles.empty}>아직 기록이 없습니다.</p>

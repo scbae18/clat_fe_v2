@@ -352,6 +352,21 @@ export const lessonService = {
     return data.data as { send_schedule: null; updated_at: string }
   },
 
+  async updateSendSchedule(
+    lessonId: number,
+    scheduledAt: string,
+  ): Promise<{ scheduled_at: string }> {
+    const { data } = await axiosInstance.patch(`/lessons/${lessonId}/send-schedule`, {
+      scheduled_at: scheduledAt,
+    })
+    return data.data as { scheduled_at: string }
+  },
+
+  async sendScheduledNow(lessonId: number): Promise<SendLessonResult> {
+    const { data } = await axiosInstance.post(`/lessons/${lessonId}/send-schedule/send`)
+    return data.data as SendLessonResult
+  },
+
   async dismissSendScheduleNotice(
     lessonId: number,
   ): Promise<{ send_schedule_cancel_notice: false; updated_at: string }> {

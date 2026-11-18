@@ -207,6 +207,7 @@ export type AdminActionType =
   | 'DELETE'
   | 'SUSPEND'
   | 'RESET_PASSWORD'
+  | 'UPDATE_PROFILE'
   | 'GRANT_CREATE'
   | 'GRANT_UPDATE'
   | 'GRANT_REVOKE'

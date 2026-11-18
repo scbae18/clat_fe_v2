@@ -25,6 +25,7 @@ import { useToastStore } from '@/stores/toastStore'
 import { AdminPager, StatCard } from '../../_components/AdminUi'
 import { BarChart, TrendChart } from '../../_components/AdminCharts'
 import DeleteTeacherDialog from '../../_components/DeleteTeacherDialog'
+import EditUserDialog from '../../_components/EditUserDialog'
 import ResetPasswordDialog from '../../_components/ResetPasswordDialog'
 import { daysLabel, formatMdE, formatMdHm, formatYmd, fromNow } from '../../_lib/format'
 import { batchTitle, batchTypeLabel } from '../../_lib/alimtalk'
@@ -176,6 +177,15 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
                 정지
               </button>
             ) : null}
+            <EditUserDialog
+              userId={data.id}
+              name={data.name}
+              email={data.email}
+              phone={data.phone}
+              onSaved={() => {
+                void queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+              }}
+            />
             <ResetPasswordDialog userId={data.id} email={data.email} name={data.name} />
           </div>
         </div>

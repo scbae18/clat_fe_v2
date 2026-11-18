@@ -2,6 +2,7 @@ import { style, styleVariants } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
 import { media } from '@/styles/tokens/breakpoints'
+import { zIndex } from '@/styles/tokens/zIndex'
 
 const sidebarBase = style({
   height: '100vh',
@@ -246,6 +247,9 @@ export const scheduleCardStyle = styleVariants({
       '&:hover': {
         background: 'rgba(255,255,255,0.14)',
       },
+      '&[data-open="true"]': {
+        background: 'rgba(255,255,255,0.18)',
+      },
     },
   },
   collapsed: {
@@ -265,6 +269,9 @@ export const scheduleCardStyle = styleVariants({
     selectors: {
       '&:hover': {
         background: 'rgba(255,255,255,0.14)',
+      },
+      '&[data-open="true"]': {
+        background: 'rgba(255,255,255,0.18)',
       },
     },
   },
@@ -480,4 +487,59 @@ export const userEmailStyle = style({
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
+})
+
+export const scheduleActionPopover = style({
+  position: 'fixed',
+  left: 'var(--schedule-popover-x, -9999px)',
+  top: 'var(--schedule-popover-y, 0px)',
+  zIndex: zIndex.tooltip,
+  width: '248px',
+  padding: '14px',
+  borderRadius: '14px',
+  border: `1px solid ${colors.gray100}`,
+  backgroundColor: colors.white,
+  boxShadow: '0 12px 32px rgba(15, 23, 42, 0.14)',
+  selectors: {
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      left: '-6px',
+      top: 'var(--schedule-popover-arrow, 24px)',
+      width: '12px',
+      height: '12px',
+      backgroundColor: colors.white,
+      borderLeft: `1px solid ${colors.gray100}`,
+      borderBottom: `1px solid ${colors.gray100}`,
+      transform: 'translateY(-50%) rotate(45deg)',
+    },
+  },
+})
+
+export const scheduleActionStack = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
+})
+
+export const scheduleActionField = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '6px',
+})
+
+export const scheduleActionInput = style({
+  height: '40px',
+  padding: '0 12px',
+  borderRadius: '8px',
+  border: `1px solid ${colors.gray200}`,
+  backgroundColor: colors.white,
+  color: colors.gray900,
+  fontSize: fontStyles.bodyMd.fontSize,
+})
+
+export const scheduleActionButtons = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
 })

@@ -3,12 +3,11 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useUserStore } from '@/stores/userStore'
 import { useUiStore } from '@/stores/uiStore'
 import { useLogout } from '@/hooks/useLogout'
-import { invalidateLessonLists, queryKeys } from '@/lib/queryKeys'
-import { useToastStore } from '@/stores/toastStore'
+import { queryKeys } from '@/lib/queryKeys'
 import { lessonService, type LessonSendScheduleCard } from '@/services/lesson'
 import { alimtalkService, type BroadcastSchedule } from '@/services/alimtalk'
 import { BROADCAST_NOTICE_LABEL } from '@/app/(main)/alimtalk/broadcast/_lib/broadcastNotice'
@@ -37,6 +36,7 @@ import {
   userEmailStyle,
 } from './Sidebar.css'
 import ConfirmModal from '@/components/common/ConfirmModal'
+import ScheduleActionPopover, { type ScheduleActionTarget } from './ScheduleActionPopover'
 import SidebarUsage from '@/components/billing/SidebarUsage'
 import HomeIcon from '@/assets/icons/icon-home.svg'
 import EditIcon from '@/assets/icons/icon-edit.svg'
@@ -78,30 +78,32 @@ function lessonDayLabel(lessonDate: string): string {
   return `${Number(month)}월 ${Number(day)}일 수업`
 }
 
-interface ScheduleCancelCard {
+interface ScheduleCard {
   key: string
   scheduled_at: string
   badge: string
   title: string
   subtitle: string
+  student_count: number
   kind: 'lesson' | 'broadcast'
   lesson_record_id?: number
   schedule_id?: number
 }
 
-function lessonCard(item: LessonSendScheduleCard): ScheduleCancelCard {
+function lessonCard(item: LessonSendScheduleCard): ScheduleCard {
   return {
     key: `lesson-${item.lesson_record_id}`,
     scheduled_at: item.scheduled_at,
     badge: '알림톡 발송 예약',
     title: item.class_name,
     subtitle: lessonDayLabel(item.lesson_date),
+    student_count: item.student_count,
     kind: 'lesson',
     lesson_record_id: item.lesson_record_id,
   }
 }
 
-function broadcastCard(item: BroadcastSchedule): ScheduleCancelCard {
+function broadcastCard(item: BroadcastSchedule): ScheduleCard {
   const clock = seoulClock(item.scheduled_at)
   return {
     key: `broadcast-${item.id}`,
@@ -109,6 +111,7 @@ function broadcastCard(item: BroadcastSchedule): ScheduleCancelCard {
     badge: '전체 공지 예약',
     title: BROADCAST_NOTICE_LABEL[item.notice_type],
     subtitle: `${Number(clock.month)}월 ${Number(clock.day)}일 발송`,
+    student_count: item.student_count,
     kind: 'broadcast',
     schedule_id: item.id,
   }
@@ -117,11 +120,13 @@ function broadcastCard(item: BroadcastSchedule): ScheduleCancelCard {
 function ScheduleCards({
   items,
   collapsed,
+  openKey,
   onSelect,
 }: {
-  items: ScheduleCancelCard[]
+  items: ScheduleCard[]
   collapsed: boolean
-  onSelect: (item: ScheduleCancelCard) => void
+  openKey: string | null
+  onSelect: (item: ScheduleCard, anchor: HTMLButtonElement) => void
 }) {
   if (items.length === 0) return null
   const mode = collapsed ? 'collapsed' : 'expanded'
@@ -130,13 +135,16 @@ function ScheduleCards({
       {items.map((item) => {
         const clock = seoulClock(item.scheduled_at)
         const time = `${clock.hour}:${clock.minute}`
+        const open = openKey === item.key
         return (
           <button
             key={item.key}
             type="button"
             className={scheduleCardStyle[mode]}
-            title={`${item.title} ${item.subtitle} ${time} 예약 취소`}
-            onClick={() => onSelect(item)}
+            title={collapsed ? `${item.title} ${item.subtitle} ${time}` : undefined}
+            data-open={open ? 'true' : undefined}
+            aria-expanded={open}
+            onClick={(event) => onSelect(item, event.currentTarget)}
           >
             <span className={scheduleTimeStyle}>{time}</span>
             <span className={scheduleDetailStyle[mode]}>
@@ -163,12 +171,9 @@ export default function Sidebar() {
   const collapsed = useUiStore((s) => s.sidebarCollapsed)
   const toggleSidebar = useUiStore((s) => s.toggleSidebar)
   const logout = useLogout()
-
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
-  const [cancelTarget, setCancelTarget] = useState<ScheduleCancelCard | null>(null)
-  const [cancelling, setCancelling] = useState(false)
-  const queryClient = useQueryClient()
-  const addToast = useToastStore((s) => s.addToast)
+  const [actionTarget, setActionTarget] = useState<ScheduleActionTarget | null>(null)
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
 
   const meActive = pathname.startsWith('/me')
   const mode = collapsed ? 'collapsed' : 'expanded'
@@ -188,6 +193,20 @@ export default function Sidebar() {
     ...(schedulesQuery.data ?? []).map(lessonCard),
     ...(broadcastSchedulesQuery.data ?? []).map(broadcastCard),
   ].sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at) || a.key.localeCompare(b.key))
+
+  function closeSchedule() {
+    setActionTarget(null)
+    setAnchorEl(null)
+  }
+
+  function selectSchedule(item: ScheduleCard, anchor: HTMLButtonElement) {
+    if (actionTarget?.key === item.key) {
+      closeSchedule()
+      return
+    }
+    setActionTarget(item)
+    setAnchorEl(anchor)
+  }
 
   return (
     <aside className={sidebarStyle[mode]} aria-expanded={!collapsed}>
@@ -226,7 +245,12 @@ export default function Sidebar() {
       </nav>
 
       <div className={sidebarBottomStyle[mode]}>
-        <ScheduleCards items={schedules} collapsed={collapsed} onSelect={setCancelTarget} />
+        <ScheduleCards
+          items={schedules}
+          collapsed={collapsed}
+          openKey={actionTarget?.key ?? null}
+          onSelect={selectSchedule}
+        />
         <SidebarUsage collapsed={collapsed} />
         <Link
           href="/me"
@@ -253,44 +277,13 @@ export default function Sidebar() {
         </button>
       </div>
 
-      <ConfirmModal
-        isOpen={cancelTarget != null}
-        onClose={() => {
-          if (!cancelling) setCancelTarget(null)
-        }}
-        onConfirm={() => {
-          if (!cancelTarget || cancelling) return
-          setCancelling(true)
-          const cancel =
-            cancelTarget.kind === 'lesson' && cancelTarget.lesson_record_id != null
-              ? lessonService.cancelSendSchedule(cancelTarget.lesson_record_id)
-              : cancelTarget.schedule_id != null
-                ? alimtalkService.cancelBroadcastSchedule(cancelTarget.schedule_id)
-                : Promise.resolve()
-          void cancel
-            .then(() => {
-              invalidateLessonLists(queryClient)
-              void queryClient.invalidateQueries({ queryKey: queryKeys.alimtalk.broadcastSchedules })
-              addToast({ variant: 'success', message: '예약을 취소했어요.' })
-              setCancelTarget(null)
-            })
-            .catch(() => {
-              addToast({ variant: 'error', message: '예약 취소에 실패했어요.' })
-            })
-            .finally(() => setCancelling(false))
-        }}
-        title="예약을 취소할까요?"
-        descriptions={
-          cancelTarget
-            ? [
-                `${cancelTarget.title} · ${cancelTarget.subtitle} ${seoulClock(cancelTarget.scheduled_at).hour}:${seoulClock(cancelTarget.scheduled_at).minute}`,
-                '예약 알림톡이 발송되지 않습니다.',
-              ]
-            : []
+      <ScheduleActionPopover
+        target={actionTarget}
+        anchorEl={anchorEl}
+        onClose={closeSchedule}
+        onTimeSaved={(scheduledAt) =>
+          setActionTarget((current) => (current ? { ...current, scheduled_at: scheduledAt } : current))
         }
-        confirmLabel={cancelling ? '취소하는 중…' : '예약 취소'}
-        cancelLabel="닫기"
-        confirmVariant="danger"
       />
 
       <ConfirmModal

@@ -75,6 +75,19 @@ export const admin = {
     return unwrap(data)
   },
 
+  async updateUser(id: number, payload: { name?: string; email?: string; phone?: string }) {
+    const { data } = await axiosInstance.patch<
+      Envelope<{
+        id: number
+        email: string
+        name: string
+        phone: string | null
+        phone_verified: boolean
+      }>
+    >(`/admin/users/${id}`, payload)
+    return unwrap(data)
+  },
+
   async createUser(payload: { email: string; password: string; name: string }) {
     const { data } = await axiosInstance.post<Envelope<AdminCreatedUser>>('/admin/users', payload)
     return unwrap(data)

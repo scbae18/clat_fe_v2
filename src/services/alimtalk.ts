@@ -243,6 +243,18 @@ export const alimtalkService = {
     await axiosInstance.delete(`/alimtalk/broadcast/schedules/${id}`)
   },
 
+  async updateBroadcastSchedule(id: number, scheduledAt: string): Promise<{ scheduled_at: string }> {
+    const { data } = await axiosInstance.patch(`/alimtalk/broadcast/schedules/${id}`, {
+      scheduled_at: scheduledAt,
+    })
+    return data.data as { scheduled_at: string }
+  },
+
+  async sendBroadcastScheduleNow(id: number): Promise<{ batch_id: number; status: string }> {
+    const { data } = await axiosInstance.post(`/alimtalk/broadcast/schedules/${id}/send`)
+    return data.data as { batch_id: number; status: string }
+  },
+
   async sendBroadcast(dto: {
     student_ids: number[]
     channel: BroadcastChannel
