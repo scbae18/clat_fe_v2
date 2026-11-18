@@ -2,8 +2,7 @@
 
 import { socialIconButtonStyle, socialIconStyle, socialRowStyle } from './SocialStartButtons.css'
 
-const GOOGLE_ICON =
-  '/images/Theme=Light, Show text=No, Shape=Pill, Platform=Android+Web@4x.png'
+const GOOGLE_ICON = '/images/google_login_light.png'
 
 type Props = {
   disabled?: boolean
