@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type Ref } from 'react'
+import { createPortal } from 'react-dom'
 import { usePathname } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { useUserStore } from '@/stores/userStore'
@@ -16,17 +17,30 @@ import {
   sidebarTopStyle,
   toggleButtonStyle,
   navStyle,
+  navFixedStyle,
   navItemStyle,
   navItemActiveStyle,
   navLabelStyle,
   logoutButtonStyle,
   sidebarBottomStyle,
+  sidebarBottomScrollStyle,
   scheduleStackStyle,
   scheduleCardStyle,
   scheduleTimeStyle,
   scheduleBadgeStyle,
   scheduleClassStyle,
   scheduleDateStyle,
+  scheduleMoreStyle,
+  scheduleLineButton,
+  scheduleListHeading,
+  scheduleListStack,
+  scheduleListItem,
+  scheduleListTime,
+  scheduleListBadge,
+  scheduleListName,
+  scheduleListMeta,
+  scheduleActionPopover,
+  scheduleActionStack,
   scheduleDetailStyle,
   userCardStyle,
   userCardActiveStyle,
@@ -123,45 +137,183 @@ function broadcastCard(item: BroadcastSchedule): ScheduleCard {
   }
 }
 
-function ScheduleCards({
-  items,
+function ScheduleEntry({
+  item,
+  extraCount,
+  totalCount,
   collapsed,
+  open,
+  slotRef,
+  line,
+  onClick,
+}: {
+  item: ScheduleCard
+  extraCount: number
+  totalCount: number
+  collapsed: boolean
+  open: boolean
+  slotRef: Ref<HTMLDivElement>
+  line: boolean
+  onClick: (anchor: HTMLButtonElement) => void
+}) {
+  const mode = collapsed ? 'collapsed' : 'expanded'
+  const clock = seoulClock(item.scheduled_at)
+  const time = `${clock.hour}:${clock.minute}`
+  const summary =
+    totalCount > 1 ? `예약 ${totalCount}건, 가장 가까운 시각 ${time}` : `${item.badge} ${time}`
+
+  return (
+    <div ref={slotRef} className={scheduleStackStyle[mode]}>
+      {line ? (
+        <button
+          type="button"
+          className={scheduleLineButton}
+          data-schedule-layer=""
+          data-open={open ? 'true' : undefined}
+          aria-expanded={open}
+          aria-label={summary}
+          onClick={(event) => onClick(event.currentTarget)}
+        >
+          <span className={scheduleTimeStyle}>{time}</span>
+          <span>예약 {totalCount}</span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          className={scheduleCardStyle[mode]}
+          data-schedule-layer=""
+          title={collapsed ? `${item.title} ${item.subtitle} ${time}` : undefined}
+          data-open={open ? 'true' : undefined}
+          aria-expanded={open}
+          aria-label={summary}
+          onClick={(event) => onClick(event.currentTarget)}
+        >
+          <span className={scheduleTimeStyle}>{time}</span>
+          <span className={scheduleDetailStyle[mode]}>
+            <span className={scheduleBadgeStyle}>{item.badge}</span>
+            <span className={scheduleClassStyle}>{item.title}</span>
+            <span className={scheduleDateStyle}>{item.subtitle}</span>
+            {extraCount > 0 && <span className={scheduleMoreStyle}>외 {extraCount}건</span>}
+          </span>
+        </button>
+      )}
+    </div>
+  )
+}
+
+function otherDialogOpen(): boolean {
+  return Boolean(document.querySelector('[role="dialog"]:not([data-schedule-layer])'))
+}
+
+function ScheduleListPopover({
+  items,
+  anchorEl,
   openKey,
+  onClose,
   onSelect,
 }: {
   items: ScheduleCard[]
-  collapsed: boolean
+  anchorEl: HTMLButtonElement | null
   openKey: string | null
+  onClose: () => void
   onSelect: (item: ScheduleCard, anchor: HTMLButtonElement) => void
 }) {
-  if (items.length === 0) return null
-  const mode = collapsed ? 'collapsed' : 'expanded'
-  return (
-    <div className={scheduleStackStyle[mode]}>
-      {items.map((item) => {
-        const clock = seoulClock(item.scheduled_at)
-        const time = `${clock.hour}:${clock.minute}`
-        const open = openKey === item.key
-        return (
-          <button
-            key={item.key}
-            type="button"
-            className={scheduleCardStyle[mode]}
-            title={collapsed ? `${item.title} ${item.subtitle} ${time}` : undefined}
-            data-open={open ? 'true' : undefined}
-            aria-expanded={open}
-            onClick={(event) => onSelect(item, event.currentTarget)}
-          >
-            <span className={scheduleTimeStyle}>{time}</span>
-            <span className={scheduleDetailStyle[mode]}>
-              <span className={scheduleBadgeStyle}>{item.badge}</span>
-              <span className={scheduleClassStyle}>{item.title}</span>
-              <span className={scheduleDateStyle}>{item.subtitle}</span>
-            </span>
-          </button>
-        )
-      })}
-    </div>
+  const panelRef = useRef<HTMLDivElement>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useLayoutEffect(() => {
+    const panel = panelRef.current
+    if (!panel || !anchorEl) return
+
+    function place() {
+      if (!panel || !anchorEl) return
+      const rect = anchorEl.getBoundingClientRect()
+      const height = panel.offsetHeight
+      const gap = 10
+      let top = rect.top
+      if (top + height > window.innerHeight - 8) {
+        top = Math.max(8, window.innerHeight - height - 8)
+      }
+      const arrow = Math.min(Math.max(rect.top + rect.height / 2 - top, 18), Math.max(18, height - 18))
+      panel.style.setProperty('--schedule-popover-x', `${rect.right + gap}px`)
+      panel.style.setProperty('--schedule-popover-y', `${top}px`)
+      panel.style.setProperty('--schedule-popover-arrow', `${arrow}px`)
+    }
+
+    place()
+    const observer = new ResizeObserver(() => place())
+    observer.observe(panel)
+    window.addEventListener('scroll', place, true)
+    window.addEventListener('resize', place)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('scroll', place, true)
+      window.removeEventListener('resize', place)
+    }
+  }, [anchorEl, items.length])
+
+  useEffect(() => {
+    if (!anchorEl) return
+    function onKey(event: KeyboardEvent) {
+      if (event.key !== 'Escape' || otherDialogOpen()) return
+      onClose()
+    }
+    function onPointerDown(event: MouseEvent) {
+      if (otherDialogOpen()) return
+      const node = event.target
+      if (!(node instanceof Node)) return
+      if (node instanceof Element && node.closest('[data-schedule-layer]')) return
+      onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    document.addEventListener('mousedown', onPointerDown)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('mousedown', onPointerDown)
+    }
+  }, [anchorEl, onClose])
+
+  if (!mounted || !anchorEl) return null
+
+  return createPortal(
+    <div
+      ref={panelRef}
+      className={scheduleActionPopover}
+      role="dialog"
+      data-schedule-layer=""
+      aria-label="예약 내역"
+    >
+      <div className={scheduleActionStack}>
+        <p className={scheduleListHeading}>예약 내역</p>
+        <div className={scheduleListStack}>
+          {items.map((item) => {
+            const clock = seoulClock(item.scheduled_at)
+            const time = `${clock.hour}:${clock.minute}`
+            const open = openKey === item.key
+            return (
+              <button
+                key={item.key}
+                type="button"
+                className={scheduleListItem}
+                data-open={open ? 'true' : undefined}
+                aria-expanded={open}
+                onClick={(event) => onSelect(item, event.currentTarget)}
+              >
+                <span className={scheduleListTime}>{time}</span>
+                <span className={scheduleListBadge}>{item.badge}</span>
+                <span className={scheduleListName}>{item.title}</span>
+                <span className={scheduleListMeta}>{item.subtitle}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </div>,
+    document.body,
   )
 }
 
@@ -180,6 +332,17 @@ export default function Sidebar() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
   const [actionTarget, setActionTarget] = useState<ScheduleActionTarget | null>(null)
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
+  const [listAnchor, setListAnchor] = useState<HTMLButtonElement | null>(null)
+  const [scheduleFit, setScheduleFit] = useState<'card' | 'line'>('card')
+  const [bottomScroll, setBottomScroll] = useState(false)
+  const asideRef = useRef<HTMLElement>(null)
+  const navRef = useRef<HTMLElement>(null)
+  const bottomRef = useRef<HTMLDivElement>(null)
+  const slotRef = useRef<HTMLDivElement>(null)
+  const endRef = useRef<HTMLButtonElement>(null)
+  const cardHeightRef = useRef(0)
+  const lineHeightRef = useRef(0)
+  const collapsedRef = useRef(collapsed)
 
   const meActive = pathname.startsWith('/me')
   const mode = collapsed ? 'collapsed' : 'expanded'
@@ -199,6 +362,83 @@ export default function Sidebar() {
     ...(schedulesQuery.data ?? []).map(lessonCard),
     ...(broadcastSchedulesQuery.data ?? []).map(broadcastCard),
   ].sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at) || a.key.localeCompare(b.key))
+  const nearest = schedules[0]
+  const extraCount = Math.max(0, schedules.length - 1)
+  const showLine = !collapsed && scheduleFit === 'line'
+  const scheduleKey = schedules.map((item) => item.key).join('|')
+
+  useLayoutEffect(() => {
+    const aside = asideRef.current
+    if (!aside) return
+    if (schedules.length === 0) {
+      setScheduleFit('card')
+      setBottomScroll(false)
+      return
+    }
+
+    if (collapsedRef.current !== collapsed) {
+      collapsedRef.current = collapsed
+      if (scheduleFit !== 'card' || bottomScroll) {
+        setScheduleFit('card')
+        setBottomScroll(false)
+        return
+      }
+    }
+
+    const update = () => {
+      const currentAside = asideRef.current
+      const end = endRef.current
+      const nav = navRef.current
+      const slot = slotRef.current
+      const bottom = bottomRef.current
+      if (!currentAside || !end || currentAside.clientHeight === 0) return
+
+      const endMargin = Number.parseFloat(getComputedStyle(end).marginBottom) || 0
+      const overflow =
+        end.getBoundingClientRect().bottom + endMargin - currentAside.getBoundingClientRect().bottom
+      const lastLink = nav?.querySelector(':scope > a:last-child')
+      const gap =
+        lastLink && slot
+          ? slot.getBoundingClientRect().top - lastLink.getBoundingClientRect().bottom
+          : 0
+
+      if (slot) {
+        const slotMargin = Number.parseFloat(getComputedStyle(slot).marginBottom) || 0
+        const slotHeight = slot.offsetHeight + slotMargin
+        if (showLine) lineHeightRef.current = slotHeight
+        else cardHeightRef.current = slotHeight
+      }
+
+      if (!showLine && !bottomScroll) {
+        if (overflow > 1) {
+          if (collapsed) setBottomScroll(true)
+          else setScheduleFit('line')
+        }
+        return
+      }
+
+      if (showLine && !bottomScroll) {
+        if (overflow > 1) {
+          setBottomScroll(true)
+          return
+        }
+        const needed = cardHeightRef.current - lineHeightRef.current + 16
+        if (cardHeightRef.current === 0 ? gap > 80 : gap >= needed) setScheduleFit('card')
+        return
+      }
+
+      if (bottom && bottom.scrollTop === 0) {
+        const bottomEdge = bottom.getBoundingClientRect().bottom
+        const room = bottomEdge - (end.getBoundingClientRect().bottom + endMargin)
+        if (room > 16) setBottomScroll(false)
+      }
+    }
+
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(aside)
+    return () => observer.disconnect()
+  }, [bottomScroll, collapsed, scheduleFit, scheduleKey, schedules.length, showLine])
 
   function closeSchedule() {
     setActionTarget(null)
@@ -214,8 +454,27 @@ export default function Sidebar() {
     setAnchorEl(anchor)
   }
 
+  function openSummary(anchor: HTMLButtonElement) {
+    if (!nearest) return
+    if (schedules.length > 1) {
+      setActionTarget(null)
+      setAnchorEl(null)
+      setListAnchor((current) => (current ? null : anchor))
+      return
+    }
+    setListAnchor(null)
+    selectSchedule(nearest, anchor)
+  }
+
+  function closeList() {
+    setListAnchor(null)
+    closeSchedule()
+  }
+
+  const summaryOpen = schedules.length > 1 ? Boolean(listAnchor) : actionTarget?.key === nearest?.key
+
   return (
-    <aside className={sidebarStyle[mode]} aria-expanded={!collapsed}>
+    <aside ref={asideRef} className={sidebarStyle[mode]} aria-expanded={!collapsed}>
       <div className={sidebarTopStyle[mode]}>
         <LogoIcon width={32} height={32} />
         <button
@@ -231,7 +490,7 @@ export default function Sidebar() {
           )}
         </button>
       </div>
-      <nav className={navStyle[mode]}>
+      <nav ref={navRef} className={`${navStyle[mode]}${bottomScroll ? ` ${navFixedStyle}` : ''}`}>
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const isActive =
             pathname.startsWith(href) ||
@@ -250,13 +509,22 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className={sidebarBottomStyle[mode]}>
-        <ScheduleCards
-          items={schedules}
-          collapsed={collapsed}
-          openKey={actionTarget?.key ?? null}
-          onSelect={selectSchedule}
-        />
+      <div
+        ref={bottomRef}
+        className={`${sidebarBottomStyle[mode]}${bottomScroll ? ` ${sidebarBottomScrollStyle}` : ''}`}
+      >
+        {nearest && (
+          <ScheduleEntry
+            item={nearest}
+            extraCount={extraCount}
+            totalCount={schedules.length}
+            collapsed={collapsed}
+            open={summaryOpen}
+            slotRef={slotRef}
+            line={showLine}
+            onClick={openSummary}
+          />
+        )}
         <SidebarUsage collapsed={collapsed} />
         <Link
           href="/me"
@@ -272,6 +540,7 @@ export default function Sidebar() {
         </Link>
 
         <button
+          ref={endRef}
           type="button"
           className={logoutButtonStyle[mode]}
           title={collapsed ? '\uB85C\uADF8\uC544\uC6C3' : undefined}
@@ -282,6 +551,14 @@ export default function Sidebar() {
           {!collapsed && '\uB85C\uADF8\uC544\uC6C3'}
         </button>
       </div>
+
+      <ScheduleListPopover
+        items={schedules}
+        anchorEl={schedules.length > 1 ? listAnchor : null}
+        openKey={actionTarget?.key ?? null}
+        onClose={closeList}
+        onSelect={selectSchedule}
+      />
 
       <ScheduleActionPopover
         target={actionTarget}

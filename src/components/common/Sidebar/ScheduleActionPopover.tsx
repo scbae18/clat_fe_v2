@@ -123,6 +123,7 @@ export default function ScheduleActionPopover({ target, anchorEl, onClose, onTim
       if (!(node instanceof Node)) return
       if (panelRef.current?.contains(node)) return
       if (anchorEl?.contains(node)) return
+      if (node instanceof Element && node.closest('[data-schedule-layer]')) return
       onClose()
     }
     document.addEventListener('keydown', onKey)
@@ -140,6 +141,7 @@ export default function ScheduleActionPopover({ target, anchorEl, onClose, onTim
       ref={panelRef}
       className={scheduleActionPopover}
       role="dialog"
+      data-schedule-layer=""
       aria-label={target.badge}
     >
       <ScheduleActionForm

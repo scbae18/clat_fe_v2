@@ -84,6 +84,12 @@ export const navStyle = styleVariants({
   },
 })
 
+export const navFixedStyle = style({
+  flexGrow: 0,
+  flexShrink: 0,
+  flexBasis: 'auto',
+})
+
 const navItemBase = {
   position: 'relative',
   display: 'flex',
@@ -153,6 +159,7 @@ export const logoutButtonStyle = styleVariants({
     marginBottom: '24px',
     display: 'flex',
     alignItems: 'center',
+    flexShrink: 0,
     gap: '16px',
     padding: '0 16px',
     height: '48px',
@@ -176,6 +183,7 @@ export const logoutButtonStyle = styleVariants({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
     width: '100%',
     height: '48px',
     padding: 0,
@@ -209,21 +217,26 @@ export const sidebarBottomStyle = styleVariants({
   },
 })
 
+export const sidebarBottomScrollStyle = style({
+  flex: '1 1 auto',
+  minHeight: 0,
+  marginTop: 0,
+  overflowY: 'auto',
+})
+
 export const scheduleStackStyle = styleVariants({
   expanded: {
     display: 'flex',
     flexDirection: 'column',
+    flexShrink: 0,
     gap: '8px',
-    maxHeight: '220px',
-    overflowY: 'auto',
     marginBottom: '8px',
   },
   collapsed: {
     display: 'flex',
     flexDirection: 'column',
+    flexShrink: 0,
     gap: '6px',
-    maxHeight: '160px',
-    overflowY: 'auto',
     marginBottom: '8px',
   },
 })
@@ -315,6 +328,116 @@ export const scheduleDateStyle = style({
   whiteSpace: 'nowrap',
 })
 
+export const scheduleMoreStyle = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 700,
+  lineHeight: 1.3,
+  letterSpacing: '-0.03em',
+  color: colors.primary300,
+})
+
+export const scheduleLineButton = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  width: '100%',
+  height: '40px',
+  padding: '0 12px',
+  border: 'none',
+  borderRadius: '12px',
+  background: 'rgba(255,255,255,0.08)',
+  color: colors.white,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 700,
+  letterSpacing: '-0.03em',
+  cursor: 'pointer',
+  flexShrink: 0,
+  selectors: {
+    '&:hover': {
+      background: 'rgba(255,255,255,0.14)',
+    },
+    '&[data-open="true"]': {
+      background: 'rgba(255,255,255,0.18)',
+    },
+  },
+})
+
+export const scheduleListHeading = style({
+  margin: 0,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 700,
+  letterSpacing: '-0.03em',
+  color: colors.gray500,
+})
+
+export const scheduleListStack = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+  maxHeight: '280px',
+  overflowY: 'auto',
+})
+
+export const scheduleListItem = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  width: '100%',
+  padding: '10px 12px',
+  border: 'none',
+  borderRadius: '10px',
+  backgroundColor: colors.gray50,
+  textAlign: 'left',
+  font: 'inherit',
+  cursor: 'pointer',
+  selectors: {
+    '&:hover': {
+      backgroundColor: colors.gray100,
+    },
+    '&[data-open="true"]': {
+      backgroundColor: colors.primary50,
+    },
+  },
+})
+
+export const scheduleListTime = style({
+  fontSize: '13px',
+  fontWeight: 700,
+  letterSpacing: '-0.03em',
+  lineHeight: 1.3,
+  color: colors.primary500,
+})
+
+export const scheduleListBadge = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 700,
+  letterSpacing: '-0.03em',
+  lineHeight: 1.3,
+  color: colors.primary500,
+})
+
+export const scheduleListName = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 600,
+  lineHeight: 1.3,
+  letterSpacing: '-0.03em',
+  color: colors.gray900,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+})
+
+export const scheduleListMeta = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 500,
+  lineHeight: 1.3,
+  letterSpacing: '-0.03em',
+  color: colors.gray500,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+})
+
 export const scheduleDetailStyle = styleVariants({
   expanded: {
     display: 'flex',
@@ -332,6 +455,7 @@ export const usageCardStyle = styleVariants({
     marginBottom: '8px',
     display: 'flex',
     flexDirection: 'column',
+    flexShrink: 0,
     gap: '2px',
     padding: '10px 12px',
     borderRadius: '12px',
@@ -349,6 +473,7 @@ export const usageCardStyle = styleVariants({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
     minHeight: '36px',
     padding: '6px 2px',
     borderRadius: '10px',
@@ -403,6 +528,7 @@ export const userCardStyle = styleVariants({
     marginBottom: '8px',
     display: 'flex',
     alignItems: 'center',
+    flexShrink: 0,
     gap: '12px',
     padding: '10px 12px',
     borderRadius: '12px',
@@ -421,6 +547,7 @@ export const userCardStyle = styleVariants({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
     padding: '10px 0',
     borderRadius: '12px',
     textDecoration: 'none',
