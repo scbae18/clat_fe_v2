@@ -87,7 +87,10 @@ interface ScheduleCard {
   student_count: number
   kind: 'lesson' | 'broadcast'
   lesson_record_id?: number
+  lesson_date?: string
+  template_name?: string
   schedule_id?: number
+  body?: string
 }
 
 function lessonCard(item: LessonSendScheduleCard): ScheduleCard {
@@ -100,6 +103,8 @@ function lessonCard(item: LessonSendScheduleCard): ScheduleCard {
     student_count: item.student_count,
     kind: 'lesson',
     lesson_record_id: item.lesson_record_id,
+    lesson_date: item.lesson_date,
+    template_name: item.template_name,
   }
 }
 
@@ -114,6 +119,7 @@ function broadcastCard(item: BroadcastSchedule): ScheduleCard {
     student_count: item.student_count,
     kind: 'broadcast',
     schedule_id: item.id,
+    body: item.body,
   }
 }
 

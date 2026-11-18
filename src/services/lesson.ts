@@ -145,6 +145,7 @@ export interface LessonSendSchedule {
 export interface LessonSendScheduleCard {
   lesson_record_id: number
   class_name: string
+  template_name: string
   lesson_date: string
   scheduled_at: string
   channel: LessonSendChannel

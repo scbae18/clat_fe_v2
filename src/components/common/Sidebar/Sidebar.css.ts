@@ -494,7 +494,7 @@ export const scheduleActionPopover = style({
   left: 'var(--schedule-popover-x, -9999px)',
   top: 'var(--schedule-popover-y, 0px)',
   zIndex: zIndex.tooltip,
-  width: '248px',
+  width: '280px',
   padding: '14px',
   borderRadius: '14px',
   border: `1px solid ${colors.gray100}`,
@@ -542,4 +542,33 @@ export const scheduleActionButtons = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '8px',
+})
+
+export const schedulePreview = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+  padding: '10px 12px',
+  borderRadius: '10px',
+  backgroundColor: colors.gray50,
+  maxHeight: '180px',
+  overflowY: 'auto',
+})
+
+export const schedulePreviewBody = style({
+  margin: 0,
+  whiteSpace: 'pre-wrap',
+  wordBreak: 'break-word',
+  fontSize: fontStyles.bodyMd.fontSize,
+  lineHeight: 1.45,
+  letterSpacing: '-0.03em',
+  color: colors.gray900,
+})
+
+export const schedulePreviewLine = style({
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: 600,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  color: colors.gray900,
 })

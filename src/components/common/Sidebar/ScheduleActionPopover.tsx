@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useRouter } from 'next/navigation'
 import Button from '@/components/common/Button/Button'
 import ConfirmModal from '@/components/common/ConfirmModal'
 import Text from '@/components/common/Text/Text'
@@ -17,6 +18,9 @@ import {
   scheduleActionInput,
   scheduleActionPopover,
   scheduleActionStack,
+  schedulePreview,
+  schedulePreviewBody,
+  schedulePreviewLine,
 } from './Sidebar.css'
 
 export interface ScheduleActionTarget {
@@ -28,7 +32,10 @@ export interface ScheduleActionTarget {
   student_count: number
   kind: 'lesson' | 'broadcast'
   lesson_record_id?: number
+  lesson_date?: string
+  template_name?: string
   schedule_id?: number
+  body?: string
 }
 
 function seoulDatetimeLocal(date: Date): string {
@@ -93,9 +100,12 @@ export default function ScheduleActionPopover({ target, anchorEl, onClose, onTim
     }
 
     place()
+    const observer = new ResizeObserver(() => place())
+    observer.observe(panel)
     window.addEventListener('scroll', place, true)
     window.addEventListener('resize', place)
     return () => {
+      observer.disconnect()
       window.removeEventListener('scroll', place, true)
       window.removeEventListener('resize', place)
     }
@@ -144,6 +154,39 @@ export default function ScheduleActionPopover({ target, anchorEl, onClose, onTim
   )
 }
 
+function lessonDateLabel(lessonDate: string): string {
+  const [, month, day] = lessonDate.split('-')
+  return `${Number(month)}월 ${Number(day)}일`
+}
+
+function ScheduleContent({
+  target,
+  onOpenLesson,
+}: {
+  target: ScheduleActionTarget
+  onOpenLesson: () => void
+}) {
+  if (target.kind === 'broadcast') {
+    const body = target.body?.trim() ?? ''
+    return (
+      <div className={schedulePreview}>
+        <p className={schedulePreviewBody}>{body || '안내사항이 없습니다.'}</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className={schedulePreview}>
+      <p className={schedulePreviewLine}>{target.lesson_date ? lessonDateLabel(target.lesson_date) : target.subtitle}</p>
+      <p className={schedulePreviewLine}>{target.title}</p>
+      <p className={schedulePreviewLine}>{target.template_name || '템플릿 없음'}</p>
+      <Button type="button" variant="outlined" size="sm" fullWidth onClick={onOpenLesson}>
+        수업 입력으로 이동
+      </Button>
+    </div>
+  )
+}
+
 function ScheduleActionForm({
   target,
   onClose,
@@ -156,10 +199,12 @@ function ScheduleActionForm({
   onConfirmLock: (locked: boolean) => void
 }) {
   const queryClient = useQueryClient()
+  const router = useRouter()
   const addToast = useToastStore((s) => s.addToast)
   const [timeValue, setTimeValue] = useState(() => seoulDatetimeLocal(new Date(target.scheduled_at)))
   const [busy, setBusy] = useState<'time' | 'send' | 'cancel' | null>(null)
   const [confirm, setConfirm] = useState<'send' | 'cancel' | null>(null)
+  const [showContent, setShowContent] = useState(false)
   const currentValue = seoulDatetimeLocal(new Date(target.scheduled_at))
   const timeChanged = timeValue !== '' && timeValue !== currentValue
   const summary = `${target.title} · ${target.subtitle} · ${target.student_count}명`
@@ -254,6 +299,21 @@ function ScheduleActionForm({
           {target.title} · {target.subtitle} · {target.student_count}명
         </Text>
       </div>
+      <Button
+        type="button"
+        variant="outlined"
+        size="sm"
+        fullWidth
+        disabled={busy != null}
+        onClick={() => setShowContent((open) => !open)}
+      >
+        {showContent ? '내용 닫기' : '내용 확인하기'}
+      </Button>
+      {showContent ? <ScheduleContent target={target} onOpenLesson={() => {
+        if (target.lesson_record_id == null) return
+        onClose()
+        router.push(`/lesson/${target.lesson_record_id}`)
+      }} /> : null}
       <label className={scheduleActionField}>
         <Text variant="bodyMd" color="gray700" as="span">
           보낼 시각 (한국 시간)
