@@ -28,7 +28,7 @@ export default function BusinessInfo({ tone }: { tone: 'light' | 'dark' }) {
       <p>사업자등록번호 {business.registrationNumber}</p>
       <p>호스팅 {business.hosting}</p>
       <p>개인정보 보호책임자 {business.privacyOfficer}</p>
-      <p>{business.mailOrderNote}</p>
+      <p>통신판매업 신고번호 {business.mailOrderNumber}</p>
     </address>
   )
 }

@@ -8,7 +8,7 @@ export const business = {
   registrationNumber: '763-16-02814',
   hosting: 'Vercel · Amazon Web Services',
   privacyOfficer: '배승찬',
-  mailOrderNote: '통신판매업 신고번호는 신고가 끝나면 이 자리에 표시합니다.',
+  mailOrderNumber: '2026-수원팔달-0894',
   effectiveDate: '2026년 12월 28일',
 } as const
 
