@@ -305,37 +305,48 @@ export default function BillingPage() {
 
       <div className={styles.cardStack}>
         <section className={styles.card}>
-          <div className={styles.sectionHead}>
-            <div>
-              <h2 className={styles.sectionTitle}>{me.plan.name}</h2>
-              <p className={styles.sectionDesc}>
-                {me.status === 'PAST_DUE'
-                  ? '결제가 되지 않아 알림톡과 새 학생 등록만 무료 한도예요.'
-                  : me.status === 'GRANT'
-                  ? `무료 적용 · ${me.grant?.ends_at ? `${resetDayLabel(me.grant.ends_at)}까지` : ''}`
-                  : me.plan.monthly_price > 0
-                    ? `월 ${moneyLabel(me.plan.monthly_price)} · 부가세 포함`
-                    : '무료'}
-              </p>
-            </div>
+          <div className={styles.titleRow}>
+            <h2 className={styles.sectionTitle}>{me.plan.name}</h2>
+            <span
+              className={
+                me.status === 'PAST_DUE'
+                  ? `${styles.statusChip} ${styles.statusChipWarn}`
+                  : me.status === 'GRANT' || me.plan.monthly_price === 0
+                    ? `${styles.statusChip} ${styles.statusChipMuted}`
+                    : styles.statusChip
+              }
+            >
+              {me.status === 'PAST_DUE' ? '결제 대기' : me.status === 'GRANT' ? '무료 적용' : me.plan.monthly_price > 0 ? '이용 중' : '무료'}
+            </span>
           </div>
-          <div className={styles.meter}>
-            <Text variant="bodyMd" color="gray700">
-              학생 {me.students.count}
-              {studentLimit == null ? '명' : ` / ${studentLimit}명`}
-            </Text>
-            <div className={styles.barTrack}>
-              <div className={styles.barFill} style={{ width: `${studentWidth}%` }} />
+          <p className={styles.sectionDesc}>
+            {me.status === 'PAST_DUE'
+              ? '결제가 되지 않아 알림톡과 새 학생 등록만 무료 한도예요.'
+              : me.status === 'GRANT'
+              ? `무료 적용 · ${me.grant?.ends_at ? `${resetDayLabel(me.grant.ends_at)}까지` : ''}`
+              : me.plan.monthly_price > 0
+                ? `월 ${moneyLabel(me.plan.monthly_price)} · 부가세 포함`
+                : '무료'}
+          </p>
+          <div className={styles.usageGrid}>
+            <div className={styles.meter}>
+              <Text variant="bodyMd" color="gray700">
+                학생 {me.students.count}
+                {studentLimit == null ? '명' : ` / ${studentLimit}명`}
+              </Text>
+              <div className={styles.barTrack}>
+                <div className={styles.barFill} style={{ width: `${studentWidth}%` }} />
+              </div>
             </div>
-          </div>
-          <div className={styles.meter}>
-            <Text variant="bodyMd" color="gray700">
-              알림톡 {me.messages.used}통
-              {included == null ? '' : ` / ${included.toLocaleString('ko-KR')}통`}
-              {me.messages.reserved > 0 ? ` · 보내는 중 ${me.messages.reserved}통` : ''}
-            </Text>
-            <div className={styles.barTrack}>
-              <div className={styles.barFill} style={{ width: `${messageWidth}%` }} />
+            <div className={styles.meter}>
+              <Text variant="bodyMd" color="gray700">
+                알림톡 {me.messages.used}통
+                {included == null ? '' : ` / ${included.toLocaleString('ko-KR')}통`}
+                {me.messages.reserved > 0 ? ` · 보내는 중 ${me.messages.reserved}통` : ''}
+              </Text>
+              <div className={styles.barTrack}>
+                <div className={styles.barFill} style={{ width: `${messageWidth}%` }} />
+              </div>
             </div>
           </div>
           <Text variant="bodyMd" color="gray500">
@@ -344,36 +355,64 @@ export default function BillingPage() {
         </section>
 
         <section className={styles.card}>
-          <div>
-            <h2 className={styles.sectionTitle}>결제</h2>
-            <p className={styles.sectionDesc}>
-              {me.card
-                ? `${me.card.company} ${me.card.last4}`
-                : '등록된 카드가 없어요.'}
-              {me.billing
-                ? benefitHoldsBilling
-                  ? ` · ${resetDayLabel(me.billing.no_charge_until ?? me.billing.next_billing_at)}까지 청구 없음`
-                  : ` · 다음 결제 ${resetDayLabel(me.billing.next_billing_at)} ${moneyLabel(me.billing.next_amount)}`
-                : ''}
-              {me.billing?.cancel_at_period_end ? ' · 해지 예약' : ''}
-              {me.saved_benefit_months > 0
-                ? ` · 다시 결제하면 무료 ${me.saved_benefit_months}개월이 먼저 이어져요`
-                : ''}
-              {me.billing?.pending_plan_code
-                ? ` · 다음 결제일부터 ${plansQuery.data?.plans.find((plan) => plan.code === me.billing?.pending_plan_code)?.name ?? '낮은 요금제'}`
-                : ''}
-            </p>
-            {me.status === 'ACTIVE' && me.customer_key ? (
-              <div className={styles.noticeActions}>
+          <h2 className={styles.sectionTitle}>결제</h2>
+          <div className={styles.factGrid}>
+            <div>
+              <p className={styles.factLabel}>결제 카드</p>
+              <p className={styles.factValue}>
+                {me.card ? `${me.card.company} ${me.card.last4}` : '등록된 카드가 없어요.'}
+              </p>
+            </div>
+            <div>
+              <p className={styles.factLabel}>다음 결제</p>
+              <p className={styles.factValue}>
+                {me.billing
+                  ? benefitHoldsBilling
+                    ? `${resetDayLabel(me.billing.no_charge_until ?? me.billing.next_billing_at)}까지 청구 없음`
+                    : `${resetDayLabel(me.billing.next_billing_at)} · ${moneyLabel(me.billing.next_amount)}`
+                  : '예정된 결제가 없어요.'}
+              </p>
+            </div>
+          </div>
+          {me.billing?.cancel_at_period_end || me.saved_benefit_months > 0 || me.billing?.pending_plan_code ? (
+            <div className={styles.chipRow}>
+              {me.billing?.cancel_at_period_end ? <span className={styles.infoChip}>해지 예약</span> : null}
+              {me.saved_benefit_months > 0 ? (
+                <span className={styles.infoChip}>다시 결제하면 무료 {me.saved_benefit_months}개월이 먼저 이어져요</span>
+              ) : null}
+              {me.billing?.pending_plan_code ? (
+                <span className={styles.infoChip}>
+                  다음 결제일부터 {plansQuery.data?.plans.find((plan) => plan.code === me.billing?.pending_plan_code)?.name ?? '낮은 요금제'}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
+          {me.status === 'ACTIVE' ? (
+            <div className={styles.noticeActions}>
+              {me.customer_key ? (
                 <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => void changeCard()}>
                   카드 바꾸기
                 </Button>
-              </div>
-            ) : null}
-          </div>
+              ) : null}
+              {me.billing?.pending_plan_code ? (
+                <Button size="sm" variant="secondary" disabled={busy} onClick={() => setPlanAction({ kind: 'undo-down' })}>
+                  내리기 취소
+                </Button>
+              ) : null}
+              {me.billing?.cancel_at_period_end ? (
+                <Button size="sm" variant="secondary" disabled={busy} onClick={() => setPlanAction({ kind: 'undo-cancel' })}>
+                  해지 취소
+                </Button>
+              ) : (
+                <Button size="sm" variant="danger" disabled={busy} onClick={() => setPlanAction({ kind: 'cancel' })}>
+                  해지하기
+                </Button>
+              )}
+            </div>
+          ) : null}
           <InvoiceList rows={invoicesQuery.data ?? []} onRefund={setRefundRow} />
           {me.status === 'PAST_DUE' ? (
-            <div className={styles.payPanel}>
+            <div className={styles.warn}>
               <p className={styles.sectionDesc}>
                 결제가 되지 않았어요. 결제될 때까지 알림톡은 월 30통, 새 학생은 10명까지예요.
                 {me.past_due_until
@@ -400,7 +439,7 @@ export default function BillingPage() {
             </div>
           ) : null}
           {me.status === 'ACTIVE' ? (
-            <form className={styles.payPanel} onSubmit={(event) => void applyActiveCode(event)}>
+            <form className={styles.benefitBox} onSubmit={(event) => void applyActiveCode(event)}>
               <p className={styles.sectionDesc}>
                 무료 코드를 입력하면 다음 결제일부터 그 개월 수만큼 청구되지 않아요. 예를 들어 매달 10일이 결제일이고 2개월 코드면, 다음 달과 다다음 달 10일에는 청구되지 않아요.
               </p>
@@ -516,57 +555,10 @@ export default function BillingPage() {
                     {plan.name} {plan.monthly_price > me.plan.monthly_price ? '올리기' : '내리기'}
                   </Button>
                 ))}
-              {me.billing?.pending_plan_code ? (
-                <Button size="sm" variant="secondary" disabled={busy} onClick={() => setPlanAction({ kind: 'undo-down' })}>
-                  내리기 취소
-                </Button>
-              ) : null}
-              {me.billing?.cancel_at_period_end ? (
-                <Button size="sm" variant="secondary" disabled={busy} onClick={() => setPlanAction({ kind: 'undo-cancel' })}>
-                  해지 취소
-                </Button>
-              ) : (
-                <Button size="sm" variant="danger" disabled={busy} onClick={() => setPlanAction({ kind: 'cancel' })}>
-                  해지하기
-                </Button>
-              )}
             </div>
           ) : null}
           {payPanel ? (
             <div className={styles.payPanel}>
-              <button type="button" className={styles.detailToggle} onClick={() => setDetailsOpen((open) => !open)}>
-                {detailsOpen ? '안내 접기' : '안내 보기'}
-              </button>
-              {detailsOpen ? (
-                <div>
-                  {payPanel.mode === 'subscribe' && selectedPlan ? (
-                    <>
-                      <p className={styles.sectionDesc}>
-                        다음 결제부터는 같은 날 오전 10시에 {moneyLabel(selectedPlan.monthly_price)}이 결제돼요.
-                      </p>
-                      <p className={styles.sectionDesc}>
-                        해지하면 이번 결제 기간이 끝날 때까지 쓸 수 있고, 그다음 결제는 없어요.
-                      </p>
-                      <p className={styles.sectionDesc}>
-                        결제일부터 7일 이내이고, 그 기간에 알림톡을 30통 이하로 보냈으면 결제 내역에서 전액을 돌려받을 수 있어요.
-                      </p>
-                      <BusinessInfo tone="light" />
-                    </>
-                  ) : null}
-                  {payPanel.mode === 'upgrade' ? (
-                    <>
-                      <p className={styles.sectionDesc}>
-                        남은 {payPanel.preview.remaining_days}일 / {payPanel.preview.period_days}일 차액이에요. 결제일은 그대로이고, 다음 결제일부터는 월 {moneyLabel(payPanel.preview.new_monthly_price)}이에요.
-                      </p>
-                      <p className={styles.sectionDesc}>
-                        {payPanel.preview.unlock_count > 0
-                          ? `잠긴 학생 ${payPanel.preview.unlock_count}명이 풀려요.`
-                          : '학생 한도와 알림톡 한도가 바로 늘어요.'}
-                      </p>
-                    </>
-                  ) : null}
-                </div>
-              ) : null}
               <div>
                 <p className={styles.payAmountLabel}>오늘 결제 금액</p>
                 <p className={styles.payAmount}>
@@ -579,6 +571,39 @@ export default function BillingPage() {
                   )}
                 </p>
               </div>
+              {payPanel.mode === 'subscribe' && selectedPlan ? (
+                <p className={styles.sectionDesc}>
+                  다음 결제부터는 같은 날 오전 10시에 {moneyLabel(selectedPlan.monthly_price)}이 결제돼요.
+                </p>
+              ) : null}
+              {payPanel.mode === 'upgrade' ? (
+                <>
+                  <p className={styles.sectionDesc}>
+                    남은 {payPanel.preview.remaining_days}일 / {payPanel.preview.period_days}일 차액이에요. 결제일은 그대로이고, 다음 결제일부터는 월 {moneyLabel(payPanel.preview.new_monthly_price)}이에요.
+                  </p>
+                  <p className={styles.sectionDesc}>
+                    {payPanel.preview.unlock_count > 0
+                      ? `잠긴 학생 ${payPanel.preview.unlock_count}명이 풀려요.`
+                      : '학생 한도와 알림톡 한도가 바로 늘어요.'}
+                  </p>
+                </>
+              ) : null}
+              {payPanel.mode === 'subscribe' ? (
+                <button type="button" className={styles.detailToggle} onClick={() => setDetailsOpen((open) => !open)}>
+                  {detailsOpen ? '안내 접기' : '해지·환불 안내'}
+                </button>
+              ) : null}
+              {detailsOpen && payPanel.mode === 'subscribe' ? (
+                <div>
+                  <p className={styles.sectionDesc}>
+                    해지하면 이번 결제 기간이 끝날 때까지 쓸 수 있고, 그다음 결제는 없어요.
+                  </p>
+                  <p className={styles.sectionDesc}>
+                    결제일부터 7일 이내이고, 그 기간에 알림톡을 30통 이하로 보냈으면 결제 내역에서 전액을 돌려받을 수 있어요.
+                  </p>
+                  <BusinessInfo tone="light" />
+                </div>
+              ) : null}
               {payPanel.mode === 'subscribe' ? (
                 <div>
                   <Text variant="labelSm" color="gray700" as="span">
@@ -594,7 +619,7 @@ export default function BillingPage() {
                   </p>
                 </div>
               ) : null}
-              <p className={styles.sectionDesc}>
+              <p className={styles.testNote}>
                 테스트라 돈이 나가지 않아요. 국내 카드 번호 앞 6자리만 실제와 같으면 되고, 나머지는 아무 숫자예요. 휴대폰 인증번호는 000000이에요. 해외카드는 안 돼요.
               </p>
               <label className={styles.agreeRow}>
@@ -754,6 +779,13 @@ function planActionCopy(
   }
 }
 
+function invoicePill(status: string): string {
+  if (status === 'PAID') return styles.pillPaid
+  if (status === 'FAILED') return styles.pillError
+  if (status === 'PENDING') return styles.pillWarn
+  return styles.pillMuted
+}
+
 function invoiceStatus(status: string): string {
   if (status === 'PAID') return '결제됨'
   if (status === 'FAILED') return '거절됨'
@@ -781,33 +813,33 @@ function InvoiceList({
     <>
       <div className={styles.invoiceList}>
         {rows.map((row) => (
-        <div key={row.id} className={styles.sectionHead}>
-          <div>
-            <Text variant="bodyMd">
-              {row.plan_name} · {moneyLabel(row.total_amount)} · {invoiceStatus(row.status)}
-              {row.paid_at ? ` · ${resetDayLabel(row.paid_at)}` : ''}
-            </Text>
-            {row.refund_block_reason ? (
-              <Text variant="bodyMd" color="gray500">
-                {row.refund_block_reason}
-              </Text>
-            ) : null}
-          </div>
-          <div className={styles.noticeActions}>
-            {row.refundable ? (
-              <Button type="button" variant="danger" size="sm" onClick={() => onRefund(row)}>
-                환불 받기
-              </Button>
-            ) : null}
-            {row.receipt_url ? (
-              <a href={row.receipt_url} target="_blank" rel="noreferrer">
-                <Button variant="ghost" size="sm">
-                  영수증
+          <div key={row.id} className={styles.invoiceRow}>
+            <div className={styles.invoiceMain}>
+              <div className={styles.invoiceTitle}>
+                <span className={styles.invoiceName}>{row.plan_name}</span>
+                <span className={`${styles.pill} ${invoicePill(row.status)}`}>{invoiceStatus(row.status)}</span>
+              </div>
+              <p className={styles.invoiceMeta}>
+                {moneyLabel(row.total_amount)}
+                {row.paid_at ? ` · ${resetDayLabel(row.paid_at)}` : ''}
+              </p>
+              {row.refund_block_reason ? <p className={styles.sectionDesc}>{row.refund_block_reason}</p> : null}
+            </div>
+            <div className={styles.invoiceActions}>
+              {row.refundable ? (
+                <Button type="button" variant="danger" size="sm" onClick={() => onRefund(row)}>
+                  환불 받기
                 </Button>
-              </a>
-            ) : null}
+              ) : null}
+              {row.receipt_url ? (
+                <a href={row.receipt_url} target="_blank" rel="noreferrer">
+                  <Button variant="ghost" size="sm">
+                    영수증
+                  </Button>
+                </a>
+              ) : null}
+            </div>
           </div>
-        </div>
         ))}
       </div>
       <Text variant="bodyMd" color="gray500">

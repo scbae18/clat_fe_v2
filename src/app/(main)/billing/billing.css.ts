@@ -49,9 +49,6 @@ export const cardStack = style({
 export const invoiceList = style({
   display: 'flex',
   flexDirection: 'column',
-  gap: '16px',
-  maxHeight: '420px',
-  overflowY: 'auto',
 })
 
 export const card = style({
@@ -211,15 +208,36 @@ export const noticeActions = style({
   marginTop: '8px',
 })
 
+export const invoiceActions = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  justifyContent: 'flex-end',
+  gap: '8px',
+  flexShrink: 0,
+})
+
 export const payPanel = style({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'flex-start',
   gap: '16px',
-  marginTop: '8px',
-  padding: '20px',
+  padding: '24px',
   borderRadius: '16px',
-  backgroundColor: colors.gray50,
+  border: `1px solid ${colors.primary200}`,
+  backgroundColor: colors.white,
+})
+
+export const testNote = style({
+  margin: 0,
+  padding: '12px 14px',
+  borderRadius: '12px',
+  backgroundColor: colors.primary50,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  letterSpacing: tracking,
+  lineHeight: '160%',
+  color: colors.gray700,
 })
 
 export const detailToggle = style({
@@ -254,6 +272,189 @@ export const payAmount = style({
   lineHeight: '140%',
   letterSpacing: tracking,
   color: colors.gray900,
+})
+
+export const titleRow = style({
+  display: 'flex',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: '8px',
+})
+
+export const statusChip = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  height: '24px',
+  padding: '0 8px',
+  borderRadius: '999px',
+  backgroundColor: colors.primary50,
+  color: colors.primary500,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 700,
+  letterSpacing: tracking,
+  lineHeight: '140%',
+})
+
+export const statusChipWarn = style({
+  backgroundColor: colors.warning50,
+  color: colors.warning500,
+})
+
+export const statusChipMuted = style({
+  backgroundColor: colors.gray50,
+  color: colors.gray600,
+})
+
+export const usageGrid = style({
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  gap: '20px',
+  '@media': {
+    [media.phone]: {
+      gridTemplateColumns: '1fr',
+    },
+  },
+})
+
+export const factGrid = style({
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  gap: '16px',
+  '@media': {
+    [media.phone]: {
+      gridTemplateColumns: '1fr',
+    },
+  },
+})
+
+export const factLabel = style({
+  margin: 0,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 600,
+  letterSpacing: tracking,
+  lineHeight: '140%',
+  color: colors.gray500,
+})
+
+export const factValue = style({
+  margin: '4px 0 0',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.titleMd.fontSize,
+  fontWeight: 600,
+  letterSpacing: tracking,
+  lineHeight: '140%',
+  color: colors.gray900,
+})
+
+export const chipRow = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '8px',
+})
+
+export const infoChip = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: '28px',
+  padding: '4px 10px',
+  borderRadius: '999px',
+  backgroundColor: colors.primary50,
+  color: colors.primary700,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 600,
+  letterSpacing: tracking,
+  lineHeight: '140%',
+})
+
+export const invoiceRow = style({
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'space-between',
+  gap: '12px',
+  padding: '14px 0',
+  borderBottom: `1px solid ${colors.gray50}`,
+  selectors: {
+    '&:last-child': {
+      borderBottom: 'none',
+      paddingBottom: 0,
+    },
+    '&:first-child': {
+      paddingTop: 0,
+    },
+  },
+})
+
+export const invoiceMain = style({
+  minWidth: 0,
+})
+
+export const invoiceTitle = style({
+  display: 'flex',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: '8px',
+})
+
+export const invoiceName = style({
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.bodyLg.fontSize,
+  fontWeight: 600,
+  letterSpacing: tracking,
+  lineHeight: '140%',
+  color: colors.gray900,
+})
+
+export const invoiceMeta = style({
+  margin: '4px 0 0',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  letterSpacing: tracking,
+  lineHeight: '140%',
+  color: colors.gray500,
+})
+
+export const pill = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  height: '22px',
+  padding: '0 8px',
+  borderRadius: '999px',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 700,
+  letterSpacing: tracking,
+  lineHeight: '140%',
+})
+
+export const pillPaid = style({
+  backgroundColor: colors.success50,
+  color: colors.success500,
+})
+
+export const pillError = style({
+  backgroundColor: colors.error50,
+  color: colors.error600,
+})
+
+export const pillWarn = style({
+  backgroundColor: colors.warning50,
+  color: colors.warning500,
+})
+
+export const pillMuted = style({
+  backgroundColor: colors.gray50,
+  color: colors.gray600,
+})
+
+export const benefitBox = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: '12px',
 })
 
 export const agreeRow = style({

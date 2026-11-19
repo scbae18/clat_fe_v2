@@ -110,7 +110,7 @@ function CheckoutForm() {
         <div>
           <h2 className={styles.sectionTitle}>해지와 환불</h2>
           <p className={styles.sectionDesc}>
-            해지하면 이번 결제 기간이 끝날 때까지 쓸 수 있고, 그다음 결제는 없습니다. 해지 버튼은 다음 단계에서 연결됩니다.
+            해지하면 이번 결제 기간이 끝날 때까지 쓸 수 있고, 그다음 결제는 없습니다. 결제한 뒤 요금제 화면에서 해지할 수 있습니다.
           </p>
           <p className={styles.sectionDesc}>
             결제일부터 7일 이내이고, 그 기간에 알림톡을 30통 이하로 보냈으면 전액을 돌려받을 수 있습니다. 그 외에는 남은 기간을 씁니다.
