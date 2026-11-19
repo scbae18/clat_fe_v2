@@ -51,6 +51,11 @@ export interface BroadcastSuggestion {
   last_source_label?: string
 }
 
+export interface BroadcastScheduleStudent {
+  student_id: number
+  student_name: string
+}
+
 export interface BroadcastSchedule {
   id: number
   notice_type: BroadcastNoticeType
@@ -59,6 +64,7 @@ export interface BroadcastSchedule {
   scheduled_at: string
   student_ids: number[]
   student_count: number
+  students: BroadcastScheduleStudent[]
 }
 
 export interface AlimtalkBatchListItem {

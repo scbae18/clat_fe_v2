@@ -9,7 +9,7 @@ import Text from '@/components/common/Text/Text'
 import { apiErrorMessage } from '@/lib/api/http'
 import { invalidateLessonLists, queryKeys } from '@/lib/queryKeys'
 import { lessonService } from '@/services/lesson'
-import { alimtalkService } from '@/services/alimtalk'
+import { alimtalkService, type BroadcastChannel, type BroadcastScheduleStudent } from '@/services/alimtalk'
 import { useToastStore } from '@/stores/toastStore'
 import { useQueryClient } from '@tanstack/react-query'
 import {
@@ -20,7 +20,11 @@ import {
   scheduleActionStack,
   schedulePreview,
   schedulePreviewBody,
-  schedulePreviewLine,
+  schedulePreviewChannel,
+  schedulePreviewChannelOn,
+  schedulePreviewChannels,
+  schedulePreviewNames,
+  schedulePreviewPeople,
 } from './Sidebar.css'
 
 export interface ScheduleActionTarget {
@@ -36,6 +40,8 @@ export interface ScheduleActionTarget {
   template_name?: string
   schedule_id?: number
   body?: string
+  channel?: BroadcastChannel
+  students?: BroadcastScheduleStudent[]
 }
 
 function seoulDatetimeLocal(date: Date): string {
@@ -156,36 +162,36 @@ export default function ScheduleActionPopover({ target, anchorEl, onClose, onTim
   )
 }
 
-function lessonDateLabel(lessonDate: string): string {
-  const [, month, day] = lessonDate.split('-')
-  return `${Number(month)}월 ${Number(day)}일`
+function recipientNames(target: ScheduleActionTarget): string[] {
+  return (target.students ?? [])
+    .map((student) => student.student_name.trim())
+    .filter((name) => name !== '')
 }
 
-function ScheduleContent({
-  target,
-  onOpenLesson,
-}: {
-  target: ScheduleActionTarget
-  onOpenLesson: () => void
-}) {
-  if (target.kind === 'broadcast') {
-    const body = target.body?.trim() ?? ''
-    return (
+function ScheduleContent({ target }: { target: ScheduleActionTarget }) {
+  const body = target.body?.trim() ?? ''
+  const names = recipientNames(target)
+  const studentOn = target.channel === 'STUDENT' || target.channel === 'BOTH'
+  const parentOn = target.channel === 'PARENT' || target.channel === 'BOTH'
+  return (
+    <>
       <div className={schedulePreview}>
         <p className={schedulePreviewBody}>{body || '안내사항이 없습니다.'}</p>
       </div>
-    )
-  }
-
-  return (
-    <div className={schedulePreview}>
-      <p className={schedulePreviewLine}>{target.lesson_date ? lessonDateLabel(target.lesson_date) : target.subtitle}</p>
-      <p className={schedulePreviewLine}>{target.title}</p>
-      <p className={schedulePreviewLine}>{target.template_name || '템플릿 없음'}</p>
-      <Button type="button" variant="outlined" size="sm" fullWidth onClick={onOpenLesson}>
-        수업 입력으로 이동
-      </Button>
-    </div>
+      {names.length > 0 && target.channel ? (
+        <div className={schedulePreviewPeople}>
+          <p className={schedulePreviewNames}>{names.join(', ')}</p>
+          <div className={schedulePreviewChannels} role="group" aria-label="수신 대상">
+            <span className={[schedulePreviewChannel, studentOn ? schedulePreviewChannelOn : ''].filter(Boolean).join(' ')}>
+              학생
+            </span>
+            <span className={[schedulePreviewChannel, parentOn ? schedulePreviewChannelOn : ''].filter(Boolean).join(' ')}>
+              학부모
+            </span>
+          </div>
+        </div>
+      ) : null}
+    </>
   )
 }
 
@@ -301,21 +307,34 @@ function ScheduleActionForm({
           {target.title} · {target.subtitle} · {target.student_count}명
         </Text>
       </div>
-      <Button
-        type="button"
-        variant="outlined"
-        size="sm"
-        fullWidth
-        disabled={busy != null}
-        onClick={() => setShowContent((open) => !open)}
-      >
-        {showContent ? '내용 닫기' : '내용 확인하기'}
-      </Button>
-      {showContent ? <ScheduleContent target={target} onOpenLesson={() => {
-        if (target.lesson_record_id == null) return
-        onClose()
-        router.push(`/lesson/${target.lesson_record_id}`)
-      }} /> : null}
+      {target.kind === 'broadcast' ? (
+        <Button
+          type="button"
+          variant="outlined"
+          size="sm"
+          fullWidth
+          disabled={busy != null}
+          onClick={() => setShowContent((open) => !open)}
+        >
+          {showContent ? '내용 닫기' : '내용 확인하기'}
+        </Button>
+      ) : (
+        <Button
+          type="button"
+          variant="outlined"
+          size="sm"
+          fullWidth
+          disabled={busy != null || target.lesson_record_id == null}
+          onClick={() => {
+            if (target.lesson_record_id == null) return
+            onClose()
+            router.push(`/lesson/${target.lesson_record_id}`)
+          }}
+        >
+          수업으로 이동
+        </Button>
+      )}
+      {showContent && target.kind === 'broadcast' ? <ScheduleContent target={target} /> : null}
       <label className={scheduleActionField}>
         <Text variant="bodyMd" color="gray700" as="span">
           보낼 시각 (한국 시간)

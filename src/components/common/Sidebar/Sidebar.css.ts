@@ -692,6 +692,53 @@ export const schedulePreviewBody = style({
   color: colors.gray900,
 })
 
+export const schedulePreviewPeople = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+  padding: '10px 12px',
+  borderRadius: '10px',
+  backgroundColor: colors.gray50,
+  maxHeight: '140px',
+  overflowY: 'auto',
+})
+
+export const schedulePreviewNames = style({
+  margin: 0,
+  wordBreak: 'break-word',
+  fontSize: fontStyles.bodyMd.fontSize,
+  lineHeight: 1.45,
+  letterSpacing: '-0.03em',
+  color: colors.gray900,
+})
+
+export const schedulePreviewChannels = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '6px',
+})
+
+export const schedulePreviewChannel = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '6px 10px',
+  borderRadius: '8px',
+  border: `1px solid ${colors.gray100}`,
+  backgroundColor: colors.white,
+  color: colors.gray500,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.titleSm.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+})
+
+export const schedulePreviewChannelOn = style({
+  borderColor: colors.primary200,
+  backgroundColor: colors.primary50,
+  color: colors.primary500,
+})
+
 export const schedulePreviewLine = style({
   fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: 600,

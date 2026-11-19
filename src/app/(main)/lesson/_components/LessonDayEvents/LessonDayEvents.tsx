@@ -76,7 +76,7 @@ export default function LessonDayEvents({ date }: LessonDayEventsProps) {
                   <Text
                     variant="bodyMd"
                     color={event.done ? 'gray500' : 'gray900'}
-                    className={event.done ? styles.struck : undefined}
+                    className={[styles.bodyText, event.done ? styles.struck : ''].filter(Boolean).join(' ')}
                   >
                     {event.body}
                   </Text>

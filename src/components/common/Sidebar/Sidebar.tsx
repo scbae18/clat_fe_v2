@@ -10,7 +10,7 @@ import { useUiStore } from '@/stores/uiStore'
 import { useLogout } from '@/hooks/useLogout'
 import { queryKeys } from '@/lib/queryKeys'
 import { lessonService, type LessonSendScheduleCard } from '@/services/lesson'
-import { alimtalkService, type BroadcastSchedule } from '@/services/alimtalk'
+import { alimtalkService, type BroadcastChannel, type BroadcastSchedule, type BroadcastScheduleStudent } from '@/services/alimtalk'
 import { BROADCAST_NOTICE_LABEL } from '@/app/(main)/alimtalk/broadcast/_lib/broadcastNotice'
 import {
   sidebarStyle,
@@ -105,6 +105,8 @@ interface ScheduleCard {
   template_name?: string
   schedule_id?: number
   body?: string
+  channel?: BroadcastChannel
+  students?: BroadcastScheduleStudent[]
 }
 
 function lessonCard(item: LessonSendScheduleCard): ScheduleCard {
@@ -134,6 +136,8 @@ function broadcastCard(item: BroadcastSchedule): ScheduleCard {
     kind: 'broadcast',
     schedule_id: item.id,
     body: item.body,
+    channel: item.channel,
+    students: item.students ?? [],
   }
 }
 

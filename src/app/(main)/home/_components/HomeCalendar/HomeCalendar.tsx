@@ -50,6 +50,7 @@ export default function HomeCalendar() {
   const [addOpen, setAddOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [body, setBody] = useState('')
+  const [eventDate, setEventDate] = useState(todayKey)
   const [studentIds, setStudentIds] = useState<number[]>([])
   const [classIds, setClassIds] = useState<number[]>([])
   const [students, setStudents] = useState<
@@ -96,6 +97,8 @@ export default function HomeCalendar() {
 
   const selectedEvents = sortCalendarEvents(events.filter((event) => event.event_date === selectedKey))
   const selectedDate = parseKey(selectedKey)
+  const formDate =
+    editingId != null && /^\d{4}-\d{2}-\d{2}$/.test(eventDate) ? parseKey(eventDate) : selectedDate
 
   const shiftMonth = (delta: number) => {
     const next = new Date(month.getFullYear(), month.getMonth() + delta, 1)
@@ -116,11 +119,17 @@ export default function HomeCalendar() {
   const saveEvent = async () => {
     const text = body.trim()
     if (!text || saving) return
+    if (editingId != null && !/^\d{4}-\d{2}-\d{2}$/.test(eventDate)) {
+      setFormError('날짜를 골라 주세요.')
+      return
+    }
     setSaving(true)
     setError('')
+    setFormError('')
     try {
       if (editingId != null) {
         await calendarService.update(editingId, {
+          event_date: eventDate,
           body: text,
           student_ids: studentIds,
           class_ids: classIds,
@@ -133,11 +142,19 @@ export default function HomeCalendar() {
           class_ids: classIds,
         })
       }
+      const nextDate = editingId != null ? eventDate : selectedKey
       setBody('')
       setStudentIds([])
       setClassIds([])
       closeForm()
-      await reload()
+      if (nextDate.slice(0, 7) !== selectedKey.slice(0, 7)) {
+        const next = parseKey(nextDate)
+        setMonth(new Date(next.getFullYear(), next.getMonth(), 1))
+        setSelectedKey(nextDate)
+      } else {
+        if (nextDate !== selectedKey) setSelectedKey(nextDate)
+        await reload()
+      }
       notifyCalendarEventsChanged()
     } catch {
       setFormError(editingId != null ? '일정을 수정하지 못했어요.' : '일정을 추가하지 못했어요.')
@@ -166,6 +183,7 @@ export default function HomeCalendar() {
 
   const openAdd = async () => {
     setEditingId(null)
+    setEventDate(selectedKey)
     setBody('')
     setStudentIds([])
     setClassIds([])
@@ -178,6 +196,7 @@ export default function HomeCalendar() {
 
   const openEdit = async (event: CalendarEvent) => {
     setEditingId(event.id)
+    setEventDate(event.event_date)
     setBody(event.body)
     setStudentIds(event.students.map((student) => student.student_id))
     setClassIds((event.classes ?? []).map((row) => row.class_id))
@@ -425,11 +444,17 @@ export default function HomeCalendar() {
         <div className={styles.modalTitle}>
           <Text variant="headingLg" as="h2" className={styles.headingReset}>
             {editingId != null
-              ? `${selectedDate.getMonth() + 1}월 ${selectedDate.getDate()}일 일정 수정`
+              ? `${formDate.getMonth() + 1}월 ${formDate.getDate()}일 일정 수정`
               : `${selectedDate.getMonth() + 1}월 ${selectedDate.getDate()}일 일정`}
           </Text>
         </div>
         <div className={styles.fieldGroup}>
+          {editingId != null ? (
+            <label className={styles.field}>
+              <Text variant="headingSm">날짜</Text>
+              <Input type="date" value={eventDate} onChange={(event) => setEventDate(event.target.value)} />
+            </label>
+          ) : null}
           <label className={styles.field}>
             <Text variant="headingSm">내용</Text>
             <Textarea
@@ -554,7 +579,7 @@ export default function HomeCalendar() {
             variant="primary"
             size="lg"
             fullWidth
-            disabled={saving || body.trim() === ''}
+            disabled={saving || body.trim() === '' || (editingId != null && eventDate === '')}
             onClick={() => void saveEvent()}
           >
             {editingId != null ? '저장' : '추가하기'}

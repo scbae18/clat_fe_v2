@@ -58,6 +58,10 @@ export const body = style({
   wordBreak: 'break-word',
 })
 
+export const bodyText = style({
+  whiteSpace: 'pre-line',
+})
+
 export const struck = style({
   textDecoration: 'line-through',
 })
