@@ -362,6 +362,11 @@ export default function BillingPage() {
               <p className={styles.factValue}>
                 {me.card ? `${me.card.company} ${me.card.last4}` : '등록된 카드가 없어요.'}
               </p>
+              {me.banners.some((banner) => banner.type === 'WITHDRAWAL_CARD') ? (
+                <p className={styles.sectionDesc}>
+                  탈퇴를 취소해도 카드는 돌아오지 않아요. 유료 요금제를 이어가려면 카드를 다시 등록해 주세요.
+                </p>
+              ) : null}
             </div>
             <div>
               <p className={styles.factLabel}>다음 결제</p>

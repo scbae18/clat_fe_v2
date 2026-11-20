@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Text from '@/components/common/Text'
+import SensitiveInfoNotice from '@/components/legal/SensitiveInfoNotice'
 import useToast from '@/hooks/useToast'
 import { lessonService, type ParentPreviewResult } from '@/services/lesson'
 import type { ParentDashboardData } from '@/services/parentDashboard'
@@ -203,6 +204,7 @@ export default function ParentDashboardPreviewPanel({
                 placeholder="전하고 싶은 말을 편하게 적어요."
                 aria-label="선생님 메모"
               />
+              <SensitiveInfoNotice />
               <div className={parentStyles.memoActions}>
                 <button
                   type="button"
@@ -234,6 +236,7 @@ export default function ParentDashboardPreviewPanel({
                 aria-label="선생님 피드백"
                 autoFocus
               />
+              <SensitiveInfoNotice />
               <div className={parentStyles.memoActions}>
                 <button
                   type="button"

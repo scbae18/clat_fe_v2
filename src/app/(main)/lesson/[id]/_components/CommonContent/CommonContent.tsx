@@ -17,6 +17,7 @@ import {
 } from './CommonContent.css'
 import { itemRef, type ItemSource } from '@/lib/lessonItemRef'
 import { reportTutorialAction } from '@/features/tutorial/tutorialEvents'
+import SensitiveInfoNotice from '@/components/legal/SensitiveInfoNotice'
 
 interface CommonItem {
   id: number
@@ -161,6 +162,7 @@ export default function CommonContent({
 
   return (
     <div ref={wrapRef}>
+      <SensitiveInfoNotice />
       <table className={tableStyle}>
         <tbody>
           {items.map((item, index) => {

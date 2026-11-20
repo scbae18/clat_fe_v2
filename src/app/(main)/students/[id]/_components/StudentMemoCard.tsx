@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import SensitiveInfoNotice from '@/components/legal/SensitiveInfoNotice'
 import * as styles from '../studentDashboard.css'
 import { MSG } from '../_lib/studentDashboardShared'
 
@@ -45,6 +46,7 @@ export function StudentMemoCard({ memo, onSave, locked = false }: StudentMemoCar
       <div>
         <h2 className={styles.memoTitle}>{MSG.memoTitle}</h2>
         <p className={styles.memoHint}>{locked ? '잠긴 학생의 메모는 바꿀 수 없습니다.' : status || MSG.memoHint}</p>
+        <SensitiveInfoNotice />
       </div>
       <textarea
         className={styles.memoTextarea}
