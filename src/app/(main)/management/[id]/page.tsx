@@ -188,6 +188,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
         <StudentTable
           students={students}
           middleColumns={[]}
+          separateSchoolGrade
           onDelete={(id) => setDeleteStudentTarget(id)}
           onRowClick={(id) => router.push(`/students/${id}`)}
         />

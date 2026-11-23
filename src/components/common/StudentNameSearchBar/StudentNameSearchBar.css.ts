@@ -32,64 +32,15 @@ export const leadingClusterStyle = style({
   },
 })
 
-export const sortGroupStyle = style({
-  display: 'flex',
-  alignItems: 'center',
-  flexShrink: 0,
-  height: '40px',
-  padding: '3px',
-  backgroundColor: colors.gray50,
-  border: `1px solid ${colors.gray100}`,
-  borderRadius: '8px',
-  '@media': {
-    [media.phone]: {
-      width: '100%',
-      height: '44px',
-    },
-  },
-})
-
-export const sortOptionStyle = style({
-  height: '32px',
-  padding: '0 10px',
-  border: 'none',
-  borderRadius: '6px',
-  background: 'transparent',
-  color: colors.gray500,
-  fontSize: fontStyles.labelSm.fontSize,
-  fontWeight: fontStyles.bodyMd.fontWeight,
-  lineHeight: '140%',
-  letterSpacing: '-0.03em',
-  cursor: 'pointer',
-  whiteSpace: 'nowrap',
-  '@media': {
-    [media.phone]: {
-      flex: 1,
-      height: '36px',
-    },
-  },
-  selectors: {
-    '&:hover': {
-      color: colors.gray700,
-    },
-  },
-})
-
-export const sortOptionActiveStyle = style({
-  backgroundColor: colors.white,
-  color: colors.gray900,
-  fontWeight: fontStyles.titleSm.fontWeight,
-  boxShadow: `0 1px 2px ${colors.gray100}`,
-})
-
 export const searchBarStyle = style({
   display: 'flex',
   alignItems: 'center',
+  justifyContent: 'space-between',
   gap: '8px',
   flex: '1 1 auto',
   maxWidth: '360px',
   height: '40px',
-  padding: '0 12px',
+  padding: '0 16px',
   '@media': {
     [media.phone]: {
       maxWidth: 'none',
@@ -98,20 +49,23 @@ export const searchBarStyle = style({
     },
   },
   backgroundColor: colors.white,
-  border: `1px solid ${colors.gray100}`,
+  border: `1px solid ${colors.gray50}`,
   borderRadius: '8px',
-  transition: 'border-color 0.2s, box-shadow 0.2s',
+  overflow: 'hidden',
   selectors: {
     '&:focus-within': {
       borderColor: colors.primary500,
-      boxShadow: `0 0 0 3px ${colors.primary50}`,
     },
   },
 })
 
-export const searchLeadingIconStyle = style({
+export const searchIconSlotStyle = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '16px',
+  height: '16px',
   flexShrink: 0,
-  color: colors.gray500,
 })
 
 export const searchInputStyle = style({
@@ -124,13 +78,13 @@ export const searchInputStyle = style({
   outline: 'none',
   background: 'transparent',
   fontSize: fontStyles.bodyMd.fontSize,
-  fontWeight: fontStyles.bodyMd.fontWeight,
+  fontWeight: 400,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray700,
   selectors: {
     '&::placeholder': {
-      color: colors.gray300,
+      color: colors.gray500,
     },
     '&::-webkit-search-cancel-button': {
       display: 'none',

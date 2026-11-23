@@ -1,7 +1,6 @@
 import { globalStyle, style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
-import { phoneTextRules, truncateRules } from '@/styles/tokens/textOverflow'
 import { media } from '@/styles/tokens/breakpoints'
 
 export const tableWrapStyle = style({
@@ -14,17 +13,10 @@ export const tableWrapStyle = style({
 })
 
 export const tableStyle = style({
-  width: '100%',
+  width: 'max-content',
+  minWidth: '100%',
   borderCollapse: 'collapse',
   border: 'none',
-})
-
-export const tableAllStudentsStyle = style({
-  minWidth: '1180px',
-})
-
-export const tableClassDetailStyle = style({
-  minWidth: '900px',
 })
 
 export const trStyle = style({
@@ -72,8 +64,8 @@ export const lockedProgressBarStyle = style({
 
 export const thStyle = style({
   height: '40px',
-  paddingLeft: '16px',
-  paddingRight: 'var(--cell-padding-right, 48px)',
+  paddingLeft: '12px',
+  paddingRight: '12px',
   backgroundColor: colors.gray50,
   color: colors.gray900,
   fontSize: fontStyles.titleSm.fontSize,
@@ -93,8 +85,8 @@ export const thStyle = style({
 
 const tdBase = {
   height: '40px',
-  paddingLeft: '16px',
-  paddingRight: 'var(--cell-padding-right, 48px)',
+  paddingLeft: '12px',
+  paddingRight: '12px',
   color: colors.gray700,
   fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: fontStyles.bodyMd.fontWeight,
@@ -102,7 +94,7 @@ const tdBase = {
   lineHeight: '140%',
   borderBottom: `1px solid ${colors.gray100}`,
   borderRight: `1px solid ${colors.gray100}`,
-  maxWidth: 0,
+  whiteSpace: 'nowrap',
   selectors: {
     'tr:last-child &': {
       borderBottom: 'none',
@@ -113,7 +105,7 @@ const tdBase = {
   },
 } as const
 
-export const tdStyle = style([tdBase, truncateRules])
+export const tdStyle = style(tdBase)
 
 export const stickyNameCellStyle = style({
   '@media': {
@@ -121,8 +113,6 @@ export const stickyNameCellStyle = style({
       position: 'sticky',
       left: 0,
       zIndex: 2,
-      maxWidth: '140px',
-      minWidth: '88px',
       backgroundColor: colors.white,
       boxShadow: `4px 0 8px -6px ${colors.gray200}`,
       selectors: {
@@ -150,7 +140,12 @@ export const stickyNameCellStyle = style({
   },
 })
 
-export const tdPhoneStyle = style([tdBase, phoneTextRules])
+export const tdPhoneStyle = style([
+  tdBase,
+  {
+    fontVariantNumeric: 'tabular-nums',
+  },
+])
 
 export const tdParentPhonesStyle = style([
   tdBase,
@@ -159,19 +154,28 @@ export const tdParentPhonesStyle = style([
     minHeight: '40px',
     paddingTop: '8px',
     paddingBottom: '8px',
-    whiteSpace: 'pre-line',
+    whiteSpace: 'pre',
     fontVariantNumeric: 'tabular-nums',
   },
 ])
 
+export const tdCompletionStyle = style({
+  padding: 0,
+  borderBottom: `1px solid ${colors.gray100}`,
+  selectors: {
+    'tr:last-child &': {
+      borderBottom: 'none',
+    },
+  },
+})
+
 export const completionCellStyle = style({
   height: '100%',
-  paddingLeft: '20px',
-  paddingRight: '24px',
+  paddingLeft: '12px',
+  paddingRight: '12px',
   display: 'flex',
   alignItems: 'center',
   gap: '12px',
-  minWidth: '280px',
 })
 
 export const progressTrackStyle = style({

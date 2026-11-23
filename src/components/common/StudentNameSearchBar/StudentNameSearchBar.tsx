@@ -1,16 +1,14 @@
 'use client'
 
-import UsersIcon from '@/assets/icons/icon-users.svg'
+import SearchIcon from '@/assets/icons/icon-search.svg'
 import CloseIcon from '@/assets/icons/icon-close.svg'
 import Chip from '@/components/common/Chip'
+import Dropdown from '@/components/common/Dropdown'
 import {
   toolbarStyle,
   leadingClusterStyle,
-  sortGroupStyle,
-  sortOptionStyle,
-  sortOptionActiveStyle,
   searchBarStyle,
-  searchLeadingIconStyle,
+  searchIconSlotStyle,
   searchInputStyle,
   searchClearButtonStyle,
   countClusterStyle,
@@ -68,47 +66,38 @@ export default function StudentNameSearchBar({
   return (
     <div className={toolbarStyle}>
       <div className={leadingClusterStyle}>
-        {showSort && sortOptions ? (
-          <div className={sortGroupStyle} role="group" aria-label="정렬">
-            {sortOptions.map((option) => {
-              const active = option.value === sortValue
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  className={
-                    active ? `${sortOptionStyle} ${sortOptionActiveStyle}` : sortOptionStyle
-                  }
-                  aria-pressed={active}
-                  onClick={() => onSortChange?.(option.value)}
-                >
-                  {option.label}
-                </button>
-              )
-            })}
-          </div>
+        {showSort && sortOptions && sortValue ? (
+          <Dropdown
+            appearance="toggle"
+            ariaLabel="정렬"
+            options={sortOptions}
+            value={sortValue}
+            onChange={(next) => onSortChange?.(next)}
+          />
         ) : null}
         <label className={searchBarStyle}>
-        <UsersIcon width={18} height={18} className={searchLeadingIconStyle} aria-hidden />
-        <input
-          type="search"
-          className={searchInputStyle}
-          placeholder="학생 이름 검색"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          aria-label="학생 이름 검색"
-        />
-        {value.length > 0 && (
-          <button
-            type="button"
-            className={searchClearButtonStyle}
-            onClick={() => onChange('')}
-            aria-label="검색어 지우기"
-          >
-            <CloseIcon width={16} height={16} />
-          </button>
-        )}
-      </label>
+          <input
+            type="search"
+            className={searchInputStyle}
+            placeholder="학생 이름 검색"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            aria-label="학생 이름 검색"
+          />
+          {value.length > 0 ? (
+            <button
+              type="button"
+              className={searchClearButtonStyle}
+              onClick={() => onChange('')}
+              aria-label="검색어 지우기"
+            >
+              <CloseIcon width={16} height={16} />
+            </button>
+          ) : null}
+          <span className={searchIconSlotStyle}>
+            <SearchIcon width={12} height={12} aria-hidden />
+          </span>
+        </label>
       </div>
       <div className={countClusterStyle}>
         <Chip variant={trimmed.length > 0 ? 'active' : 'default'} label={countLabel} />

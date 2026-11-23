@@ -2,6 +2,7 @@ import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
 import { truncateRules } from '@/styles/tokens/textOverflow'
+import { media } from '@/styles/tokens/breakpoints'
 
 const itemTypography = {
   fontSize: fontStyles.titleSm.fontSize,
@@ -67,6 +68,35 @@ export const triggerFullWidthStyle = style({
 
 export const triggerActiveStyle = style({
   color: colors.primary500,
+})
+
+export const triggerToggleStyle = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  height: '40px',
+  padding: '0 16px',
+  gap: '8px',
+  border: `1px solid ${colors.gray50}`,
+  borderRadius: '8px',
+  backgroundColor: colors.white,
+  color: colors.gray500,
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: 400,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  cursor: 'pointer',
+  whiteSpace: 'nowrap',
+  '@media': {
+    [media.phone]: {
+      height: '44px',
+    },
+  },
+  selectors: {
+    '&:hover': {
+      backgroundColor: colors.gray50,
+    },
+  },
 })
 
 export const menuStyle = style({

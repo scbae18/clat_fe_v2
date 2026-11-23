@@ -6,6 +6,7 @@ import {
   containerStyle,
   triggerStyle,
   triggerActiveStyle,
+  triggerToggleStyle,
   menuStyle,
   menuLabelStyle,
   optionStyle,
@@ -33,6 +34,8 @@ interface DropdownProps {
   triggerClassName?: string
   noBorder?: boolean
   fullWidth?: boolean
+  appearance?: 'field' | 'toggle'
+  ariaLabel?: string
 }
 
 export default function Dropdown({
@@ -44,6 +47,8 @@ export default function Dropdown({
   triggerClassName,
   noBorder = false,
   fullWidth = false,
+  appearance = 'field',
+  ariaLabel,
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -70,18 +75,21 @@ export default function Dropdown({
       <button
         type="button"
         className={[
-          triggerStyle,
-          noBorder ? triggerNoBorderStyle : '',
-          fullWidth ? triggerFullWidthStyle : '',
-          isSelected ? triggerActiveStyle : '',
+          appearance === 'toggle' ? triggerToggleStyle : triggerStyle,
+          appearance === 'field' && noBorder ? triggerNoBorderStyle : '',
+          appearance === 'field' && fullWidth ? triggerFullWidthStyle : '',
+          appearance === 'field' && isSelected ? triggerActiveStyle : '',
           triggerClassName ?? '',
         ]
           .join(' ')
           .trim()}
         onClick={() => setIsOpen((prev) => !prev)}
         title={selectedLabel}
+        aria-label={ariaLabel}
+        aria-haspopup="true"
+        aria-expanded={isOpen}
       >
-        <span className={triggerLabelStyle}>{selectedLabel}</span>
+        <span className={appearance === 'toggle' ? undefined : triggerLabelStyle}>{selectedLabel}</span>
         <ChevronDownIcon
           width={16}
           height={16}
