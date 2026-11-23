@@ -12,6 +12,7 @@ type StudentIncompleteListProps = {
   items: IncompleteItem[]
   overdueLabel: (lessonDate: string) => string
   submitting?: boolean
+  bulkModeReset?: number
   onSelect: (item: IncompleteItem) => void
   onBulkComplete: (items: IncompleteItem[]) => void
 }
@@ -20,15 +21,23 @@ export function StudentIncompleteList({
   items,
   overdueLabel,
   submitting = false,
+  bulkModeReset = 0,
   onSelect,
   onBulkComplete,
 }: StudentIncompleteListProps) {
+  const [selectionMode, setSelectionMode] = useState(false)
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
 
   useEffect(() => {
     const live = new Set(items.map(incompleteItemKey))
     setSelectedKeys((prev) => prev.filter((key) => live.has(key)))
   }, [items])
+
+  useEffect(() => {
+    if (bulkModeReset === 0) return
+    setSelectionMode(false)
+    setSelectedKeys([])
+  }, [bulkModeReset])
 
   const selectedItems = items.filter((item) => selectedKeys.includes(incompleteItemKey(item)))
 
@@ -38,6 +47,19 @@ export function StudentIncompleteList({
     )
   }
 
+  const exitMode = () => {
+    setSelectionMode(false)
+    setSelectedKeys([])
+  }
+
+  const toggleAll = () => {
+    if (selectedItems.length === items.length) {
+      setSelectedKeys([])
+      return
+    }
+    setSelectedKeys(items.map(incompleteItemKey))
+  }
+
   return (
     <section className={styles.incompleteCard} data-tour="student-incomplete">
       <div className={styles.incompleteHeader}>
@@ -45,14 +67,44 @@ export function StudentIncompleteList({
           {MSG.incompleteTitle} <span className={styles.incompleteCount}>{items.length}</span>
         </h2>
         {items.length > 0 ? (
-          <button
-            type="button"
-            className={styles.bulkCompleteButton}
-            disabled={selectedItems.length === 0 || submitting}
-            onClick={() => onBulkComplete(selectedItems)}
-          >
-            {MSG.bulkActionLabel}
-          </button>
+          <div className={styles.incompleteActions}>
+            {!selectionMode ? (
+              <button
+                type="button"
+                className={styles.bulkModeButton}
+                onClick={() => setSelectionMode(true)}
+              >
+                {MSG.bulkActionLabel}
+              </button>
+            ) : (
+              <>
+                <span className={styles.bulkHint}>
+                  {selectedItems.length > 0
+                    ? MSG.bulkSelected(selectedItems.length)
+                    : MSG.bulkSelectHint}
+                </span>
+                <button type="button" className={styles.bulkModeButton} onClick={toggleAll}>
+                  {MSG.bulkSelectAll}
+                </button>
+                <button
+                  type="button"
+                  className={styles.bulkModeButton}
+                  onClick={exitMode}
+                  disabled={submitting}
+                >
+                  {MSG.bulkCancel}
+                </button>
+                <button
+                  type="button"
+                  className={styles.bulkConfirmButton}
+                  disabled={selectedItems.length === 0 || submitting}
+                  onClick={() => onBulkComplete(selectedItems)}
+                >
+                  {MSG.bulkConfirm}
+                </button>
+              </>
+            )}
+          </div>
         ) : null}
       </div>
       <div className={styles.incompleteList}>
@@ -71,18 +123,20 @@ export function StudentIncompleteList({
                     : styles.incompleteRow
                 }
               >
-                <input
-                  type="checkbox"
-                  className={styles.incompleteCheck}
-                  checked={selected}
-                  disabled={submitting}
-                  aria-label={`${item.item_name} 선택`}
-                  onChange={() => toggle(key)}
-                />
+                {selectionMode ? (
+                  <input
+                    type="checkbox"
+                    className={styles.incompleteCheck}
+                    checked={selected}
+                    disabled={submitting}
+                    aria-label={`${item.item_name} 선택`}
+                    onChange={() => toggle(key)}
+                  />
+                ) : null}
                 <button
                   type="button"
                   className={styles.incompleteOpen}
-                  onClick={() => onSelect(item)}
+                  onClick={() => (selectionMode ? toggle(key) : onSelect(item))}
                   disabled={submitting}
                 >
                   <div className={styles.incompleteLeft}>

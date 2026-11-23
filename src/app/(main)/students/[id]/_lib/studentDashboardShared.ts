@@ -19,6 +19,11 @@ export const MSG = {
   completeOk: '완료 처리되었어요.',
   completeFail: '완료 처리에 실패했어요.',
   bulkActionLabel: '일괄 처리',
+  bulkSelectHint: '완료할 항목을 선택하세요',
+  bulkSelected: (n: number) => `${n}개 선택`,
+  bulkSelectAll: '전체 선택',
+  bulkCancel: '취소',
+  bulkConfirm: '완료',
   confirmBulkComplete: (n: number) => `선택한 ${n}개 항목을 완료 처리할까요?`,
   bulkCompleteOk: (n: number) => `${n}개 완료 처리되었어요.`,
   bulkCompletePartial: (ok: number, failed: number) =>

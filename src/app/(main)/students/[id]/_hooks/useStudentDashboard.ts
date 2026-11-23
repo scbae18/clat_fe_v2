@@ -40,6 +40,7 @@ export function useStudentDashboard(studentId: number) {
   const [aiLoading, setAiLoading] = useState(false)
   const [completePending, setCompletePending] = useState<IncompleteItem | null>(null)
   const [bulkPending, setBulkPending] = useState<IncompleteItem[] | null>(null)
+  const [bulkModeReset, setBulkModeReset] = useState(0)
   const [completeSubmitting, setCompleteSubmitting] = useState(false)
   const editStudent = useDisclosure()
 
@@ -183,6 +184,7 @@ export function useStudentDashboard(studentId: number) {
       const completed = results.length - failed
       if (failed === 0) {
         addToast({ variant: 'success', message: MSG.bulkCompleteOk(completed) })
+        setBulkModeReset((n) => n + 1)
       } else if (completed === 0) {
         addToast({ variant: 'error', message: MSG.completeFail })
       } else {
@@ -240,6 +242,7 @@ export function useStudentDashboard(studentId: number) {
     setCompletePending,
     bulkPending,
     setBulkPending,
+    bulkModeReset,
     completeSubmitting,
     runCompletePending,
     runBulkComplete,

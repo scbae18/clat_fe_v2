@@ -103,6 +103,7 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
             items={detail.incomplete_items}
             overdueLabel={dash.overdueLabel}
             submitting={dash.completeSubmitting}
+            bulkModeReset={dash.bulkModeReset}
             onSelect={dash.setCompletePending}
             onBulkComplete={dash.setBulkPending}
           />

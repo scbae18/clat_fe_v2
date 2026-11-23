@@ -319,25 +319,63 @@ export const incompleteTitle = style({
   color: colors.gray900,
 })
 
-export const bulkCompleteButton = style({
+export const incompleteActions = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
   flexShrink: 0,
-  height: '36px',
-  padding: '0 14px',
-  borderRadius: '8px',
+})
+
+export const bulkModeButton = style({
   border: 'none',
-  background: colors.primary500,
-  color: colors.white,
-  fontSize: '14px',
-  fontWeight: 600,
-  letterSpacing: '-0.02em',
+  background: 'none',
+  padding: 0,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.titleSm.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.gray500,
   cursor: 'pointer',
-  ':hover': {
-    background: colors.primary600,
+  whiteSpace: 'nowrap',
+  selectors: {
+    '&:hover:not(:disabled)': {
+      color: colors.gray700,
+    },
+    '&:disabled': {
+      color: colors.gray300,
+      cursor: 'not-allowed',
+    },
   },
-  ':disabled': {
-    background: colors.gray100,
-    color: colors.gray300,
-    cursor: 'not-allowed',
+})
+
+export const bulkHint = style({
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.primary500,
+  whiteSpace: 'nowrap',
+})
+
+export const bulkConfirmButton = style({
+  border: 'none',
+  background: 'none',
+  padding: 0,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.titleSm.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.primary500,
+  cursor: 'pointer',
+  whiteSpace: 'nowrap',
+  selectors: {
+    '&:hover:not(:disabled)': {
+      color: colors.primary600,
+    },
+    '&:disabled': {
+      color: colors.gray300,
+      cursor: 'not-allowed',
+    },
   },
 })
 
