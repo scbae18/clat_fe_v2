@@ -45,9 +45,10 @@ interface StudentTableProps {
   selectionMode?: boolean
   selectedIds?: number[]
   onToggleSelect?: (id: number) => void
+  separateSchoolGrade?: boolean
 }
 
-const FIXED_COLUMN_COUNT = 5
+const BASE_COLUMN_COUNT = 5
 
 function getCellPaddingRight(totalColumns: number): number {
   if (totalColumns <= 5) return 44
@@ -64,14 +65,21 @@ function getProgressColor(rate: number, totalIncomplete: number): string {
 
 type ColumnWidth = { key: string; width: string }
 
-function getColumnWidths(hasMiddle: boolean): ColumnWidth[] {
+function getColumnWidths(hasMiddle: boolean, separateSchoolGrade: boolean): ColumnWidth[] {
+  const schoolColumns: ColumnWidth[] = separateSchoolGrade
+    ? [
+        { key: 'school', width: hasMiddle ? '140px' : '160px' },
+        { key: 'grade', width: '88px' },
+      ]
+    : [{ key: 'school', width: hasMiddle ? '180px' : '200px' }]
+
   if (hasMiddle) {
     return [
       { key: 'name', width: '110px' },
       { key: 'phone', width: '140px' },
       { key: 'parentPhone', width: '140px' },
-      { key: 'classes', width: '200px' },
-      { key: 'school', width: '180px' },
+      { key: 'classes', width: '180px' },
+      ...schoolColumns,
       { key: 'completion', width: '300px' },
     ]
   }
@@ -79,7 +87,7 @@ function getColumnWidths(hasMiddle: boolean): ColumnWidth[] {
     { key: 'name', width: '120px' },
     { key: 'phone', width: '140px' },
     { key: 'parentPhone', width: '140px' },
-    { key: 'school', width: '200px' },
+    ...schoolColumns,
     { key: 'completion', width: '300px' },
   ]
 }
@@ -92,12 +100,14 @@ export default function StudentTable({
   selectionMode = false,
   selectedIds = [],
   onToggleSelect,
+  separateSchoolGrade = false,
 }: StudentTableProps) {
   const tour = useTutorial()
   const hasMiddle = middleColumns.length > 0
-  const totalColumns = FIXED_COLUMN_COUNT + middleColumns.length
+  const totalColumns =
+    BASE_COLUMN_COUNT + middleColumns.length + (separateSchoolGrade ? 1 : 0)
   const cellPaddingRight = getCellPaddingRight(totalColumns)
-  const columnWidths = getColumnWidths(hasMiddle)
+  const columnWidths = getColumnWidths(hasMiddle, separateSchoolGrade)
 
   return (
     <div className={tableWrapStyle}>
@@ -120,7 +130,14 @@ export default function StudentTable({
                 {col.header}
               </th>
             ))}
-            <th className={thStyle}>학교/학년</th>
+            {separateSchoolGrade ? (
+              <>
+                <th className={thStyle}>학교</th>
+                <th className={thStyle}>학년</th>
+              </>
+            ) : (
+              <th className={thStyle}>학교/학년</th>
+            )}
             <th className={thStyle}>완료율</th>
           </tr>
         </thead>
@@ -176,9 +193,20 @@ export default function StudentTable({
                     </td>
                   )
                 })}
-                <td className={tdStyle} title={schoolLabel}>
-                  {schoolLabel}
-                </td>
+                {separateSchoolGrade ? (
+                  <>
+                    <td className={tdStyle} title={school}>
+                      {school}
+                    </td>
+                    <td className={tdStyle} title={grade || '-'}>
+                      {grade || '-'}
+                    </td>
+                  </>
+                ) : (
+                  <td className={tdStyle} title={schoolLabel}>
+                    {schoolLabel}
+                  </td>
+                )}
                 <td style={{ padding: 0 }}>
                   <div className={completionCellStyle}>
                     <div className={progressTrackStyle}>

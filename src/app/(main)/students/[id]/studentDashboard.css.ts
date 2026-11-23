@@ -304,12 +304,41 @@ export const incompleteCard = style({
   gap: '24px',
 })
 
+export const incompleteHeader = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '12px',
+})
+
 export const incompleteTitle = style({
   fontSize: '20px',
   fontWeight: 600,
   lineHeight: 1.4,
   letterSpacing: '-0.03em',
   color: colors.gray900,
+})
+
+export const bulkCompleteButton = style({
+  flexShrink: 0,
+  height: '36px',
+  padding: '0 14px',
+  borderRadius: '8px',
+  border: 'none',
+  background: colors.primary500,
+  color: colors.white,
+  fontSize: '14px',
+  fontWeight: 600,
+  letterSpacing: '-0.02em',
+  cursor: 'pointer',
+  ':hover': {
+    background: colors.primary600,
+  },
+  ':disabled': {
+    background: colors.gray100,
+    color: colors.gray300,
+    cursor: 'not-allowed',
+  },
 })
 
 export const incompleteCount = style({
@@ -330,14 +359,37 @@ export const incompleteRow = style({
   padding: '10px 16px',
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'space-between',
-  border: 'none',
-  width: '100%',
-  cursor: 'pointer',
-  textAlign: 'left',
+  gap: '12px',
   ':hover': {
     filter: 'brightness(0.98)',
   },
+})
+
+export const incompleteRowSelected = style({
+  background: colors.primary50,
+})
+
+export const incompleteCheck = style({
+  width: '18px',
+  height: '18px',
+  margin: 0,
+  flexShrink: 0,
+  accentColor: colors.primary500,
+  cursor: 'pointer',
+})
+
+export const incompleteOpen = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '12px',
+  flex: 1,
+  minWidth: 0,
+  border: 'none',
+  background: 'transparent',
+  padding: 0,
+  cursor: 'pointer',
+  textAlign: 'left',
 })
 
 export const incompleteLeft = style({

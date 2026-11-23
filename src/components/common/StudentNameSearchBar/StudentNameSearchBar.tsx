@@ -5,6 +5,10 @@ import CloseIcon from '@/assets/icons/icon-close.svg'
 import Chip from '@/components/common/Chip'
 import {
   toolbarStyle,
+  leadingClusterStyle,
+  sortGroupStyle,
+  sortOptionStyle,
+  sortOptionActiveStyle,
   searchBarStyle,
   searchLeadingIconStyle,
   searchInputStyle,
@@ -14,6 +18,11 @@ import {
   countActionDangerStyle,
   selectionHintStyle,
 } from './StudentNameSearchBar.css'
+
+export interface StudentSortOption {
+  value: string
+  label: string
+}
 
 interface StudentNameSearchBarProps {
   value: string
@@ -27,6 +36,9 @@ interface StudentNameSearchBarProps {
   onSelectAll?: () => void
   onConfirmDelete?: () => void
   onAddStudent?: () => void
+  sortValue?: string
+  sortOptions?: StudentSortOption[]
+  onSortChange?: (value: string) => void
 }
 
 export default function StudentNameSearchBar({
@@ -41,6 +53,9 @@ export default function StudentNameSearchBar({
   onSelectAll,
   onConfirmDelete,
   onAddStudent,
+  sortValue,
+  sortOptions,
+  onSortChange,
 }: StudentNameSearchBarProps) {
   const trimmed = value.trim()
   const countLabel =
@@ -48,9 +63,32 @@ export default function StudentNameSearchBar({
       ? `${filteredCount}명 / 전체 ${totalCount}명`
       : `전체 ${totalCount}명`
 
+  const showSort = Boolean(onSortChange && sortOptions && sortOptions.length > 0)
+
   return (
     <div className={toolbarStyle}>
-      <label className={searchBarStyle}>
+      <div className={leadingClusterStyle}>
+        {showSort && sortOptions ? (
+          <div className={sortGroupStyle} role="group" aria-label="정렬">
+            {sortOptions.map((option) => {
+              const active = option.value === sortValue
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={
+                    active ? `${sortOptionStyle} ${sortOptionActiveStyle}` : sortOptionStyle
+                  }
+                  aria-pressed={active}
+                  onClick={() => onSortChange?.(option.value)}
+                >
+                  {option.label}
+                </button>
+              )
+            })}
+          </div>
+        ) : null}
+        <label className={searchBarStyle}>
         <UsersIcon width={18} height={18} className={searchLeadingIconStyle} aria-hidden />
         <input
           type="search"
@@ -71,6 +109,7 @@ export default function StudentNameSearchBar({
           </button>
         )}
       </label>
+      </div>
       <div className={countClusterStyle}>
         <Chip variant={trimmed.length > 0 ? 'active' : 'default'} label={countLabel} />
         {!selectionMode && onAddStudent ? (

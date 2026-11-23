@@ -39,21 +39,26 @@ export function useStudentDashboard(studentId: number) {
   const [aiText, setAiText] = useState<string | null>(null)
   const [aiLoading, setAiLoading] = useState(false)
   const [completePending, setCompletePending] = useState<IncompleteItem | null>(null)
+  const [bulkPending, setBulkPending] = useState<IncompleteItem[] | null>(null)
   const [completeSubmitting, setCompleteSubmitting] = useState(false)
   const editStudent = useDisclosure()
+
+  const refreshDetail = useCallback(async () => {
+    const d = await studentService.getStudent(studentId)
+    setDetail(d)
+  }, [studentId])
 
   const loadDetail = useCallback(async () => {
     setLoading(true)
     try {
-      const d = await studentService.getStudent(studentId)
-      setDetail(d)
+      await refreshDetail()
     } catch {
       addToast({ variant: 'error', message: MSG.loadStudentFail })
       router.push('/management?tab=students')
     } finally {
       setLoading(false)
     }
-  }, [addToast, router, studentId])
+  }, [addToast, refreshDetail, router])
 
   useEffect(() => {
     if (!Number.isFinite(studentId)) return
@@ -140,6 +145,14 @@ export function useStudentDashboard(studentId: number) {
         )
       : null
 
+  const reloadAfterComplete = async () => {
+    try {
+      await refreshDetail()
+    } catch {
+      addToast({ variant: 'error', message: MSG.loadStudentFail })
+    }
+  }
+
   const runCompletePending = async () => {
     if (!completePending) return
     setCompleteSubmitting(true)
@@ -148,9 +161,35 @@ export function useStudentDashboard(studentId: number) {
       await studentService.completeItem(id, source)
       addToast({ variant: 'success', message: MSG.completeOk })
       setCompletePending(null)
-      await loadDetail()
+      await reloadAfterComplete()
     } catch {
       addToast({ variant: 'error', message: MSG.completeFail })
+    } finally {
+      setCompleteSubmitting(false)
+    }
+  }
+
+  const runBulkComplete = async () => {
+    if (!bulkPending || bulkPending.length === 0) return
+    setCompleteSubmitting(true)
+    try {
+      const results = await Promise.allSettled(
+        bulkPending.map((item) => {
+          const { id, source } = incompleteItemCompleteTarget(item)
+          return studentService.completeItem(id, source)
+        }),
+      )
+      const failed = results.filter((result) => result.status === 'rejected').length
+      const completed = results.length - failed
+      if (failed === 0) {
+        addToast({ variant: 'success', message: MSG.bulkCompleteOk(completed) })
+      } else if (completed === 0) {
+        addToast({ variant: 'error', message: MSG.completeFail })
+      } else {
+        addToast({ variant: 'error', message: MSG.bulkCompletePartial(completed, failed) })
+      }
+      setBulkPending(null)
+      if (completed > 0) await reloadAfterComplete()
     } finally {
       setCompleteSubmitting(false)
     }
@@ -199,8 +238,11 @@ export function useStudentDashboard(studentId: number) {
     loadAi,
     completePending,
     setCompletePending,
+    bulkPending,
+    setBulkPending,
     completeSubmitting,
     runCompletePending,
+    runBulkComplete,
     editStudent,
     updateStudent,
     saveMemo,

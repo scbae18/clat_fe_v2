@@ -18,6 +18,70 @@ export const toolbarStyle = style({
   },
 })
 
+export const leadingClusterStyle = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  flex: '1 1 auto',
+  minWidth: 0,
+  '@media': {
+    [media.phone]: {
+      flexDirection: 'column',
+      alignItems: 'stretch',
+    },
+  },
+})
+
+export const sortGroupStyle = style({
+  display: 'flex',
+  alignItems: 'center',
+  flexShrink: 0,
+  height: '40px',
+  padding: '3px',
+  backgroundColor: colors.gray50,
+  border: `1px solid ${colors.gray100}`,
+  borderRadius: '8px',
+  '@media': {
+    [media.phone]: {
+      width: '100%',
+      height: '44px',
+    },
+  },
+})
+
+export const sortOptionStyle = style({
+  height: '32px',
+  padding: '0 10px',
+  border: 'none',
+  borderRadius: '6px',
+  background: 'transparent',
+  color: colors.gray500,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  cursor: 'pointer',
+  whiteSpace: 'nowrap',
+  '@media': {
+    [media.phone]: {
+      flex: 1,
+      height: '36px',
+    },
+  },
+  selectors: {
+    '&:hover': {
+      color: colors.gray700,
+    },
+  },
+})
+
+export const sortOptionActiveStyle = style({
+  backgroundColor: colors.white,
+  color: colors.gray900,
+  fontWeight: fontStyles.titleSm.fontWeight,
+  boxShadow: `0 1px 2px ${colors.gray100}`,
+})
+
 export const searchBarStyle = style({
   display: 'flex',
   alignItems: 'center',

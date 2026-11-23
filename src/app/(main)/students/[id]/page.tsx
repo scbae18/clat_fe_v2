@@ -102,7 +102,9 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
           <StudentIncompleteList
             items={detail.incomplete_items}
             overdueLabel={dash.overdueLabel}
+            submitting={dash.completeSubmitting}
             onSelect={dash.setCompletePending}
+            onBulkComplete={dash.setBulkPending}
           />
         </div>
 
@@ -124,10 +126,18 @@ export default function StudentDashboardPage({ params }: { params: Promise<{ id:
       </div>
 
       <ChoiceConfirmModal
-        isOpen={dash.completePending != null}
-        onClose={() => !dash.completeSubmitting && dash.setCompletePending(null)}
-        onConfirm={dash.runCompletePending}
-        title={MSG.confirmComplete}
+        isOpen={dash.completePending != null || (dash.bulkPending?.length ?? 0) > 0}
+        onClose={() => {
+          if (dash.completeSubmitting) return
+          dash.setCompletePending(null)
+          dash.setBulkPending(null)
+        }}
+        onConfirm={dash.completePending != null ? dash.runCompletePending : dash.runBulkComplete}
+        title={
+          dash.completePending != null
+            ? MSG.confirmComplete
+            : MSG.confirmBulkComplete(dash.bulkPending?.length ?? 0)
+        }
         descriptions={[...MSG.confirmCompleteDesc]}
         confirmLabel={MSG.completeActionLabel}
         confirmTone="primary"

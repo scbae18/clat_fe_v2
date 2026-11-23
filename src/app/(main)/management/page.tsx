@@ -38,10 +38,16 @@ import ConfirmModal from '@/components/common/ConfirmModal'
 import { bulkResultMessage, studentService } from '@/services/student'
 import type { Student } from '@/types/student'
 import { useToastStore } from '@/stores/toastStore'
-import { sortStudentsByNameKo } from '@/lib/sortStudents'
+import { sortStudents, type StudentSortKey } from '@/lib/sortStudents'
 import { billingService } from '@/services/billing'
 import { isEnforcedBilling } from '@/lib/billingView'
 import useToggleArray from '@/hooks/useToggleArray'
+
+const STUDENT_SORT_OPTIONS: { label: string; value: StudentSortKey }[] = [
+  { label: '이름 순', value: 'name' },
+  { label: '학교 순', value: 'school' },
+  { label: '학년 순', value: 'grade' },
+]
 
 const FILTER_OPTIONS = [
   { label: '전체', value: 'all' },
@@ -60,6 +66,7 @@ function ManagementContent() {
   const [students, setStudents] = useState<Student[]>([])
   const [isLoadingStudents, setIsLoadingStudents] = useState(false)
   const [studentSearchQuery, setStudentSearchQuery] = useState('')
+  const [studentSortKey, setStudentSortKey] = useState<StudentSortKey>('name')
   const [limitOpen, setLimitOpen] = useState(false)
   const queryClient = useQueryClient()
   const billingQuery = useQuery({
@@ -81,7 +88,7 @@ function ManagementContent() {
     setIsLoadingStudents(true)
     studentService
       .getStudents()
-      .then((res) => setStudents(sortStudentsByNameKo(res.data)))
+      .then((res) => setStudents(res.data))
       .catch((err) => console.error('학생 목록 조회 실패', err))
       .finally(() => setIsLoadingStudents(false))
   }, [tab])
@@ -113,9 +120,11 @@ function ManagementContent() {
 
   const filteredStudents = useMemo(() => {
     const query = studentSearchQuery.trim().toLowerCase()
-    if (!query) return students
-    return students.filter((s) => s.name.toLowerCase().includes(query))
-  }, [students, studentSearchQuery])
+    const matched = query
+      ? students.filter((s) => s.name.toLowerCase().includes(query))
+      : students
+    return sortStudents(matched, studentSortKey)
+  }, [students, studentSearchQuery, studentSortKey])
 
   useEffect(() => {
     if (tab === 'students') return
@@ -294,7 +303,7 @@ function ManagementContent() {
                 await queryClient.invalidateQueries({ queryKey: ['billing', 'me'] })
                 studentService
                   .getStudents()
-                  .then((r) => setStudents(sortStudentsByNameKo(r.data)))
+                  .then((r) => setStudents(r.data))
               } catch (err) {
                 addToast({
                   variant: 'error',
@@ -308,7 +317,7 @@ function ManagementContent() {
             onClose={addStudent.close}
             onConfirm={async (data) => {
               const newStudent = await studentService.createStudent(data)
-              setStudents((prev) => sortStudentsByNameKo([...prev, newStudent]))
+              setStudents((prev) => [...prev, newStudent])
               await queryClient.invalidateQueries({ queryKey: ['billing', 'me'] })
               addToast({ variant: 'success', message: '학생이 등록됐어요.' })
             }}
@@ -340,6 +349,13 @@ function ManagementContent() {
             onChange={setStudentSearchQuery}
             totalCount={students.length}
             filteredCount={filteredStudents.length}
+            sortValue={studentSortKey}
+            sortOptions={STUDENT_SORT_OPTIONS}
+            onSortChange={(value) => {
+              if (value === 'name' || value === 'school' || value === 'grade') {
+                setStudentSortKey(value)
+              }
+            }}
             selectionMode={isStudentSelectionMode}
             selectedCount={selectedStudentIds.length}
             onStartSelection={() => {
@@ -360,6 +376,7 @@ function ManagementContent() {
           ) : (
             <StudentTable
               students={filteredStudents}
+              separateSchoolGrade
               selectionMode={isStudentSelectionMode}
               selectedIds={selectedStudentIds}
               onToggleSelect={toggleStudentSelect}

@@ -20,7 +20,7 @@ export const tableStyle = style({
 })
 
 export const tableAllStudentsStyle = style({
-  minWidth: '1100px',
+  minWidth: '1180px',
 })
 
 export const tableClassDetailStyle = style({
