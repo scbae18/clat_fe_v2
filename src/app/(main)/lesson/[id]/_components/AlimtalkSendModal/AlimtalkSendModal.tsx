@@ -47,10 +47,14 @@ function hasPhone(value: string | null | undefined) {
   return Boolean(value && String(value).replace(/\D/g, '').length >= 8)
 }
 
-function parentAudienceLabel(row: LessonPreviewRow) {
-  const phones = listParentPhones(row)
-  if (phones.length === 0) return '학부모 번호 없음'
-  return `학부모 ${phones.map(maskPhone).join(' · ')}`
+function phoneOrDash(phone: string | null | undefined) {
+  return hasPhone(phone) ? maskPhone(phone ?? '') : '-'
+}
+
+function parentPhoneText(row: LessonPreviewRow) {
+  const phones = listParentPhones(row).filter((phone) => hasPhone(phone))
+  if (phones.length === 0) return '-'
+  return phones.map(maskPhone).join(' · ')
 }
 
 function resolveSendChannel(
@@ -168,6 +172,13 @@ function channelAudienceLabel(sendToParent: boolean, sendToStudent: boolean) {
   if (sendToParent) return '학부모 번호'
   if (sendToStudent) return '학생 번호'
   return '수신 대상'
+}
+
+function audienceHint(sendToParent: boolean, sendToStudent: boolean) {
+  if (sendToParent && sendToStudent) return '체크한 학생의 학부모·학생 번호로 발송해요.'
+  if (sendToParent) return '체크한 학생의 학부모 번호로 발송해요.'
+  if (sendToStudent) return '체크한 학생의 학생 번호로 발송해요.'
+  return '학부모 또는 학생 중 받을 대상을 골라 주세요.'
 }
 
 function aiChip(item?: Pick<ParentPreviewStatusItem, 'status' | 'stale'>) {
@@ -795,49 +806,57 @@ export default function AlimtalkSendModal({
 
         <div className={styles.body}>
           <div className={styles.leftCol}>
-            <div className={styles.leftHeader}>
-              <Text variant="titleMd">{'\uBCF4\uB0BC \uD559\uC0DD'}</Text>
-              <div className={styles.leftHint}>
+            <div className={styles.audienceBlock}>
+              <div className={styles.audienceTitle}>
+                <Text variant="headingMd">수신 대상</Text>
                 <Text variant="bodyMd" color="gray500">
-                  {`체크한 학생에게 ${channelAudienceLabel(sendToParent, sendToStudent)}로 발송해요`}
+                  {audienceHint(sendToParent, sendToStudent)}
                 </Text>
               </div>
-            </div>
-            <div className={styles.channelBlock}>
-              <Text variant="titleSm" color="gray700">
-                수신 대상
-              </Text>
               <div className={styles.channelRow} role="group" aria-label="수신 대상">
                 <button
                   type="button"
                   className={`${styles.channelCheck}${sendToParent ? ` ${styles.channelCheckActive}` : ''}`}
                   aria-pressed={sendToParent}
-                  onClick={() => setSendToParent((v) => !v)}
+                  onClick={() => setSendToParent((value) => !value)}
                   disabled={sending}
                 >
-                  학부모에게 보내기
+                  <Text variant="labelSm" color={sendToParent ? 'primary500' : 'gray300'}>
+                    학부모
+                  </Text>
                 </button>
                 <button
                   type="button"
                   className={`${styles.channelCheck}${sendToStudent ? ` ${styles.channelCheckActive}` : ''}`}
                   aria-pressed={sendToStudent}
-                  onClick={() => setSendToStudent((v) => !v)}
+                  onClick={() => setSendToStudent((value) => !value)}
                   disabled={sending}
                 >
-                  학생에게 보내기
+                  <Text variant="labelSm" color={sendToStudent ? 'primary500' : 'gray300'}>
+                    학생
+                  </Text>
                 </button>
               </div>
             </div>
-            <label className={styles.selectAllRow}>
-              <input
-                type="checkbox"
-                className={styles.checkbox}
-                checked={allSelected}
-                onChange={toggleAll}
-                disabled={loading || rows.length === 0}
-              />
-              <Text variant="titleSm">{'\uC804\uCCB4 \uC120\uD0DD'}</Text>
-            </label>
+            <div className={styles.studentSection}>
+            <div className={styles.listHead}>
+              <Text variant="headingMd">학생 목록</Text>
+              <label className={styles.selectAll}>
+                <input
+                  type="checkbox"
+                  className={styles.checkInput}
+                  checked={allSelected}
+                  onChange={toggleAll}
+                  disabled={loading || selectableRows.length === 0}
+                />
+                <span className={styles.checkBox} aria-hidden>
+                  <span className={styles.checkMark} />
+                </span>
+                <Text variant="bodyMd" color="gray300">
+                  전체 선택
+                </Text>
+              </label>
+            </div>
             <div className={styles.studentList}>
               {loading && (
                 <div className={styles.listMessage}>
@@ -877,28 +896,45 @@ export default function AlimtalkSendModal({
                         }
                       }}
                     >
-                      <input
-                        type="checkbox"
-                        className={styles.checkbox}
-                        checked={checked}
-                        disabled={!selectable}
-                        onChange={() => toggleOne(r.student_id)}
-                        onClick={(e) => e.stopPropagation()}
-                      />
+                      <label className={styles.checkSlot} onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          className={styles.checkInput}
+                          checked={checked}
+                          disabled={!selectable}
+                          onChange={() => toggleOne(r.student_id)}
+                          aria-label={`${r.student_name} 발송`}
+                        />
+                        <span className={styles.checkBox} aria-hidden>
+                          <span className={styles.checkMark} />
+                        </span>
+                      </label>
                       <div className={styles.studentMeta}>
-                        <div className={styles.studentNameRow}>
-                          <div className={styles.studentName} title={r.student_name}>
+                        <div className={styles.studentNameRow} title={r.student_name}>
+                          <Text variant="headingSm" className={styles.studentName}>
                             {r.student_name}
-                          </div>
+                          </Text>
                           {trackedAiIds.has(r.student_id) ? (
                             <Chip {...aiChip(aiStatusById[r.student_id])} />
                           ) : null}
                         </div>
-                        <div
-                          className={styles.phoneMuted}
-                          title={`학생 ${maskPhone(r.phone)} · ${parentAudienceLabel(r)}`}
-                        >
-                          {`학생 ${maskPhone(r.phone)} · ${parentAudienceLabel(r)}`}
+                        <div className={styles.phoneBlock}>
+                          <div className={styles.phoneLine}>
+                            <Text variant="bodyMd" color="gray500">
+                              학생
+                            </Text>
+                            <Text variant="bodyMd" color="gray500" className={styles.phoneValue}>
+                              {phoneOrDash(r.phone)}
+                            </Text>
+                          </div>
+                          <div className={styles.phoneLine}>
+                            <Text variant="bodyMd" color="gray500">
+                              학부모
+                            </Text>
+                            <Text variant="bodyMd" color="gray500" className={styles.phoneValue}>
+                              {parentPhoneText(r)}
+                            </Text>
+                          </div>
                         </div>
                         {r.locked ? (
                           <Text as="p" variant="labelSm" color="gray500">
@@ -914,6 +950,7 @@ export default function AlimtalkSendModal({
                     </div>
                   )
                 })}
+            </div>
             </div>
           </div>
 

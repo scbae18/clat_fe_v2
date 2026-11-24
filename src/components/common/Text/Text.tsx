@@ -8,6 +8,7 @@ interface TextProps {
   variant?: TextVariant
   color?: TextColor
   as?: TextTag
+  id?: string
   children: React.ReactNode
   className?: string
 }
@@ -16,11 +17,13 @@ export default function Text({
   variant = 'bodyMd',
   color = 'gray900',
   as: Tag = 'span',
+  id,
   children,
   className,
 }: TextProps) {
   return (
     <Tag
+      id={id}
       className={[textVariants[variant], textColors[color], className]
         .filter(Boolean)
         .join(' ')}

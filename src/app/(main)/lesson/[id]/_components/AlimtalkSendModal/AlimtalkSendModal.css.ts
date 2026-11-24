@@ -109,7 +109,7 @@ export const body = style({
 })
 
 export const leftCol = style({
-  width: '280px',
+  width: '358px',
   flexShrink: 0,
   minWidth: 0,
   borderRight: `1px solid ${colors.gray100}`,
@@ -124,22 +124,21 @@ export const leftCol = style({
   },
 })
 
-export const leftHeader = style({
-  padding: '16px 16px 8px',
+export const audienceBlock = style({
+  display: 'flex',
+  flexDirection: 'column',
+  padding: '25px 27px 0',
   '@media': {
     [media.phone]: {
-      padding: '12px 10px 8px',
+      padding: '16px 10px 0',
     },
   },
 })
 
-export const leftHint = style({
-  marginTop: '4px',
-  '@media': {
-    [media.phone]: {
-      display: 'none',
-    },
-  },
+export const audienceTitle = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
 })
 
 export const rightCol = style({
@@ -168,57 +167,26 @@ export const closeButton = style({
   alignItems: 'center',
 })
 
-export const selectAllRow = style({
-  padding: '12px 16px',
-  borderBottom: `1px solid ${colors.gray100}`,
-  display: 'flex',
-  alignItems: 'center',
-  gap: '10px',
-  '@media': {
-    [media.phone]: {
-      padding: '10px',
-      gap: '8px',
-    },
-  },
-})
-
-export const channelBlock = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '8px',
-  padding: '0 16px 12px',
-  borderBottom: `1px solid ${colors.gray100}`,
-  '@media': {
-    [media.phone]: {
-      padding: '0 10px 10px',
-    },
-  },
-})
-
 export const channelRow = style({
   display: 'flex',
-  flexWrap: 'wrap',
-  gap: '8px',
+  gap: '4px',
+  height: '40px',
+  marginTop: '15px',
 })
 
 export const channelCheck = style({
-  display: 'inline-flex',
+  flex: 1,
+  minWidth: 0,
+  height: '40px',
+  display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: '10px 12px',
-  borderRadius: '8px',
-  backgroundColor: colors.white,
-  border: `1px solid ${colors.gray100}`,
+  padding: '4px 6px',
+  borderRadius: '6px',
+  border: 'none',
+  backgroundColor: colors.gray50,
   cursor: 'pointer',
-  fontSize: fontStyles.titleSm.fontSize,
-  fontWeight: fontStyles.titleSm.fontWeight,
-  lineHeight: '140%',
-  letterSpacing: '-0.03em',
-  color: colors.gray700,
   selectors: {
-    '&:hover': {
-      backgroundColor: colors.primary50,
-    },
     '&:disabled': {
       cursor: 'not-allowed',
       opacity: 0.5,
@@ -227,13 +195,48 @@ export const channelCheck = style({
 })
 
 export const channelCheckActive = style({
-  borderColor: colors.primary200,
   backgroundColor: colors.primary50,
-  color: colors.primary500,
+  border: `1px solid ${colors.primary400}`,
+})
+
+export const studentSection = style({
+  display: 'flex',
+  flexDirection: 'column',
+  flex: 1,
+  minHeight: 0,
+  marginTop: '42px',
+})
+
+export const listHead = style({
+  display: 'flex',
+  alignItems: 'flex-end',
+  justifyContent: 'space-between',
+  gap: '8px',
+  padding: '0 27px',
+  marginBottom: '15px',
+  '@media': {
+    [media.phone]: {
+      padding: '0 10px',
+    },
+  },
+})
+
+export const selectAll = style({
+  position: 'relative',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '7px',
+  cursor: 'pointer',
+  flexShrink: 0,
 })
 
 export const listMessage = style({
-  padding: '24px 16px',
+  padding: '15px 27px',
+  '@media': {
+    [media.phone]: {
+      padding: '12px 10px',
+    },
+  },
 })
 
 export const studentRowDisabled = style({
@@ -257,10 +260,13 @@ export const studentRow = style({
   display: 'flex',
   alignItems: 'flex-start',
   gap: '10px',
-  padding: '12px 16px',
-  borderBottom: `1px solid ${colors.gray50}`,
+  padding: '15px 27px',
+  borderTop: `1px solid ${colors.gray100}`,
   cursor: 'pointer',
   selectors: {
+    '&:last-child': {
+      borderBottom: `1px solid ${colors.gray100}`,
+    },
     '&:hover': {
       backgroundColor: colors.gray50,
     },
@@ -268,7 +274,7 @@ export const studentRow = style({
   '@media': {
     [media.phone]: {
       gap: '8px',
-      padding: '10px',
+      padding: '12px 10px',
     },
   },
 })
@@ -282,31 +288,94 @@ export const studentRowFocused = style({
   },
 })
 
-export const checkbox = style({
-  width: '18px',
-  height: '18px',
-  accentColor: colors.primary500,
+export const checkSlot = style({
+  position: 'relative',
+  display: 'flex',
+  alignItems: 'center',
+  height: '25px',
   flexShrink: 0,
-  marginTop: '2px',
+})
+
+export const checkInput = style({
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  padding: 0,
+  margin: '-1px',
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+})
+
+export const checkBox = style({
+  width: '14px',
+  height: '14px',
+  boxSizing: 'border-box',
+  borderRadius: '4px',
+  border: `1px solid ${colors.gray300}`,
+  backgroundColor: colors.white,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
+  selectors: {
+    [`${checkInput}:checked + &`]: {
+      backgroundColor: colors.primary500,
+      borderColor: colors.primary500,
+    },
+    [`${checkInput}:focus-visible + &`]: {
+      outline: `2px solid ${colors.primary400}`,
+      outlineOffset: '2px',
+    },
+    [`${checkInput}:disabled + &`]: {
+      opacity: 0.45,
+    },
+  },
+})
+
+export const checkMark = style({
+  display: 'none',
+  width: '8px',
+  height: '4px',
+  marginTop: '-1px',
+  borderLeft: '1.5px solid white',
+  borderBottom: '1.5px solid white',
+  transform: 'rotate(-45deg)',
+  selectors: {
+    [`${checkInput}:checked + ${checkBox} > &`]: {
+      display: 'block',
+    },
+  },
 })
 
 export const studentMeta = style({
   flex: 1,
   minWidth: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '6px',
 })
 
 export const studentName = style([
   {
-    fontSize: fontStyles.titleSm.fontSize,
-    fontWeight: fontStyles.titleSm.fontWeight,
-    color: colors.gray900,
-    lineHeight: '140%',
-    letterSpacing: '-0.03em',
     flex: 1,
     minWidth: 0,
   },
   truncateRules,
 ])
+
+export const phoneBlock = style({
+  display: 'flex',
+  flexDirection: 'column',
+})
+
+export const phoneLine = style({
+  display: 'grid',
+  gridTemplateColumns: '36px minmax(0, 1fr)',
+  columnGap: '9px',
+  alignItems: 'center',
+})
 
 export const lengthLine = style({
   marginTop: '8px',
@@ -331,13 +400,9 @@ export const lengthTitle = style({
   marginBottom: '8px',
 })
 
-export const phoneMuted = style({
-  fontSize: fontStyles.labelSm.fontSize,
-  fontWeight: 500,
-  color: colors.gray500,
-  marginTop: '4px',
-  lineHeight: '140%',
+export const phoneValue = style({
   fontVariantNumeric: 'tabular-nums',
+  minWidth: 0,
   whiteSpace: 'normal',
   overflowWrap: 'break-word',
 })
