@@ -78,6 +78,11 @@ export const headerTitleStyle = style({
   },
 })
 
+export const attendanceButtonStyle = style({
+  letterSpacing: '-0.03em',
+  lineHeight: '1.4',
+})
+
 export const headerButtonGroupStyle = style({
   display: 'flex',
   alignItems: 'center',
@@ -145,7 +150,17 @@ export const footerStyle = style({
 export const sectionStyle = style({
   display: 'flex',
   flexDirection: 'column',
-  gap: '20px',
+  gap: '12px',
+})
+
+export const individualTitleStyle = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+})
+
+export const individualHintStyle = style({
+  margin: 0,
 })
 
 export const templateSectionStyle = style({

@@ -85,9 +85,9 @@ export const weekNavStyle = style({
 
 export const weekLabelStyle = style({
   flex: 1,
-  textAlign: 'center',
+  display: 'flex',
+  justifyContent: 'center',
   minWidth: 0,
-  whiteSpace: 'nowrap',
 })
 
 export const todayButtonStyle = style({
@@ -119,13 +119,3 @@ export const todayButtonStyle = style({
   },
 })
 
-globalStyle(`${weekLabelStyle} > *`, {
-  '@media': {
-    [media.phone]: {
-      display: 'block',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      fontSize: '16px',
-    },
-  },
-})

@@ -20,7 +20,6 @@ import type { ItemSource } from '@/lib/lessonItemRef'
 import { isLessonStudentInputComplete } from '@/lib/lessonProgress'
 import { splitColumnNote } from '@/lib/columnNote'
 import { isScoreUnanswered } from '@/lib/lessonScore'
-import SensitiveInfoNotice from '@/components/legal/SensitiveInfoNotice'
 import {
   attendanceCellStyle,
   tableStyle,
@@ -200,7 +199,6 @@ export default function LessonTable({
 
   return (
     <div>
-      <SensitiveInfoNotice />
       <StudentNameSearchBar
         value={searchQuery}
         onChange={setSearchQuery}

@@ -106,8 +106,8 @@ export function useLessonAttendanceOnDetail({
       ? '출결 시작 불가 (이미 진행됨)'
       : '출결 시작하기'
 
-  const attendanceButtonVariant =
-    attendanceInProgress || attendanceLocked ? ('secondary' as const) : ('primary' as const)
+  const attendanceButtonVariant = 'secondary' as const
+  const showAttendanceClock = !attendanceInProgress && !attendanceLocked
 
   return {
     hasAttendanceItem,
@@ -115,5 +115,6 @@ export function useLessonAttendanceOnDetail({
     handleAttendanceButtonClick,
     attendanceButtonLabel,
     attendanceButtonVariant,
+    showAttendanceClock,
   }
 }

@@ -6,6 +6,7 @@ import { addWeeks, subWeeks, format, addDays, isSameDay } from 'date-fns'
 import Text from '@/components/common/Text'
 import ConfirmModal from '@/components/common/ConfirmModal'
 import DateCard from './_components/DateCard/DateCard'
+import LessonDatePicker from './_components/LessonDatePicker/LessonDatePicker'
 import LessonCard from './_components/LessonCard/LessonCard'
 import LessonDayEvents from './_components/LessonDayEvents/LessonDayEvents'
 import AddCard from '@/components/common/AddCard'
@@ -112,7 +113,6 @@ function LessonPageContent() {
     }
   })
 
-  const headerText = `${format(list.weekStart, 'M월 d일')} – ${format(addDays(list.weekStart, 6), 'M월 d일')}`
   const selectedLabel = `${format(selectedDate, 'M월 d일')}(${DAYS_KO[selectedDate.getDay() === 0 ? 6 : selectedDate.getDay() - 1]}) 수업`
 
   return (
@@ -130,9 +130,9 @@ function LessonPageContent() {
         >
           <ArrowLeftIcon width={24} height={24} />
         </button>
-        <span className={weekLabelStyle}>
-          <Text variant="headingMd">{headerText}</Text>
-        </span>
+        <div className={weekLabelStyle}>
+          <LessonDatePicker selectedDate={selectedDate} onSelect={selectDate} />
+        </div>
         <button
           type="button"
           className={todayButtonStyle}
@@ -231,16 +231,7 @@ function LessonPageContent() {
         }}
         onConfirm={() => void list.handleDeleteConfirm()}
         title="수업 데이터를 삭제할까요?"
-        descriptions={
-          list.deleteTarget
-            ? [
-                '입력한 공통·개별 내용과 완료형 미완료 항목이 모두 삭제돼요.',
-                list.deleteTarget.is_adhoc
-                  ? '이 수업은 목록에서 사라져요.'
-                  : '다시 「입력하기」 상태로 돌아가요.',
-              ]
-            : undefined
-        }
+        descriptions={list.deleteTarget ? ['삭제하면 작성한 내용이 사라져요.'] : undefined}
         confirmLabel="삭제"
         confirmVariant="danger"
       />

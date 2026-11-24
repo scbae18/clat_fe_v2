@@ -3,11 +3,17 @@ import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
 import { media } from '@/styles/tokens/breakpoints'
 
+export const tableWrapStyle = style({
+  border: `1px solid ${colors.gray100}`,
+  borderRadius: '8px',
+  backgroundColor: colors.white,
+  overflow: 'hidden',
+})
+
 export const tableStyle = style({
   width: '100%',
   borderCollapse: 'collapse',
-  border: `1px solid ${colors.gray100}`,
-  overflow: 'visible',
+  border: 'none',
 })
 
 export const thStyle = style({

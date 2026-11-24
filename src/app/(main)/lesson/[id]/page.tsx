@@ -7,8 +7,10 @@ import Button from '@/components/common/Button'
 import ArrowLeftIcon from '@/assets/icons/icon-arrow-left.svg'
 import SaveIcon from '@/assets/icons/icon-save.svg'
 import ChevronDownIcon from '@/assets/icons/icon-chevron-down.svg'
+import ClockStopwatchIcon from '@/assets/icons/icon-clock-stopwatch.svg'
 import MessageIcon from '@/assets/icons/icon-message.svg'
 import LessonTable from './_components/LessonTableSection/LessonTableSection'
+import LessonSectionHeading from './_components/LessonSectionHeading/LessonSectionHeading'
 import CommonContent from './_components/CommonContent/CommonContent'
 import ProgressBar from './_components/ProgressBar/ProgressBar'
 import AlimtalkSendModal from './_components/AlimtalkSendModal/AlimtalkSendModal'
@@ -19,12 +21,15 @@ import {
   headerStyle,
   footerStyle,
   sectionStyle,
+  individualTitleStyle,
+  individualHintStyle,
   backButtonStyle,
   headerLeftStyle,
   headerTitleStyle,
   headerButtonGroupStyle,
   autoSaveHintStyle,
   templateChipButtonStyle,
+  attendanceButtonStyle,
   scheduleNoticeStyle,
 } from './lessonDetail.css'
 import useLessonDetail from '@/hooks/useLessonDetail'
@@ -93,6 +98,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     handleAttendanceButtonClick,
     attendanceButtonLabel,
     attendanceButtonVariant,
+    showAttendanceClock,
   } = useLessonAttendanceOnDetail({
     lessonId,
     lesson,
@@ -274,6 +280,10 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
             <Button
               variant={attendanceButtonVariant}
               size="sm"
+              className={attendanceButtonStyle}
+              leftIcon={
+                showAttendanceClock ? <ClockStopwatchIcon width={20} height={20} /> : undefined
+              }
               onClick={handleAttendanceButtonClick}
               data-tour="attendance-open"
             >
@@ -326,7 +336,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
       )}
 
       <div className={sectionStyle}>
-        <Text variant="headingMd">공통 내용</Text>
+        <LessonSectionHeading title="공통 내용" />
         <CommonContent
           lessonId={lessonId}
           items={commonItems}
@@ -348,7 +358,12 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
       </div>
 
       <div className={sectionStyle}>
-        <Text variant="headingMd">개별 내용</Text>
+        <div className={individualTitleStyle}>
+          <LessonSectionHeading title="개별 내용" />
+          <Text variant="labelSm" color="gray500" as="p" className={individualHintStyle}>
+            미입력시 알림톡 내용에서 공란으로 표시돼요.
+          </Text>
+        </div>
         <LessonTable
           students={students}
           templateItems={lesson.items}

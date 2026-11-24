@@ -6,6 +6,7 @@ import { hasSuggestionContent } from '@/types/commonSuggestion'
 import { lessonService } from '@/services/lesson'
 import CommonSuggestionPopover from './CommonSuggestionPopover'
 import {
+  tableWrapStyle,
   tableStyle,
   thStyle,
   tdStyle,
@@ -17,7 +18,6 @@ import {
 } from './CommonContent.css'
 import { itemRef, type ItemSource } from '@/lib/lessonItemRef'
 import { reportTutorialAction } from '@/features/tutorial/tutorialEvents'
-import SensitiveInfoNotice from '@/components/legal/SensitiveInfoNotice'
 
 interface CommonItem {
   id: number
@@ -162,7 +162,7 @@ export default function CommonContent({
 
   return (
     <div ref={wrapRef}>
-      <SensitiveInfoNotice />
+      <div className={tableWrapStyle}>
       <table className={tableStyle}>
         <tbody>
           {items.map((item, index) => {
@@ -241,6 +241,7 @@ export default function CommonContent({
           ) : null}
         </tbody>
       </table>
+      </div>
       {onAddCommon ? (
         <button type="button" className={addRowButtonStyle} onClick={() => setIsAdding(true)}>
           + 항목 추가
