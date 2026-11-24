@@ -2,6 +2,7 @@
 
 import { ReactNode } from 'react'
 import TrashIcon from '@/assets/icons/icon-trash.svg'
+import CheckIcon from '@/assets/icons/icon-check.svg'
 import { colors } from '@/styles/tokens/colors'
 import type { Student } from '@/types/student'
 import { formatCompletionRatePercent } from '@/lib/completionRate'
@@ -24,6 +25,10 @@ import {
   percentTextStyle,
   remainingTextStyle,
   deleteButtonStyle,
+  nameWithCheckStyle,
+  nameTextStyle,
+  rowCheckOffStyle,
+  rowCheckOnStyle,
   trSelectedStyle,
   trClickableStyle,
   trLockedStyle,
@@ -39,9 +44,10 @@ interface MiddleColumn {
 interface StudentTableProps {
   students: Student[]
   middleColumns: MiddleColumn[]
-  onDelete: (id: number) => void
+  onDelete?: (id: number) => void
   onRowClick?: (id: number) => void
   selectionMode?: boolean
+  showCheckbox?: boolean
   selectedIds?: number[]
   onToggleSelect?: (id: number) => void
   separateSchoolGrade?: boolean
@@ -60,6 +66,7 @@ export default function StudentTable({
   onDelete,
   onRowClick,
   selectionMode = false,
+  showCheckbox = false,
   selectedIds = [],
   onToggleSelect,
   separateSchoolGrade = false,
@@ -123,10 +130,22 @@ export default function StudentTable({
                   .join(' ')}
                 onClick={canClickRow ? handleRowClick : undefined}
                 aria-disabled={isLocked || undefined}
+                aria-selected={selectionMode ? isSelected : undefined}
                 data-tour={tour.studentId === student.id ? 'tutorial-student' : undefined}
               >
                 <td className={`${tdStyle} ${stickyNameCellStyle}`} title={student.name}>
-                  {student.name}
+                  {showCheckbox ? (
+                    <span className={nameWithCheckStyle}>
+                      {isSelected ? (
+                        <CheckIcon width={14} height={14} className={rowCheckOnStyle} aria-hidden />
+                      ) : (
+                        <span className={rowCheckOffStyle} aria-hidden />
+                      )}
+                      <span className={nameTextStyle}>{student.name}</span>
+                    </span>
+                  ) : (
+                    student.name
+                  )}
                 </td>
                 <td className={tdPhoneStyle} title={student.phone}>
                   {student.phone}
@@ -178,7 +197,7 @@ export default function StudentTable({
                             ? null
                             : `${student.total_incomplete_items}개 남음`}
                     </span>
-                    {!selectionMode && (
+                    {!selectionMode && onDelete ? (
                       <button
                         type="button"
                         className={deleteButtonStyle}
@@ -190,7 +209,7 @@ export default function StudentTable({
                       >
                         <TrashIcon width={20} height={20} />
                       </button>
-                    )}
+                    ) : null}
                   </div>
                 </td>
               </tr>

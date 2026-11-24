@@ -211,6 +211,35 @@ export const remainingTextStyle = style({
   whiteSpace: 'nowrap',
 })
 
+export const nameWithCheckStyle = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '12px',
+  maxWidth: '100%',
+  minWidth: 0,
+})
+
+export const nameTextStyle = style({
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+})
+
+export const rowCheckOffStyle = style({
+  width: '14px',
+  height: '14px',
+  flexShrink: 0,
+  boxSizing: 'border-box',
+  borderRadius: '2px',
+  border: `1.5px solid ${colors.gray200}`,
+  backgroundColor: colors.white,
+})
+
+export const rowCheckOnStyle = style({
+  flexShrink: 0,
+  color: colors.primary500,
+})
+
 export const deleteButtonStyle = style({
   background: 'none',
   border: 'none',

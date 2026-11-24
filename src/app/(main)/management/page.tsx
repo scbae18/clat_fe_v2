@@ -191,14 +191,14 @@ function ManagementContent() {
             onClick={() => router.push('/management?tab=class')}
             data-tour="class-tab"
           >
-            반별 보기
+            반
           </button>
           <button
             className={tab === 'students' ? tabActiveStyle : tabStyle}
             onClick={() => router.push('/management?tab=students')}
             data-tour="students-tab"
           >
-            전체 학생
+            학생
           </button>
         </div>
         {tab === 'students' && studentLimit != null && studentCount != null ? (

@@ -9,6 +9,7 @@ export interface Class {
   id: number
   academy_name: string
   name: string
+  lesson_time: string
   schedules: ClassSchedule[]
   student_count: number
   ended_at: string | null
@@ -35,6 +36,7 @@ export interface UpdateClassDto {
   academy_name?: string
   name?: string
   day_of_week?: number[]
+  lesson_time?: string
 }
 
 export const classService = {
