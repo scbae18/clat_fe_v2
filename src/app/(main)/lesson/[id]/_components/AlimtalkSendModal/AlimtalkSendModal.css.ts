@@ -762,6 +762,30 @@ export const tabRow = style({
   paddingBottom: '12px',
 })
 
+export const previewSlot = style({
+  display: 'grid',
+  gridTemplateColumns: 'max-content',
+  alignItems: 'start',
+  '@media': {
+    [media.phone]: {
+      gridTemplateColumns: 'minmax(0, 1fr)',
+      width: '100%',
+    },
+  },
+})
+
+export const previewSizer = style({
+  height: 0,
+  overflow: 'hidden',
+  visibility: 'hidden',
+  pointerEvents: 'none',
+  '@media': {
+    [media.phone]: {
+      display: 'none',
+    },
+  },
+})
+
 export const tabButton = style({
   background: 'none',
   border: 'none',

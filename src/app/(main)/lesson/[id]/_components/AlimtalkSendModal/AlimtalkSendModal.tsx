@@ -968,47 +968,59 @@ export default function AlimtalkSendModal({
                 </Text>
               </button>
             </div>
-            {previewTab === 'dashboard' ? (
-              focused ? (
-                <ParentDashboardPreviewPanel
-                  lessonId={lessonId}
-                  studentId={focused.student_id}
-                  preview={dashboardPreview}
-                  loading={dashboardLoading}
-                  regenerating={regenerating}
-                  onRegenerate={() => void handleRegenerate()}
-                  onSaved={(saved) => {
-                    setDashboardPreview(saved)
-                    if (saved.ai_feedback_status !== 'pending') return
-                    setTrackedAiIds((prev) => {
-                      if (prev.has(focused.student_id)) return prev
-                      const next = new Set(prev)
-                      next.add(focused.student_id)
-                      return next
-                    })
-                    setAiStatusById((prev) => ({
-                      ...prev,
-                      [focused.student_id]: {
-                        student_id: focused.student_id,
-                        status: 'pending',
-                        stale: false,
-                      },
-                    }))
-                  }}
-                />
+            <div className={styles.previewSlot}>
+              {previewTab === 'dashboard' ? (
+                <div className={styles.previewSizer} aria-hidden>
+                  <AlimtalkMessagePreview
+                    focused={focused}
+                    frameHeader={frameHeader}
+                    sendToParent={sendToParent}
+                    sendToStudent={sendToStudent}
+                  />
+                </div>
+              ) : null}
+              {previewTab === 'dashboard' ? (
+                focused ? (
+                  <ParentDashboardPreviewPanel
+                    lessonId={lessonId}
+                    studentId={focused.student_id}
+                    preview={dashboardPreview}
+                    loading={dashboardLoading}
+                    regenerating={regenerating}
+                    onRegenerate={() => void handleRegenerate()}
+                    onSaved={(saved) => {
+                      setDashboardPreview(saved)
+                      if (saved.ai_feedback_status !== 'pending') return
+                      setTrackedAiIds((prev) => {
+                        if (prev.has(focused.student_id)) return prev
+                        const next = new Set(prev)
+                        next.add(focused.student_id)
+                        return next
+                      })
+                      setAiStatusById((prev) => ({
+                        ...prev,
+                        [focused.student_id]: {
+                          student_id: focused.student_id,
+                          status: 'pending',
+                          stale: false,
+                        },
+                      }))
+                    }}
+                  />
+                ) : (
+                  <Text variant="bodyMd" color="gray500">
+                    왼쪽에서 학생을 선택하면 학부모가 볼 화면이 나와요.
+                  </Text>
+                )
               ) : (
-                <Text variant="bodyMd" color="gray500">
-                  왼쪽에서 학생을 선택하면 학부모가 볼 화면이 나와요.
-                </Text>
-              )
-            ) : (
-              <AlimtalkMessagePreview
-                focused={focused}
-                frameHeader={frameHeader}
-                sendToParent={sendToParent}
-                sendToStudent={sendToStudent}
-              />
-            )}
+                <AlimtalkMessagePreview
+                  focused={focused}
+                  frameHeader={frameHeader}
+                  sendToParent={sendToParent}
+                  sendToStudent={sendToStudent}
+                />
+              )}
+            </div>
           </div>
         </div>
 
