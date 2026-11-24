@@ -1,11 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Text from '@/components/common/Text'
 import Button from '@/components/common/Button'
 import Chip from '@/components/common/Chip'
 import CloseIcon from '@/assets/icons/icon-close.svg'
+import ChevronRightIcon from '@/assets/icons/icon-chevron-right.svg'
+import CheckGlow from '@/assets/images/check-panel-glow.svg'
 import ConfirmModal from '@/components/common/ConfirmModal'
 import Modal from '@/components/common/Modal'
 import LessonMessageOrderModal from '../LessonMessageOrderModal/LessonMessageOrderModal'
@@ -33,7 +35,8 @@ import { kakaoUnavailableToastMessage, pollBatchUntilSettled } from '@/services/
 import { fillLessonAlimtalkFrameHeader } from '@/lib/lessonAlimtalkFrame'
 import { useRegisterModal } from '@/components/common/Modal/useRegisterModal'
 import { listParentPhones } from '@/lib/parentPhones'
-import QuotaNotice from '@/components/billing/QuotaNotice'
+import ScheduleDateField from './ScheduleDateField'
+import ScheduleTimeField from './ScheduleTimeField'
 import * as styles from './AlimtalkSendModal.css'
 
 function maskPhone(phone: string): string {
@@ -449,15 +452,6 @@ export default function AlimtalkSendModal({
   useEffect(() => () => setTutorialGate('feedback', false), [])
 
   const sendChannel = resolveSendChannel(sendToParent, sendToStudent)
-  const quotaNeeded = useMemo(() => {
-    let count = 0
-    for (const row of rows) {
-      if (!selected.has(row.student_id)) continue
-      if (sendToStudent && hasPhone(row.phone)) count += 1
-      if (sendToParent) count += listParentPhones(row).filter((phone) => hasPhone(phone)).length
-    }
-    return count
-  }, [rows, selected, sendToParent, sendToStudent])
   const visibleChecks = sendChecks.filter(
     (issue) => issue.student_id == null || selected.has(issue.student_id),
   )
@@ -493,9 +487,6 @@ export default function AlimtalkSendModal({
     selectableRows.length > 0 &&
     selectableRows.every((r) => selected.has(r.student_id))
   const selectedAiReadyCount = Array.from(selected).filter((id) =>
-    isAiReady(aiStatusById[id]),
-  ).length
-  const viewedAiReadyCount = Array.from(trackedAiIds).filter((id) =>
     isAiReady(aiStatusById[id]),
   ).length
 
@@ -543,6 +534,10 @@ export default function AlimtalkSendModal({
 
   const confirmSchedule = async () => {
     if (!sendChannel || selected.size === 0 || !timeValue) return
+    if (timeValue < seoulDatetimeLocal(new Date())) {
+      addToast({ variant: 'error', message: '지난 시각에는 예약할 수 없어요.' })
+      return
+    }
     setScheduling(true)
     try {
       const saved = await lessonService.createSendSchedule(
@@ -737,45 +732,37 @@ export default function AlimtalkSendModal({
             className={`${styles.checkDock}${checksOpen ? '' : ` ${styles.checkDockCollapsed}`}`}
             aria-label="보내기 전 확인"
           >
+            <CheckGlow width={821} height={821} className={styles.checkGlow} aria-hidden />
+            <button
+              type="button"
+              className={styles.checkToggle}
+              aria-expanded={checksOpen}
+              onClick={() => setChecksOpen((open) => !open)}
+            >
+              <ChevronRightIcon
+                width={24}
+                height={24}
+                className={checksOpen ? undefined : styles.checkChevronCollapsed}
+              />
+              {`미확인 항목 ${visibleChecks.length}개`}
+            </button>
             {checksOpen ? (
-              <>
-                <div className={styles.checkHead}>
-                  <Text variant="titleSm">보내기 전 확인</Text>
-                  <button
-                    type="button"
-                    className={styles.checkCollapse}
-                    onClick={() => setChecksOpen(false)}
-                  >
-                    접기
-                  </button>
-                </div>
-                <ul className={styles.checkList}>
-                  {visibleChecks.map((issue) => (
-                    <li key={`${issue.code}-${issue.student_id ?? 'all'}-${issue.text}`}>
-                      <button
-                        type="button"
-                        className={styles.checkItem}
-                        onClick={() => {
-                          if (issue.student_id != null) setFocusId(issue.student_id)
-                        }}
-                      >
-                        {issue.text}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            ) : (
-              <button
-                type="button"
-                className={styles.checkTab}
-                aria-expanded={false}
-                onClick={() => setChecksOpen(true)}
-              >
-                <span className={styles.checkTabCount}>{visibleChecks.length}</span>
-                <span className={styles.checkTabLabel}>확인</span>
-              </button>
-            )}
+              <ul className={styles.checkList}>
+                {visibleChecks.map((issue) => (
+                  <li key={`${issue.code}-${issue.student_id ?? 'all'}-${issue.text}`}>
+                    <button
+                      type="button"
+                      className={styles.checkItem}
+                      onClick={() => {
+                        if (issue.student_id != null) setFocusId(issue.student_id)
+                      }}
+                    >
+                      {issue.text}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </aside>
         ) : null}
         <div className={styles.drawer}>
@@ -821,7 +808,7 @@ export default function AlimtalkSendModal({
                   onClick={() => setSendToParent((value) => !value)}
                   disabled={sending}
                 >
-                  <Text variant="labelSm" color={sendToParent ? 'primary500' : 'gray300'}>
+                  <Text variant="bodyMd" color={sendToParent ? 'primary500' : 'gray300'}>
                     학부모
                   </Text>
                 </button>
@@ -832,7 +819,7 @@ export default function AlimtalkSendModal({
                   onClick={() => setSendToStudent((value) => !value)}
                   disabled={sending}
                 >
-                  <Text variant="labelSm" color={sendToStudent ? 'primary500' : 'gray300'}>
+                  <Text variant="bodyMd" color={sendToStudent ? 'primary500' : 'gray300'}>
                     학생
                   </Text>
                 </button>
@@ -965,7 +952,7 @@ export default function AlimtalkSendModal({
                 data-tour="alimtalk-message-tab"
               >
                 <Text variant="headingSm" color={previewTab === 'message' ? 'gray900' : 'gray500'}>
-                  문자
+                  문자 미리보기
                 </Text>
               </button>
               <button
@@ -977,7 +964,7 @@ export default function AlimtalkSendModal({
                 data-tour="alimtalk-dashboard-tab"
               >
                 <Text variant="headingSm" color={previewTab === 'dashboard' ? 'gray900' : 'gray500'}>
-                  대시보드
+                  대시보드 미리보기
                 </Text>
               </button>
             </div>
@@ -1028,22 +1015,44 @@ export default function AlimtalkSendModal({
         {pickingTime && !sendSchedule && (
           <div className={styles.schedulePick}>
             <Text variant="bodyMd" color="gray500">
-              {visibleChecks.length > 0
-                ? `한국 시간 · 확인하지 않은 내용 ${visibleChecks.length}건이 있어요`
-                : '한국 시간'}
+              한국 시간
             </Text>
-            <input
-              type="datetime-local"
-              className={styles.scheduleInput}
-              min={seoulDatetimeLocal(new Date())}
-              value={timeValue}
-              onChange={(event) => setTimeValue(event.target.value)}
+            <ScheduleDateField
+              value={timeValue.slice(0, 10)}
+              minDate={seoulDatetimeLocal(new Date()).slice(0, 10)}
+              onChange={(date) => {
+                const now = seoulDatetimeLocal(new Date())
+                const time = timeValue.slice(11, 16)
+                const nextTime = date === now.slice(0, 10) && time < now.slice(11, 16) ? now.slice(11, 16) : time
+                setTimeValue(`${date}T${nextTime}`)
+              }}
+            />
+            <ScheduleTimeField
+              value={timeValue.slice(11, 16)}
+              nowTime={seoulDatetimeLocal(new Date()).slice(11, 16)}
+              minTime={
+                timeValue.slice(0, 10) === seoulDatetimeLocal(new Date()).slice(0, 10)
+                  ? seoulDatetimeLocal(new Date()).slice(11, 16)
+                  : undefined
+              }
+              onChange={(time) => {
+                const now = seoulDatetimeLocal(new Date())
+                const next = `${timeValue.slice(0, 10)}T${time}`
+                if (next < now) return
+                setTimeValue(next)
+              }}
             />
             <Button
               variant="outlined"
               size="md"
               onClick={() => void confirmSchedule()}
-              disabled={scheduling || !timeValue || selected.size === 0 || !sendChannel}
+              disabled={
+                scheduling ||
+                !timeValue ||
+                timeValue < seoulDatetimeLocal(new Date()) ||
+                selected.size === 0 ||
+                !sendChannel
+              }
             >
               {scheduling ? '예약하는 중…' : '이 시각에 예약'}
             </Button>
@@ -1051,23 +1060,12 @@ export default function AlimtalkSendModal({
         )}
 
         <div className={styles.footer}>
-          <div className={styles.footerHint}>
-            <Text variant="bodyMd" color="gray500">
-              {selected.size === 0
-                ? '보낼 학생을 선택해 주세요.'
-                : feedbackMode === 'AUTO'
-                  ? viewedAiReadyCount > 0
-                    ? `조회한 학생 중 AI ${viewedAiReadyCount}명은 바로 보여요. 나머지는 보낸 뒤 만들어져요.`
-                    : `선택한 ${selected.size}명에게 바로 보낼 수 있어요. 대시보드에서 조회한 학생만 AI를 미리 만들어요.`
-                  : `선택한 ${selected.size}명에게 바로 보낼 수 있어요. 피드백을 적지 않은 학생은 빈 칸으로 보내요.`}
-            </Text>
-          </div>
           <Button variant="ghost" size="md" onClick={handleClose} disabled={sending || scheduling}>
             {'\uCDE8\uC18C'}
           </Button>
-          <Button
-            variant="outlined"
-            size="md"
+          <button
+            type="button"
+            className={styles.scheduleButton}
             onClick={() => {
               if (sendSchedule) {
                 setCancelScheduleOpen(true)
@@ -1087,8 +1085,7 @@ export default function AlimtalkSendModal({
             }
           >
             {sendSchedule ? `${formatScheduleLabel(sendSchedule.scheduled_at)} 예약 취소` : '문자 예약'}
-          </Button>
-          <QuotaNotice needed={quotaNeeded} />
+          </button>
           <Button
             variant="primary"
             size="md"

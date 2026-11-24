@@ -5,6 +5,9 @@ import { media } from '@/styles/tokens/breakpoints'
 import { zIndex } from '@/styles/tokens/zIndex'
 import { truncateRules } from '@/styles/tokens/textOverflow'
 
+const kakaoChat = '#C9DBEA'
+const kakaoHeaderYellow = '#FEE501'
+
 const slideIn = keyframes({
   from: { transform: 'translateX(100%)' },
   to: { transform: 'translateX(0)' },
@@ -56,6 +59,7 @@ export const drawer = style({
   maxWidth: '960px',
   height: '100%',
   position: 'relative',
+  zIndex: 1,
   backgroundColor: colors.gray50,
   boxShadow: '-4px 0 16px rgba(0, 0, 0, 0.1)',
   display: 'flex',
@@ -109,7 +113,7 @@ export const body = style({
 })
 
 export const leftCol = style({
-  width: '358px',
+  width: '296px',
   flexShrink: 0,
   minWidth: 0,
   borderRight: `1px solid ${colors.gray100}`,
@@ -260,7 +264,7 @@ export const studentRow = style({
   display: 'flex',
   alignItems: 'flex-start',
   gap: '10px',
-  padding: '15px 27px',
+  padding: '10px 27px',
   borderTop: `1px solid ${colors.gray100}`,
   cursor: 'pointer',
   selectors: {
@@ -414,27 +418,132 @@ export const studentNameRow = style({
   minWidth: 0,
 })
 
-export const previewSectionLabel = style({
-  fontSize: fontStyles.titleSm.fontSize,
-  fontWeight: 600,
-  color: colors.gray700,
-  marginBottom: '8px',
+export const previewStack = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+  minWidth: 0,
 })
 
-export const previewBox = style({
+export const kakaoCard = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+  minWidth: 0,
+})
+
+export const kakaoShell = style({
+  backgroundColor: kakaoChat,
+  borderRadius: '16px',
+  padding: '16px 16px 16px 24px',
+  minWidth: 0,
+  '@media': {
+    [media.phone]: {
+      padding: '12px',
+    },
+  },
+})
+
+export const kakaoLogoRow = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+})
+
+export const kakaoLogo = style({
+  width: '36px',
+  height: '36px',
+  borderRadius: '14px',
   backgroundColor: colors.white,
-  padding: '16px',
-  borderRadius: '12px',
-  color: colors.gray700,
+  objectFit: 'cover',
+  flexShrink: 0,
+})
+
+export const kakaoAppLabel = style({
   fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: 500,
-  lineHeight: '180%',
-  border: `1px solid ${colors.gray100}`,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  color: colors.gray600,
+})
+
+export const kakaoBubbleRow = style({
+  display: 'flex',
+  alignItems: 'flex-end',
+  gap: '8px',
+  marginTop: '1px',
+  marginLeft: '44px',
+  minWidth: 0,
+  '@media': {
+    [media.phone]: {
+      marginLeft: '0',
+    },
+  },
+})
+
+export const kakaoBubble = style({
+  flex: 1,
+  minWidth: 0,
+  maxWidth: '376px',
+  backgroundColor: colors.white,
+  borderRadius: '20px',
+  overflow: 'hidden',
+})
+
+export const kakaoArrive = style({
+  backgroundColor: kakaoHeaderYellow,
+  padding: '12px 16px',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: 400,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  color: colors.gray900,
+})
+
+export const kakaoBody = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+  padding: '16px',
+})
+
+export const kakaoMessage = style({
+  margin: 0,
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: 500,
+  lineHeight: 1.5,
+  letterSpacing: '-0.03em',
+  color: colors.gray900,
+  whiteSpace: 'pre-wrap',
+  overflowWrap: 'anywhere',
+})
+
+export const kakaoCta = style({
+  backgroundColor: colors.gray50,
+  borderRadius: '8px',
+  padding: '12px',
+  textAlign: 'center',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: 400,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  color: colors.gray600,
+})
+
+export const kakaoTime = style({
+  flexShrink: 0,
+  margin: 0,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 500,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  color: colors.gray600,
+  whiteSpace: 'nowrap',
 })
 
 export const footer = style({
-  padding: '16px 24px',
-  paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
+  padding: '10px 24px',
+  paddingBottom: 'calc(10px + env(safe-area-inset-bottom, 0px))',
   borderTop: `1px solid ${colors.gray100}`,
   display: 'flex',
   justifyContent: 'flex-end',
@@ -448,12 +557,6 @@ export const footer = style({
       flexWrap: 'wrap',
     },
   },
-})
-
-export const footerHint = style({
-  marginRight: 'auto',
-  minWidth: 0,
-  paddingRight: '12px',
 })
 
 export const schedulePick = style({
@@ -473,14 +576,133 @@ export const schedulePick = style({
   },
 })
 
-export const scheduleInput = style({
+export const scheduleDateWrap = style({
+  position: 'relative',
+})
+
+export const scheduleDateButton = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '8px',
   height: '40px',
   padding: '0 12px',
   borderRadius: '8px',
   border: `1px solid ${colors.gray200}`,
   backgroundColor: colors.white,
   color: colors.gray900,
+  fontFamily: 'Pretendard, sans-serif',
   fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  letterSpacing: '-0.03em',
+  cursor: 'pointer',
+  selectors: {
+    '&:focus-visible': {
+      outline: `2px solid ${colors.primary500}`,
+      outlineOffset: '2px',
+    },
+  },
+})
+
+export const scheduleDayDisabled = style({
+  color: colors.gray300,
+  cursor: 'not-allowed',
+  selectors: {
+    '&:hover': {
+      backgroundColor: 'transparent',
+    },
+  },
+})
+
+export const scheduleCalendar = style({
+  position: 'fixed',
+  left: 'var(--schedule-calendar-x, -9999px)',
+  top: 'var(--schedule-calendar-y, 0px)',
+  zIndex: zIndex.tour,
+  width: '312px',
+  maxWidth: 'calc(100vw - 16px)',
+  padding: '8px 8px 12px',
+  border: `1px solid ${colors.gray75}`,
+  borderRadius: '16px',
+  backgroundColor: colors.white,
+  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
+})
+
+export const scheduleTimePanel = style({
+  position: 'fixed',
+  left: 'var(--schedule-time-x, -9999px)',
+  top: 'var(--schedule-time-y, 0px)',
+  zIndex: zIndex.tour,
+  width: '280px',
+  maxWidth: 'calc(100vw - 16px)',
+  padding: '8px 8px 12px',
+  border: `1px solid ${colors.gray75}`,
+  borderRadius: '16px',
+  backgroundColor: colors.white,
+  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
+})
+
+export const schedulePeriodRow = style({
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  gap: '4px',
+  padding: '8px 8px 4px',
+})
+
+export const scheduleTimeColumns = style({
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  gap: '8px',
+  padding: '4px 8px 0',
+})
+
+export const scheduleTimeColumn = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+  minWidth: 0,
+})
+
+export const scheduleTimeScroll = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+  maxHeight: '200px',
+  overflowY: 'auto',
+  paddingRight: '2px',
+})
+
+export const scheduleButton = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  boxSizing: 'border-box',
+  height: '46px',
+  padding: '12px 28px',
+  border: 'none',
+  borderRadius: '12px',
+  backgroundColor: colors.primary100,
+  color: colors.primary400,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '16px',
+  fontWeight: 600,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  cursor: 'pointer',
+  whiteSpace: 'nowrap',
+  selectors: {
+    '&:hover:not(:disabled)': {
+      backgroundColor: colors.primary200,
+    },
+    '&:disabled': {
+      backgroundColor: colors.gray50,
+      color: colors.gray200,
+      cursor: 'not-allowed',
+    },
+    '&:focus-visible': {
+      outline: `2px solid ${colors.primary500}`,
+      outlineOffset: '2px',
+    },
+  },
 })
 
 export const sendingOverlay = style({
@@ -548,6 +770,7 @@ export const tabButton = style({
   cursor: 'pointer',
   borderBottom: '2px solid transparent',
   color: colors.gray500,
+  whiteSpace: 'nowrap',
   selectors: {
     '&:hover': {
       color: colors.gray700,
@@ -595,126 +818,114 @@ export const dashboardCardHead = style({
 })
 
 export const checkDock = style({
-  width: '240px',
-  maxHeight: '320px',
+  position: 'relative',
+  width: '242px',
+  maxHeight: '70vh',
   marginBottom: '24px',
   flexShrink: 0,
   display: 'flex',
   flexDirection: 'column',
-  backgroundColor: colors.primary50,
-  backgroundImage: `radial-gradient(ellipse at 0% 0%, ${colors.primary200} 0%, ${colors.primary50} 46%, ${colors.white} 78%)`,
-  border: `1px solid ${colors.primary100}`,
-  borderRight: 'none',
-  borderRadius: '16px 0 0 16px',
-  boxShadow: `-8px 0 28px color-mix(in srgb, ${colors.primary500} 14%, transparent)`,
+  gap: '10px',
+  padding: '14px 37px 14px 16px',
+  marginRight: '-28px',
+  backgroundColor: colors.primary100,
+  borderRadius: '16px',
   overflow: 'hidden',
   '@media': {
     [media.phone]: {
-      width: '100%',
-      maxWidth: '100%',
+      width: 'calc(100% - 16px)',
+      maxWidth: 'calc(100% - 16px)',
       maxHeight: '28vh',
-      marginBottom: 0,
-      borderRight: `1px solid ${colors.primary100}`,
-      borderRadius: 0,
-      boxShadow: 'none',
+      margin: '8px 8px 0',
     },
   },
 })
 
 export const checkDockCollapsed = style({
   width: 'auto',
+  maxWidth: 'calc(100% - 16px)',
+  height: '54px',
   maxHeight: 'none',
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: '5px',
+  padding: '0 37px 0 11px',
   '@media': {
     [media.phone]: {
-      width: '100%',
+      width: 'auto',
       maxHeight: 'none',
+      margin: '8px 8px 0',
     },
   },
 })
 
-export const checkTab = style({
-  border: 'none',
-  background: 'transparent',
-  cursor: 'pointer',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '6px',
-  padding: '10px 12px',
-  color: colors.primary600,
-  ':focus-visible': {
-    outline: `2px solid ${colors.primary500}`,
-    outlineOffset: '-2px',
-  },
+export const checkGlow = style({
+  position: 'absolute',
+  left: '-82px',
+  top: '-321px',
+  pointerEvents: 'none',
 })
 
-export const checkTabCount = style({
-  ...fontStyles.titleSm,
-  minWidth: '22px',
-  height: '22px',
-  padding: '0 6px',
-  borderRadius: '999px',
-  backgroundColor: colors.primary50,
-  color: colors.primary600,
+export const checkToggle = style({
+  position: 'relative',
+  zIndex: 1,
   display: 'inline-flex',
   alignItems: 'center',
-  justifyContent: 'center',
-})
-
-export const checkTabLabel = style({
-  ...fontStyles.labelSm,
-  letterSpacing: '-0.02em',
-})
-
-export const checkHead = style({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: '8px',
-  padding: '16px 12px 8px',
-  flexShrink: 0,
-})
-
-export const checkCollapse = style({
+  gap: '5px',
+  padding: 0,
   border: 'none',
   background: 'transparent',
+  color: colors.primary500,
   cursor: 'pointer',
-  ...fontStyles.labelSm,
-  color: colors.primary600,
-  letterSpacing: '-0.02em',
-  padding: '4px',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.headingSm.fontSize,
+  fontWeight: 600,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  whiteSpace: 'nowrap',
   ':focus-visible': {
     outline: `2px solid ${colors.primary500}`,
     outlineOffset: '2px',
   },
 })
 
+export const checkChevronCollapsed = style({
+  transform: 'rotate(180deg)',
+})
+
 export const checkList = style({
+  position: 'relative',
+  zIndex: 1,
   margin: 0,
-  padding: '0 8px 12px',
+  padding: 0,
   listStyle: 'none',
   display: 'flex',
   flexDirection: 'column',
-  gap: '4px',
+  gap: '5px',
   overflowY: 'auto',
   minHeight: 0,
-  flex: '1 1 auto',
+  width: '100%',
 })
 
 export const checkItem = style({
   width: '100%',
-  border: `1px solid ${colors.primary100}`,
-  background: colors.white,
-  borderRadius: '8px',
+  minHeight: '33px',
+  border: 'none',
+  backgroundColor: colors.primary50,
+  borderRadius: '4px',
   textAlign: 'left',
   whiteSpace: 'normal',
   wordBreak: 'break-word',
-  padding: '8px 10px',
+  padding: '6px 9px',
   cursor: 'pointer',
-  ...fontStyles.bodyMd,
-  color: colors.gray700,
-  letterSpacing: '-0.02em',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  color: colors.primary800,
   ':hover': {
-    backgroundColor: colors.primary50,
+    backgroundColor: colors.white,
   },
   ':focus-visible': {
     outline: `2px solid ${colors.primary500}`,
