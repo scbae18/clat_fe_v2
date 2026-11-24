@@ -898,7 +898,7 @@ export default function AlimtalkSendModal({
                       </label>
                       <div className={styles.studentMeta}>
                         <div className={styles.studentNameRow} title={r.student_name}>
-                          <Text variant="headingSm" className={styles.studentName}>
+                          <Text variant="titleMd" className={styles.studentName}>
                             {r.student_name}
                           </Text>
                           {trackedAiIds.has(r.student_id) ? (
@@ -907,18 +907,18 @@ export default function AlimtalkSendModal({
                         </div>
                         <div className={styles.phoneBlock}>
                           <div className={styles.phoneLine}>
-                            <Text variant="bodyMd" color="gray500">
+                            <Text variant="labelSm" color="gray500">
                               학생
                             </Text>
-                            <Text variant="bodyMd" color="gray500" className={styles.phoneValue}>
+                            <Text variant="labelSm" color="gray500" className={styles.phoneValue}>
                               {phoneOrDash(r.phone)}
                             </Text>
                           </div>
                           <div className={styles.phoneLine}>
-                            <Text variant="bodyMd" color="gray500">
+                            <Text variant="labelSm" color="gray500">
                               학부모
                             </Text>
-                            <Text variant="bodyMd" color="gray500" className={styles.phoneValue}>
+                            <Text variant="labelSm" color="gray500" className={styles.phoneValue}>
                               {parentPhoneText(r)}
                             </Text>
                           </div>

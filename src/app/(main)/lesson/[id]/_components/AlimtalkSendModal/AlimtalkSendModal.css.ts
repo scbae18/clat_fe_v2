@@ -902,7 +902,7 @@ export const checkToggle = style({
   color: colors.primary500,
   cursor: 'pointer',
   fontFamily: 'Pretendard, sans-serif',
-  fontSize: fontStyles.headingSm.fontSize,
+  fontSize: fontStyles.titleMd.fontSize,
   fontWeight: 600,
   lineHeight: 1.4,
   letterSpacing: '-0.03em',
