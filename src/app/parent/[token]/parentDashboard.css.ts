@@ -165,7 +165,7 @@ export const feedbackTextarea = style([
   {
     display: 'block',
     width: '100%',
-    minHeight: '72px',
+    minHeight: '200px',
     padding: 0,
     border: 'none',
     background: 'none',

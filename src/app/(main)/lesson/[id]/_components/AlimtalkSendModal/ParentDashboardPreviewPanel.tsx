@@ -236,7 +236,6 @@ export default function ParentDashboardPreviewPanel({
                 aria-label="선생님 피드백"
                 autoFocus
               />
-              <SensitiveInfoNotice />
               <div className={parentStyles.memoActions}>
                 <button
                   type="button"
