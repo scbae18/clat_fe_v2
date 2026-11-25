@@ -41,10 +41,14 @@ export type ParentLessonListItem = {
   template_name: string
 }
 
+export type ParentNoticeType = 'MAKEUP' | 'SCHEDULE' | 'PREP' | 'PROGRESS'
+
 export type ParentNoticeItem = {
   batch_id: number
   sent_at: string
   body: string
+  notice_type?: ParentNoticeType | null
+  class_names?: string[]
 }
 
 function unwrapData<T>(input: unknown): T {

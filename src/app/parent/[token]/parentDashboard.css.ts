@@ -59,20 +59,22 @@ export const classBadge = style({
 export const title = style({
   margin: '8px 0 20px',
   textAlign: 'center',
-  fontSize: fontStyles.headingLg.fontSize,
-  fontWeight: 600,
+  fontSize: '26px',
+  fontWeight: 700,
   color: colors.gray900,
-  lineHeight: '140%',
-  letterSpacing: '-0.03em',
+  lineHeight: '135%',
 })
 
 export const stack = style({
   display: 'flex',
   flexDirection: 'column',
-  gap: '12px',
+  gap: '16px',
 })
 
 export const card = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '14px',
   backgroundColor: colors.white,
   border: `1px solid ${colors.gray50}`,
   borderRadius: '16px',
@@ -82,8 +84,7 @@ export const card = style({
 export const cardHead = style({
   display: 'flex',
   alignItems: 'center',
-  gap: '4px',
-  marginBottom: '12px',
+  gap: '6px',
 })
 
 export const cardHeadIcon = style({
@@ -96,12 +97,9 @@ export const cardHeadIcon = style({
 })
 
 export const cardHeadText = style({
-  fontSize: fontStyles.titleSm.fontSize,
-  fontWeight: 600,
-  backgroundImage: `linear-gradient(90deg, ${colors.primary400} 0%, ${colors.primary600} 100%)`,
-  WebkitBackgroundClip: 'text',
-  backgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
+  fontSize: fontStyles.bodyLg.fontSize,
+  fontWeight: fontStyles.bodyLg.fontWeight,
+  color: colors.primary500,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
 })
@@ -109,12 +107,12 @@ export const cardHeadText = style({
 export const summaryRow = style({
   display: 'flex',
   justifyContent: 'space-between',
-  fontSize: fontStyles.labelSm.fontSize,
+  gap: '8px',
+  fontSize: fontStyles.bodyLg.fontSize,
   color: colors.gray700,
-  fontWeight: 500,
+  fontWeight: fontStyles.bodyLg.fontWeight,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
-  marginBottom: '10px',
 })
 
 export const summaryRowLast = style({
@@ -123,16 +121,16 @@ export const summaryRowLast = style({
 
 export const summaryVal = style({
   color: colors.primary500,
-  fontWeight: 600,
+  fontWeight: fontStyles.bodyLg.fontWeight,
 })
 
 export const feedbackText = style({
   margin: 0,
-  fontSize: fontStyles.labelSm.fontSize,
+  fontSize: fontStyles.bodyLg.fontSize,
   color: colors.gray900,
-  lineHeight: '140%',
+  lineHeight: '160%',
   letterSpacing: '-0.03em',
-  fontWeight: 500,
+  fontWeight: fontStyles.bodyLg.fontWeight,
   whiteSpace: 'pre-wrap',
 })
 
@@ -254,9 +252,8 @@ export const aiHint = style({
   display: 'flex',
   alignItems: 'center',
   gap: '4px',
-  marginTop: '10px',
-  fontSize: fontStyles.labelSm.fontSize,
-  fontWeight: 500,
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
   color: colors.gray500,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
@@ -269,14 +266,13 @@ export const todoList = style({
 })
 
 export const moreButton = style({
-  marginTop: '8px',
   width: '100%',
   border: 'none',
   background: 'none',
   cursor: 'pointer',
-  padding: '8px 0 0',
-  fontSize: fontStyles.titleSm.fontSize,
-  fontWeight: 600,
+  padding: '4px 0 0',
+  fontSize: fontStyles.headingSm.fontSize,
+  fontWeight: fontStyles.bodyLg.fontWeight,
   color: colors.primary500,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
@@ -305,8 +301,8 @@ export const todoName = style({
 })
 
 export const todoHomework = style({
-  fontSize: fontStyles.bodyMd.fontSize,
-  fontWeight: 600,
+  fontSize: fontStyles.bodyLg.fontSize,
+  fontWeight: fontStyles.bodyLg.fontWeight,
   color: colors.gray900,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
@@ -343,8 +339,8 @@ export const todoClassBlue = style({
   maxWidth: '9rem',
   backgroundColor: colors.primary100,
   color: colors.primary500,
-  fontSize: fontStyles.labelSm.fontSize,
-  fontWeight: 600,
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
   padding: '4px 8px',
@@ -360,8 +356,8 @@ export const todoTemplateGreen = style({
   flexShrink: 0,
   backgroundColor: colors.success50,
   color: colors.success500,
-  fontSize: fontStyles.labelSm.fontSize,
-  fontWeight: 600,
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
   padding: '4px 8px',
@@ -391,26 +387,26 @@ export const tagLate = style({
 
 export const timeline = style({
   position: 'relative',
-  paddingLeft: '27px',
+  paddingLeft: '12px',
   display: 'flex',
   flexDirection: 'column',
-  gap: '24px',
+  gap: '30px',
   minHeight: '102px',
 })
 
 export const timelineRail = style({
   position: 'absolute',
-  left: '9px',
+  left: '3px',
   top: '8px',
   bottom: '10px',
   borderLeft: `2px dotted ${colors.primary300}`,
 })
 
 export const recentDate = style({
-  fontSize: fontStyles.labelSm.fontSize,
+  fontSize: fontStyles.bodyMd.fontSize,
   color: colors.primary400,
-  fontWeight: 500,
-  marginBottom: '4px',
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  marginBottom: '6px',
   lineHeight: '140%',
   letterSpacing: '-0.03em',
 })
@@ -418,34 +414,35 @@ export const recentDate = style({
 export const recentRow = style({
   display: 'flex',
   alignItems: 'center',
-  gap: '8px',
-  fontSize: fontStyles.labelSm.fontSize,
+  flexWrap: 'wrap',
+  gap: '6px',
 })
 
 export const recentClass = style({
-  color: colors.gray700,
-  fontWeight: 600,
+  color: colors.gray900,
+  fontSize: fontStyles.bodyLg.fontSize,
+  fontWeight: fontStyles.bodyLg.fontWeight,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
-})
-
-export const recentBadge = style({
-  borderRadius: '4px',
-  padding: '2px 4px',
-  fontSize: fontStyles.labelSm.fontSize,
-  lineHeight: '140%',
-  letterSpacing: '-0.03em',
-  fontWeight: 500,
 })
 
 export const recentAttend = style({
-  backgroundColor: colors.success50,
   color: colors.success500,
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
 })
 
 export const recentScore = style({
   backgroundColor: colors.gray50,
-  color: colors.gray600,
+  color: colors.gray700,
+  borderRadius: '6px',
+  padding: '2px 8px',
+  fontSize: fontStyles.bodyLg.fontSize,
+  fontWeight: fontStyles.bodyLg.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
 })
 
 export const recentCard = style({
@@ -463,19 +460,21 @@ export const stateBox = style({
 export const frameEmbed = style({
   width: '390px',
   maxWidth: '100%',
-  padding: '12px 8px 24px',
+  padding: '8px 24px 32px',
   boxSizing: 'border-box',
   position: 'relative',
   isolation: 'isolate',
   margin: '0 auto',
+  backgroundColor: colors.background,
+  borderRadius: '16px',
 })
 
 export const topHaloEmbed = style({
   position: 'absolute',
   top: '0',
   left: '50%',
-  width: '260px',
-  height: '260px',
+  width: '300px',
+  height: '300px',
   transform: 'translateX(-50%)',
   borderRadius: '50%',
   background: 'radial-gradient(circle, rgba(224,231,249,0.52) 0%, rgba(250,250,250,0) 68%)',
@@ -486,7 +485,7 @@ export const topHaloEmbed = style({
 export const cardHeadInline = style({
   display: 'flex',
   alignItems: 'center',
-  gap: '4px',
+  gap: '6px',
 })
 
 export const feedbackHead = style({
@@ -494,7 +493,6 @@ export const feedbackHead = style({
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: '8px',
-  marginBottom: '12px',
 })
 
 export const chrome = style({
@@ -511,69 +509,225 @@ export const tabRow = style({
 
 export const tabButton = style({
   flex: 1,
-  border: `1px solid ${colors.gray100}`,
+  border: `1px solid ${colors.gray75}`,
   borderRadius: '999px',
   background: colors.white,
   color: colors.gray700,
   fontSize: fontStyles.bodyMd.fontSize,
-  fontWeight: 600,
+  fontWeight: fontStyles.bodyMd.fontWeight,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
-  padding: '8px 0',
+  padding: '10px 0',
   cursor: 'pointer',
+  fontFamily: 'inherit',
 })
 
 export const tabButtonOn = style({
-  borderColor: colors.primary400,
+  borderColor: colors.primary300,
   background: colors.primary50,
-  color: colors.primary600,
+  color: colors.primary500,
+  fontWeight: 700,
 })
 
-export const lessonSelect = style({
-  width: '100%',
+export const searchField = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  marginTop: '4px',
+  backgroundColor: colors.white,
   border: `1px solid ${colors.gray100}`,
-  borderRadius: '12px',
-  background: colors.white,
-  color: colors.gray900,
-  fontSize: '14px',
-  padding: '10px 12px',
+  borderRadius: '8px',
+  padding: '8px 16px',
 })
 
-export const listCard = style({
+export const searchInput = style({
+  flex: 1,
+  minWidth: 0,
+  border: 'none',
+  background: 'none',
+  outline: 'none',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: 400,
+  color: colors.gray900,
+  fontFamily: 'inherit',
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  '::placeholder': {
+    color: colors.gray500,
+  },
+})
+
+export const calendarButton = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '16px',
+  height: '16px',
+  padding: 0,
+  border: 'none',
+  background: 'none',
+  color: colors.gray500,
+  cursor: 'pointer',
+  flexShrink: 0,
+})
+
+export const lessonCount = style({
+  margin: '12px 0 8px',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  color: colors.gray500,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+})
+
+export const lessonCard = style({
   width: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '12px',
   textAlign: 'left',
   border: `1px solid ${colors.gray75}`,
   borderRadius: '16px',
   background: colors.white,
-  padding: '14px 16px',
+  padding: '16px 20px',
   cursor: 'pointer',
   color: colors.gray900,
   marginBottom: '10px',
+  fontFamily: 'inherit',
+})
+
+export const lessonCardText = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '6px',
+  minWidth: 0,
+})
+
+export const icon16 = style({
+  width: '16px',
+  height: '16px',
+  display: 'block',
+})
+
+export const chevron = style([
+  icon16,
+  {
+    color: colors.gray300,
+    flexShrink: 0,
+  },
+])
+
+export const backButton = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '32px',
+  height: '32px',
+  margin: '0 0 8px',
+  padding: 0,
+  border: 'none',
+  background: 'none',
+  color: colors.gray700,
+  cursor: 'pointer',
+})
+
+export const noticeCard = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '10px',
+  backgroundColor: colors.white,
+  border: `1px solid ${colors.gray50}`,
+  borderRadius: '16px',
+  padding: '18px 20px',
+  marginBottom: '10px',
+})
+
+export const noticeHead = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: '6px',
+})
+
+export const noticeType = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  backgroundColor: colors.primary50,
+  color: colors.primary500,
+  borderRadius: '4px',
+  padding: '2px 6px',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+})
+
+export const noticeClass = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  backgroundColor: colors.gray50,
+  color: colors.gray700,
+  borderRadius: '4px',
+  padding: '2px 6px',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+})
+
+export const noticeNew = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  backgroundColor: colors.error50,
+  color: colors.error500,
+  borderRadius: '4px',
+  padding: '2px 6px',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: fontStyles.bodyMd.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+})
+
+export const emptyLine = style({
+  margin: '24px 0',
+  textAlign: 'center',
+  color: colors.gray600,
+  fontSize: fontStyles.bodyMd.fontSize,
 })
 
 export const listTitle = style({
-  fontSize: fontStyles.bodyLg.fontSize,
-  fontWeight: 600,
+  fontSize: fontStyles.headingSm.fontSize,
+  fontWeight: 700,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
+  color: colors.gray900,
 })
 
 export const listMeta = style({
-  marginTop: '4px',
   fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: fontStyles.bodyMd.fontWeight,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
-  color: colors.gray600,
+  color: colors.gray500,
 })
 
 export const noticeBody = style({
-  marginTop: '8px',
+  margin: 0,
+  fontSize: fontStyles.bodyLg.fontSize,
+  fontWeight: fontStyles.bodyLg.fontWeight,
+  lineHeight: '160%',
+  letterSpacing: '-0.03em',
+  whiteSpace: 'pre-wrap',
+  color: colors.gray900,
+})
+
+export const noticeDate = style({
+  margin: 0,
   fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: fontStyles.bodyMd.fontWeight,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
-  whiteSpace: 'pre-wrap',
-  color: colors.gray700,
+  color: colors.gray500,
 })
 

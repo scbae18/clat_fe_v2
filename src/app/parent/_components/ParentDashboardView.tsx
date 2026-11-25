@@ -3,6 +3,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import ArrowLeftIcon from '@/assets/icons/icon-arrow-left.svg'
 import type { ParentDashboardData } from '@/services/parentDashboard'
 import { useTutorial } from '@/features/tutorial/TutorialProvider'
 import { colors } from '@/styles/tokens/colors'
@@ -13,6 +14,12 @@ function formatKoreanDate(dateStr: string) {
   const d = new Date(dateStr)
   if (Number.isNaN(d.getTime())) return dateStr
   return format(d, 'M월 d일 (E)', { locale: ko })
+}
+
+function formatLessonHeading(dateStr: string) {
+  const d = new Date(dateStr)
+  if (Number.isNaN(d.getTime())) return `${dateStr} 수업 결과`
+  return `${format(d, 'M월 d일', { locale: ko })} 수업 결과`
 }
 
 function shiftDate(dateStr: string, days: number) {
@@ -131,6 +138,8 @@ interface ParentDashboardViewProps {
   memoEditor?: ReactNode
   onEditFeedback?: () => void
   header?: ReactNode
+  lookup?: boolean
+  onBack?: () => void
 }
 
 export default function ParentDashboardView({
@@ -141,6 +150,8 @@ export default function ParentDashboardView({
   memoEditor,
   onEditFeedback,
   header,
+  lookup = false,
+  onBack,
 }: ParentDashboardViewProps) {
   const tour = useTutorial()
   const [showAllIncomplete, setShowAllIncomplete] = useState(false)
@@ -186,10 +197,17 @@ export default function ParentDashboardView({
   return (
     <div className={embed ? styles.frameEmbed : styles.frame}>
       <div className={embed ? styles.topHaloEmbed : styles.topHalo} />
+      {onBack ? (
+        <button type="button" className={styles.backButton} onClick={onBack} aria-label="지난 수업 목록">
+          <ArrowLeftIcon className={styles.icon16} />
+        </button>
+      ) : null}
       {header}
       <p className={styles.greet}>{`${data.student_name} 학부모님 안녕하세요`}</p>
       <div className={styles.classBadge}>{data.class_name}</div>
-      <h1 className={styles.title} data-tour={embed ? undefined : 'parent-title'}>{`${formatKoreanDate(data.lesson_date)} 수업 결과`}</h1>
+      <h1 className={styles.title} data-tour={embed ? undefined : 'parent-title'}>
+        {formatLessonHeading(data.lesson_date)}
+      </h1>
 
       <div className={styles.stack}>
         <section className={styles.card} data-tour={embed ? undefined : 'parent-summary'}>
@@ -263,6 +281,7 @@ export default function ParentDashboardView({
           ) : null}
         </section>
 
+        {lookup ? null : (
         <section className={styles.card} data-tour={embed ? 'alimtalk-incomplete' : 'parent-incomplete'}>
           <div className={styles.cardHead}>
             <span className={styles.cardHeadIcon}>
@@ -304,7 +323,9 @@ export default function ParentDashboardView({
             ) : null}
           </div>
         </section>
+        )}
 
+        {lookup ? null : (
         <section
           className={`${styles.card} ${styles.recentCard}`}
           data-tour={embed ? 'alimtalk-recent' : 'parent-recent'}
@@ -324,18 +345,15 @@ export default function ParentDashboardView({
                   <span className={styles.recentClass}>{r.class_name}</span>
                   {r.attendance ? (
                     <span
-                      className={`${styles.recentBadge} ${
+                      className={
                         isCoreAttendanceLabel(r.attendance) ? styles.recentAttend : styles.recentScore
-                      }`}
+                      }
                     >
                       {r.attendance}
                     </span>
                   ) : null}
                   {r.scores.map((score) => (
-                    <span
-                      key={`${score.item_name}-${score.value}`}
-                      className={`${styles.recentBadge} ${styles.recentScore}`}
-                    >
+                    <span key={`${score.item_name}-${score.value}`} className={styles.recentScore}>
                       {`${score.item_name} ${score.value}`}
                     </span>
                   ))}
@@ -347,6 +365,7 @@ export default function ParentDashboardView({
             ) : null}
           </div>
         </section>
+        )}
       </div>
     </div>
   )
