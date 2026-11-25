@@ -147,20 +147,40 @@ export const countActionButtonStyle = style({
   },
 })
 
-export const countActionDangerStyle = style({
+const selectionActionBase = {
   border: 'none',
   background: 'none',
   padding: 0,
-  fontSize: fontStyles.labelSm.fontSize,
+  fontSize: fontStyles.titleSm.fontSize,
   fontWeight: fontStyles.titleSm.fontWeight,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
-  color: colors.error500,
   cursor: 'pointer',
   whiteSpace: 'nowrap',
+} as const
+
+export const manageLinkStyle = style({
+  ...selectionActionBase,
+  color: colors.primary500,
+  selectors: {
+    '&:hover': {
+      color: colors.primary600,
+    },
+  },
+})
+
+export const selectionActionsStyle = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '24px',
+})
+
+export const selectionQuietStyle = style({
+  ...selectionActionBase,
+  color: colors.gray700,
   selectors: {
     '&:hover:not(:disabled)': {
-      color: colors.error600,
+      color: colors.gray900,
     },
     '&:disabled': {
       color: colors.gray300,
@@ -169,13 +189,17 @@ export const countActionDangerStyle = style({
   },
 })
 
-export const selectionHintStyle = style({
-  fontSize: fontStyles.labelSm.fontSize,
-  fontWeight: fontStyles.bodyMd.fontWeight,
-  lineHeight: '140%',
-  letterSpacing: '-0.03em',
-  color: colors.primary500,
-  whiteSpace: 'nowrap',
+export const selectionDangerStyle = style({
+  ...selectionActionBase,
+  color: colors.error500,
+  selectors: {
+    '&:hover:not(:disabled)': {
+      color: colors.error600,
+    },
+    '&:disabled': {
+      cursor: 'not-allowed',
+    },
+  },
 })
 
 export const emptyStateStyle = style({

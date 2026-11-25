@@ -13,8 +13,10 @@ import {
   searchClearButtonStyle,
   countClusterStyle,
   countActionButtonStyle,
-  countActionDangerStyle,
-  selectionHintStyle,
+  manageLinkStyle,
+  selectionActionsStyle,
+  selectionQuietStyle,
+  selectionDangerStyle,
 } from './StudentNameSearchBar.css'
 
 export interface StudentSortOption {
@@ -108,40 +110,38 @@ export default function StudentNameSearchBar({
         ) : null}
         {!selectionMode ? (
           onStartSelection && totalCount > 0 ? (
-            <button
-              type="button"
-              className={countActionButtonStyle}
-              onClick={onStartSelection}
-            >
-              선택 삭제
+            <button type="button" className={manageLinkStyle} onClick={onStartSelection}>
+              학생 관리
             </button>
           ) : null
         ) : (
-          <>
-            <span className={selectionHintStyle}>
-              {selectedCount > 0 ? `${selectedCount}명 선택` : '삭제할 학생을 선택하세요'}
-            </span>
-            {onSelectAll && filteredCount > 0 ? (
-              <button type="button" className={countActionButtonStyle} onClick={onSelectAll}>
-                전체 선택
+          <div className={selectionActionsStyle}>
+            {onCancelSelection ? (
+              <button type="button" className={selectionQuietStyle} onClick={onCancelSelection}>
+                취소
               </button>
             ) : null}
-            {onCancelSelection ? (
-              <button type="button" className={countActionButtonStyle} onClick={onCancelSelection}>
-                취소
+            {onSelectAll ? (
+              <button
+                type="button"
+                className={selectionQuietStyle}
+                onClick={onSelectAll}
+                disabled={filteredCount === 0}
+              >
+                전체 선택
               </button>
             ) : null}
             {onConfirmDelete ? (
               <button
                 type="button"
-                className={countActionDangerStyle}
+                className={selectionDangerStyle}
                 onClick={onConfirmDelete}
                 disabled={selectedCount === 0}
               >
-                삭제
+                삭제({selectedCount})
               </button>
             ) : null}
-          </>
+          </div>
         )}
       </div>
     </div>

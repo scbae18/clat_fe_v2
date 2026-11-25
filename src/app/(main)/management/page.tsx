@@ -109,7 +109,6 @@ function ManagementContent() {
   const addClass = useDisclosure()
   const addStudent = useDisclosure()
   const bulkUpload = useDisclosure()
-  const [deleteStudentTarget, setDeleteStudentTarget] = useState<number | null>(null)
   const [bulkDeletePending, setBulkDeletePending] = useState(false)
   const [isStudentSelectionMode, setIsStudentSelectionMode] = useState(false)
   const {
@@ -135,21 +134,6 @@ function ManagementContent() {
   const exitStudentSelectionMode = () => {
     setIsStudentSelectionMode(false)
     setSelectedStudentIds([])
-  }
-
-  const handleDeleteStudent = async () => {
-    if (!deleteStudentTarget) return
-    try {
-      await studentService.deleteStudent(deleteStudentTarget)
-      setStudents((prev) => prev.filter((s) => s.id !== deleteStudentTarget))
-      setSelectedStudentIds((prev) => prev.filter((id) => id !== deleteStudentTarget))
-      addToast({ variant: 'success', message: '학생이 삭제됐어요.' })
-    } catch (err) {
-      console.error('학생 삭제 실패', err)
-      addToast({ variant: 'error', message: '학생 삭제에 실패했어요.' })
-    } finally {
-      setDeleteStudentTarget(null)
-    }
   }
 
   const handleToggleSelectAllStudents = () => {
@@ -378,6 +362,7 @@ function ManagementContent() {
               students={filteredStudents}
               separateSchoolGrade
               selectionMode={isStudentSelectionMode}
+              showCheckbox={isStudentSelectionMode}
               selectedIds={selectedStudentIds}
               onToggleSelect={toggleStudentSelect}
               middleColumns={[
@@ -387,7 +372,6 @@ function ManagementContent() {
                   getTitle: studentClassesTitle,
                 },
               ]}
-              onDelete={(id) => setDeleteStudentTarget(id)}
               onRowClick={
                 isStudentSelectionMode
                   ? undefined
@@ -395,16 +379,6 @@ function ManagementContent() {
               }
             />
           )}
-
-          <ConfirmModal
-            isOpen={!!deleteStudentTarget}
-            onClose={() => setDeleteStudentTarget(null)}
-            onConfirm={handleDeleteStudent}
-            title={`'${students.find((s) => s.id === deleteStudentTarget)?.name}' 학생을 삭제할까요?`}
-            descriptions={['삭제 후에는 복구할 수 없어요.']}
-            confirmLabel="삭제"
-            confirmVariant="danger"
-          />
 
           <ConfirmModal
             isOpen={bulkDeletePending}
