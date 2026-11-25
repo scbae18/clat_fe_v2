@@ -6,6 +6,15 @@ import { INITIAL_COMMON_ITEMS, INITIAL_INDIVIDUAL_ITEMS } from '@/mocks/template
 import { useToastStore } from '@/stores/toastStore'
 import { reportTutorialAction } from '@/features/tutorial/tutorialEvents'
 
+function editorSnapshot(data: {
+  name: string
+  commonItems: TemplateItem[]
+  individualItems: TemplateItem[]
+  messageOrder: string[]
+}) {
+  return JSON.stringify(data)
+}
+
 interface InitialData {
   name?: string
   commonItems?: TemplateItem[]
@@ -22,17 +31,26 @@ export default function useTemplateEditor(initial: InitialData = {}) {
 
   const initCommon = initial.commonItems ?? INITIAL_COMMON_ITEMS
   const initIndividual = initial.individualItems ?? INITIAL_INDIVIDUAL_ITEMS
-
-  const [templateName, setTemplateName] = useState(initial.name ?? '')
-  const [commonItems, setCommonItems] = useState<TemplateItem[]>(initCommon)
-  const [individualItems, setIndividualItems] = useState<TemplateItem[]>(initIndividual)
-  const [deletedItemIds, setDeletedItemIds] = useState<number[]>([])
-  const [messageOrder, setMessageOrder] = useState<string[]>(
+  const initName = initial.name ?? ''
+  const initOrder =
     initial.messageOrder ?? [
       ...initCommon.map((i) => i.id),
       '__attendance__',
       ...initIndividual.map((i) => i.id),
     ]
+
+  const [templateName, setTemplateName] = useState(initName)
+  const [commonItems, setCommonItems] = useState<TemplateItem[]>(initCommon)
+  const [individualItems, setIndividualItems] = useState<TemplateItem[]>(initIndividual)
+  const [deletedItemIds, setDeletedItemIds] = useState<number[]>([])
+  const [messageOrder, setMessageOrder] = useState<string[]>(initOrder)
+  const [savedSnapshot, setSavedSnapshot] = useState(() =>
+    editorSnapshot({
+      name: initName,
+      commonItems: initCommon,
+      individualItems: initIndividual,
+      messageOrder: initOrder,
+    }),
   )
 
   const allItemsMap = useMemo(() => {
@@ -140,12 +158,19 @@ export default function useTemplateEditor(initial: InitialData = {}) {
       sort_order: attendanceSortOrder >= 0 ? attendanceSortOrder : 0,
       options: [],
     }
+    const snapshot = editorSnapshot({
+      name: templateName,
+      commonItems,
+      individualItems,
+      messageOrder,
+    })
     try {
       await templateService.updateTemplate(templateId, {
         name: templateName,
         items: [ATTENDANCE_ITEM, ...buildItems([...commonItems, ...individualItems])],
         deleted_item_ids: deletedItemIds,
       })
+      setSavedSnapshot(snapshot)
       addToast({ variant: 'success', message: '템플릿이 수정됐어요.' })
       if (!reportTutorialAction('template-save')) router.push('/template')
     } catch (err) {
@@ -256,6 +281,13 @@ export default function useTemplateEditor(initial: InitialData = {}) {
     messageOrder,
     allItemsMap,
     isSaving,
+    isDirty:
+      editorSnapshot({
+        name: templateName,
+        commonItems,
+        individualItems,
+        messageOrder,
+      }) !== savedSnapshot,
     handleSave,
     handleUpdate,
     handleToggleCommonItem,

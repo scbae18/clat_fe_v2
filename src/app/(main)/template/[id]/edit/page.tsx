@@ -4,6 +4,7 @@ import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Text from '@/components/common/Text'
 import Button from '@/components/common/Button'
+import { UnsavedChangesGuard, useRequestLeave } from '@/components/common/UnsavedChangesGuard'
 import ArrowLeftIcon from '@/assets/icons/icon-arrow-left.svg'
 import SaveIcon from '@/assets/icons/icon-save.svg'
 import TemplateEditorPanels from '../../_components/TemplateEditorPanels/TemplateEditorPanels'
@@ -17,36 +18,53 @@ import { templateService, toEditorItems } from '@/services/template'
 
 type EditorInitialData = Parameters<typeof useTemplateEditor>[0]
 
+function TemplateEditHeader({
+  onSave,
+  isSaving,
+}: {
+  onSave: () => void
+  isSaving: boolean
+}) {
+  const requestLeave = useRequestLeave()
+
+  return (
+    <div className={formHeaderStyle}>
+      <div className={formHeaderLeftStyle}>
+        <button className={formBackButtonStyle} onClick={() => requestLeave('back')}>
+          <ArrowLeftIcon width={24} height={24} />
+        </button>
+        <div data-tour="template-intro">
+          <Text variant="display" as="h1">
+            수업 템플릿 수정
+          </Text>
+        </div>
+      </div>
+      <Button
+        variant="primary"
+        size="sm"
+        leftIcon={<SaveIcon width={16} height={16} />}
+        onClick={onSave}
+        disabled={isSaving}
+        data-tour="template-save"
+      >
+        {isSaving ? '저장 중...' : '저장'}
+      </Button>
+    </div>
+  )
+}
+
 function TemplateEditForm({ id, initialData }: { id: number; initialData: EditorInitialData }) {
-  const router = useRouter()
   const editor = useTemplateEditor(initialData)
 
   return (
-    <>
-      <div className={formHeaderStyle}>
-        <div className={formHeaderLeftStyle}>
-          <button className={formBackButtonStyle} onClick={() => router.back()}>
-            <ArrowLeftIcon width={24} height={24} />
-          </button>
-          <div data-tour="template-intro">
-            <Text variant="display" as="h1">
-              수업 템플릿 수정
-            </Text>
-          </div>
-        </div>
-        <Button
-          variant="primary"
-          size="sm"
-          leftIcon={<SaveIcon width={16} height={16} />}
-          onClick={() => editor.handleUpdate(id)}
-          disabled={editor.isSaving}
-          data-tour="template-save"
-        >
-          {editor.isSaving ? '저장 중...' : '저장'}
-        </Button>
-      </div>
+    <UnsavedChangesGuard
+      dirty={editor.isDirty}
+      title="변경 사항이 저장되지 않았습니다."
+      description="저장하지 않고 페이지를 나가시겠습니까?"
+    >
+      <TemplateEditHeader onSave={() => editor.handleUpdate(id)} isSaving={editor.isSaving} />
       <TemplateEditorPanels editor={editor} tour />
-    </>
+    </UnsavedChangesGuard>
   )
 }
 
