@@ -22,6 +22,15 @@ function formatLessonHeading(dateStr: string) {
   return `${format(d, 'M월 d일', { locale: ko })} 수업 결과`
 }
 
+function scoreNameAndValue(name: string, value: string) {
+  const match = /^(.*\S)\s+\(([^)]*)\)\s*$/.exec(value.trim())
+  if (!match) return { name, value: value.trim() }
+  const score = match[1].trim()
+  const note = match[2].trim()
+  if (!note || name.includes(`(${note})`)) return { name, value: score }
+  return { name: `${name} (${note})`, value: score }
+}
+
 function shiftDate(dateStr: string, days: number) {
   const d = new Date(dateStr)
   if (Number.isNaN(d.getTime())) return dateStr
@@ -180,9 +189,10 @@ export default function ParentDashboardView({
     const rows: Array<{ label: string; value: string }> = []
     rows.push({ label: '출결', value: data.lesson_summary.attendance ?? '-' })
     for (const score of data.lesson_summary.scores) {
+      const shown = scoreNameAndValue(score.name || '단원평가', score.value || '-')
       rows.push({
-        label: score.name || '단원평가',
-        value: score.value || '-',
+        label: shown.name,
+        value: shown.value || '-',
       })
     }
     for (const extra of data.lesson_summary.extra_items) {
@@ -352,11 +362,15 @@ export default function ParentDashboardView({
                       {r.attendance}
                     </span>
                   ) : null}
-                  {r.scores.map((score) => (
-                    <span key={`${score.item_name}-${score.value}`} className={styles.recentScore}>
-                      {`${score.item_name} ${score.value}`}
-                    </span>
-                  ))}
+                  {r.scores.map((score) => {
+                    const shown = scoreNameAndValue(score.item_name, score.value)
+                    const text = [shown.name, shown.value].filter(Boolean).join(' ')
+                    return (
+                      <span key={`${score.item_name}-${score.value}`} className={styles.recentScore}>
+                        {text}
+                      </span>
+                    )
+                  })}
                 </div>
               </div>
             ))}
