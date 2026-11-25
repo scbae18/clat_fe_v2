@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import { apiErrorMessage } from '@/lib/api/http'
 import {
   alimtalkService,
   type AlimtalkBatchDetail,
@@ -8,7 +9,7 @@ import {
 } from '@/services/alimtalk'
 import { useToastStore } from '@/stores/toastStore'
 
-import { type ChipFilter, groupMessages } from '../_lib/historyShared'
+import { isBatchComplete, type ChipFilter } from '../_lib/historyShared'
 
 const LIMIT = 30
 
@@ -25,6 +26,7 @@ export function useAlimtalkBatches() {
   const [details, setDetails] = useState<Record<number, AlimtalkBatchDetail>>({})
   const [detailLoading, setDetailLoading] = useState<number | null>(null)
   const [detailSelectedStudentId, setDetailSelectedStudentId] = useState<number | null>(null)
+  const [resending, setResending] = useState(false)
 
   const loadPage = useCallback(
     async (p: number, append: boolean) => {
@@ -55,7 +57,7 @@ export function useAlimtalkBatches() {
   const hasMore = meta != null && page * LIMIT < meta.total
 
   const stats = useMemo(() => {
-    const complete = rows.filter((r) => r.fail_count === 0).length
+    const complete = rows.filter((row) => isBatchComplete(row)).length
     const fail = rows.filter((r) => r.fail_count > 0).length
     const lesson = rows.filter((r) => r.type === 'LESSON').length
     const att = rows.filter((r) => r.type === 'ATTENDANCE').length
@@ -65,7 +67,7 @@ export function useAlimtalkBatches() {
 
   const filtered = useMemo(() => {
     return rows.filter((r) => {
-      if (chip === 'complete' && r.fail_count > 0) return false
+      if (chip === 'complete' && !isBatchComplete(r)) return false
       if (chip === 'fail' && r.fail_count === 0) return false
       if (chip === 'LESSON' && r.type !== 'LESSON') return false
       if (chip === 'ATTENDANCE' && r.type !== 'ATTENDANCE') return false
@@ -97,28 +99,26 @@ export function useAlimtalkBatches() {
   }
 
   useEffect(() => {
-    if (expandedId == null) {
-      setDetailSelectedStudentId(null)
-      return
-    }
-    const d = details[expandedId]
-    if (!d) {
-      setDetailSelectedStudentId(null)
-      return
-    }
-    const grouped = groupMessages(d.messages)
-    const ids = grouped.map(([sid]) => sid)
-    setDetailSelectedStudentId((prev) => {
-      if (prev != null && ids.includes(prev)) return prev
-      return ids[0] ?? null
-    })
-  }, [expandedId, details])
+    setDetailSelectedStudentId(null)
+  }, [expandedId])
 
-  const onResendClick = () => {
-    addToast({
-      variant: 'warning',
-      message: '재발송은 준비 중이에요.',
-    })
+  const resend = async (studentId?: number) => {
+    if (expandedId == null || resending) return
+    setResending(true)
+    try {
+      await alimtalkService.resendBatch(expandedId, studentId)
+      addToast({ variant: 'success', message: '다시 보냈어요.' })
+      setExpandedId(null)
+      setDetails({})
+      await loadPage(1, false)
+    } catch (err) {
+      addToast({
+        variant: 'error',
+        message: apiErrorMessage(err, '다시 보내지 못했어요.'),
+      })
+    } finally {
+      setResending(false)
+    }
   }
 
   return {
@@ -139,6 +139,8 @@ export function useAlimtalkBatches() {
     filtered,
     loadPage,
     toggleRow,
-    onResendClick,
+    resending,
+    resendAll: () => void resend(),
+    resendStudent: (studentId: number) => void resend(studentId),
   }
 }

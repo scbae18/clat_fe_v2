@@ -1,10 +1,10 @@
 'use client'
 
 import { Fragment } from 'react'
-import ChevronDownIcon from '@/assets/icons/icon-chevron-down.svg'
+import ChevronRightIcon from '@/assets/icons/icon-chevron-right.svg'
 import type { AlimtalkBatchDetail, AlimtalkBatchListItem } from '@/services/alimtalk'
 import * as styles from '../history.css'
-import { formatSent, recipientLabel, MANUAL_TEXT_LABEL } from '../_lib/historyShared'
+import { batchStatusView, formatSent, recipientLabel } from '../_lib/historyShared'
 import { BatchDetailPanel } from './BatchDetailPanel'
 
 type HistoryBatchTableProps = {
@@ -13,9 +13,11 @@ type HistoryBatchTableProps = {
   details: Record<number, AlimtalkBatchDetail>
   detailLoading: number | null
   detailSelectedStudentId: number | null
+  resending: boolean
   onToggleRow: (batchId: number) => void
   onSelectStudent: (studentId: number) => void
-  onResendClick: () => void
+  onResendAll: () => void
+  onResendStudent: (studentId: number) => void
 }
 
 export function HistoryBatchTable({
@@ -24,9 +26,11 @@ export function HistoryBatchTable({
   details,
   detailLoading,
   detailSelectedStudentId,
+  resending,
   onToggleRow,
   onSelectStudent,
-  onResendClick,
+  onResendAll,
+  onResendStudent,
 }: HistoryBatchTableProps) {
   return (
     <div className={styles.tableWrap}>
@@ -35,84 +39,74 @@ export function HistoryBatchTable({
           <tr>
             <th className={`${styles.th} ${styles.stickyFirstCell}`}>발송 일시</th>
             <th className={styles.th}>반</th>
-            <th className={styles.th}>발송 상태</th>
             <th className={styles.th}>문자 유형</th>
             <th className={styles.th}>수업 템플릿</th>
             <th className={styles.th}>발송 수</th>
+            <th className={styles.th}>발송 상태</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => {
-            const open = expandedId === r.batch_id
+          {rows.map((row) => {
+            const open = expandedId === row.batch_id
+            const status = batchStatusView(row)
             return (
-              <Fragment key={r.batch_id}>
-                <tr
-                  className={`${styles.trClickable}${open ? ` ${styles.trExpanded}` : ''}`}
-                  onClick={() => onToggleRow(r.batch_id)}
-                >
+              <Fragment key={row.batch_id}>
+                <tr className={styles.trClickable} onClick={() => onToggleRow(row.batch_id)}>
                   <td className={`${styles.td} ${styles.stickyFirstCell}`}>
                     <div className={styles.dateCell}>
-                      <span
-                        className={`${styles.chevron}${open ? ` ${styles.chevronOpen}` : ''}`}
-                      >
-                        <ChevronDownIcon width={16} height={16} />
+                      <span className={`${styles.chevron}${open ? ` ${styles.chevronOpen}` : ''}`}>
+                        <ChevronRightIcon width={16} height={16} />
                       </span>
-                      {formatSent(r.sent_at)}
+                      {formatSent(row.sent_at)}
                     </div>
                   </td>
-                  <td className={styles.td}>{r.class_name ?? '—'}</td>
-                  <td className={styles.td}>
-                    {(r.manual_text_count ?? 0) > 0 &&
-                    r.fail_count <= (r.manual_text_count ?? 0) ? (
-                      <span className={styles.badgeManual}>{MANUAL_TEXT_LABEL}</span>
-                    ) : r.fail_count > 0 ? (
-                      <>
-                        <span className={styles.badgeFail}>실패 {r.fail_count}건</span>
-                        <button
-                          type="button"
-                          className={styles.resendBtn}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            onResendClick()
-                          }}
-                        >
-                          재발송
-                        </button>
-                      </>
-                    ) : (
-                      <span className={styles.badgeSuccess}>발송 완료</span>
-                    )}
-                  </td>
+                  <td className={styles.td}>{row.class_name ?? '—'}</td>
                   <td className={styles.td}>
                     <span
                       className={
-                        r.type === 'LESSON'
+                        row.type === 'LESSON'
                           ? styles.badgeTypeLesson
-                          : r.type === 'ATTENDANCE'
+                          : row.type === 'ATTENDANCE'
                             ? styles.badgeTypeAtt
                             : styles.badgeTypeBroadcast
                       }
                     >
-                      {r.type === 'LESSON' ? '수업' : r.type === 'ATTENDANCE' ? '출결' : '공지'}
+                      {row.type === 'LESSON' ? '수업' : row.type === 'ATTENDANCE' ? '출결' : '공지'}
                     </span>
                   </td>
                   <td className={styles.td}>
-                    <span className={styles.templateTag}>{r.template_name ?? '—'}</span>
+                    <span className={styles.templateTag}>{row.template_name ?? '—'}</span>
                   </td>
-                  <td className={styles.td}>{recipientLabel(r.total_count)}</td>
+                  <td className={styles.td}>{recipientLabel(row.total_count)}</td>
+                  <td className={styles.td}>
+                    <span
+                      className={
+                        status.tone === 'fail'
+                          ? styles.badgeFail
+                          : status.tone === 'pending'
+                            ? styles.badgePending
+                            : styles.badgeSuccess
+                      }
+                    >
+                      {status.label}
+                    </span>
+                  </td>
                 </tr>
                 {open && (
                   <tr className={styles.detailRow}>
-                    <td className={styles.td} colSpan={6}>
+                    <td className={`${styles.td} ${styles.detailCell}`} colSpan={6}>
                       <div className={styles.detailInner}>
-                        {detailLoading === r.batch_id && (
+                        {detailLoading === row.batch_id && (
                           <div className={styles.emptyState}>상세 내역을 불러오는 중…</div>
                         )}
-                        {details[r.batch_id] && (
+                        {details[row.batch_id] && (
                           <BatchDetailPanel
-                            detail={details[r.batch_id]}
+                            detail={details[row.batch_id]}
                             selectedStudentId={detailSelectedStudentId}
+                            resending={resending}
                             onSelectStudent={onSelectStudent}
+                            onResendAll={onResendAll}
+                            onResendStudent={onResendStudent}
                           />
                         )}
                       </div>

@@ -75,6 +75,8 @@ export interface AlimtalkBatchListItem {
   total_count: number
   success_count: number
   fail_count: number
+  fail_student_count?: number
+  status?: AlimtalkBatchRunStatus
   manual_text_count?: number
   lesson_record_id: number | null
   attendance_session_id: number | null
@@ -99,7 +101,9 @@ export interface AlimtalkBatchMessage {
   message_body: string
   status: AlimtalkMessageStatus
   error_message: string | null
+  provider_status_code?: string | null
   kakao_unavailable?: boolean
+  resendable?: boolean
   parent_dashboard_token: string | null
   token_expires_at: string | null
   ai_feedback: string | null
@@ -218,6 +222,13 @@ export const alimtalkService = {
   async getBatchDetail(batchId: number): Promise<AlimtalkBatchDetail> {
     const { data } = await axiosInstance.get(`/alimtalk/batches/${batchId}`)
     return unwrapBatchDetail(data)
+  },
+
+  async resendBatch(batchId: number, studentId?: number) {
+    const { data } = await axiosInstance.post(`/alimtalk/batches/${batchId}/resend`, {
+      ...(studentId != null ? { student_id: studentId } : {}),
+    })
+    return data.data as { batch_id: number; status: 'queued'; total_count: number }
   },
 
   async getBroadcastSuggestion(noticeType: BroadcastNoticeType): Promise<BroadcastSuggestion> {

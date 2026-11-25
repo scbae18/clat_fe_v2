@@ -33,17 +33,20 @@ export const chip = style({
 export const chipActive = style({
   backgroundColor: colors.primary500,
   color: colors.white,
+  border: '1px solid transparent',
 })
 
 export const chipInactive = style({
-  backgroundColor: colors.gray50,
+  backgroundColor: colors.background,
   color: colors.gray700,
+  border: `1px solid ${colors.gray50}`,
+  fontWeight: 500,
 })
 
 export const tableWrap = style({
   overflowX: 'auto',
   border: `1px solid ${colors.gray100}`,
-  borderRadius: '8px',
+  borderRadius: '10px',
   backgroundColor: colors.white,
   WebkitOverflowScrolling: 'touch',
   overscrollBehaviorX: 'contain',
@@ -132,33 +135,34 @@ export const chevron = style({
   color: colors.gray500,
   transition: 'transform 0.2s',
   display: 'inline-flex',
-  transform: 'rotate(-90deg)',
-})
-
-export const chevronOpen = style({
   transform: 'rotate(0deg)',
 })
 
+export const chevronOpen = style({
+  transform: 'rotate(90deg)',
+})
+
 export const badgeSuccess = style({
-  display: 'inline-flex',
-  alignItems: 'center',
-  padding: '2px 8px',
-  borderRadius: '6px',
-  backgroundColor: colors.success50,
   color: colors.success500,
   fontSize: '14px',
-  fontWeight: 600,
+  fontWeight: 400,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
 })
 
 export const badgeFail = style({
-  display: 'inline-flex',
-  alignItems: 'center',
-  padding: '2px 8px',
-  borderRadius: '6px',
-  backgroundColor: colors.error50,
   color: colors.error500,
   fontSize: '14px',
-  fontWeight: 600,
+  fontWeight: 400,
+  lineHeight: 1.4,
+})
+
+export const badgePending = style({
+  color: colors.gray500,
+  fontSize: '14px',
+  fontWeight: 400,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
 })
 
 export const badgeManual = style({
@@ -176,158 +180,321 @@ export const badgeTypeLesson = style({
   display: 'inline-flex',
   padding: '2px 8px',
   borderRadius: '6px',
-  border: `1px solid ${colors.primary100}`,
   backgroundColor: colors.primary50,
   color: colors.primary500,
   fontSize: '14px',
-  fontWeight: 600,
+  fontWeight: 400,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
 })
 
 export const badgeTypeAtt = style({
   display: 'inline-flex',
   padding: '2px 8px',
   borderRadius: '6px',
-  border: `1px solid ${colors.primary100}`,
   backgroundColor: colors.gray50,
   color: colors.gray700,
   fontSize: '14px',
-  fontWeight: 600,
+  fontWeight: 400,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
 })
 
 export const badgeTypeBroadcast = style({
   display: 'inline-flex',
   padding: '2px 8px',
   borderRadius: '6px',
-  border: `1px solid ${colors.warning200}`,
-  backgroundColor: colors.warning50,
+  backgroundColor: colors.gray50,
   color: colors.gray700,
   fontSize: '14px',
-  fontWeight: 600,
+  fontWeight: 400,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
 })
 
 export const templateTag = style({
   display: 'inline-flex',
   padding: '2px 8px',
   borderRadius: '6px',
-  border: `1px solid ${colors.gray100}`,
-  color: colors.gray700,
+  backgroundColor: colors.primary100,
+  color: colors.primary500,
   fontSize: '14px',
-  fontWeight: 600,
+  fontWeight: 400,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
 })
 
-export const resendBtn = style({
-  marginLeft: '10px',
-  fontFamily: 'Pretendard, sans-serif',
-  fontSize: '14px',
-  fontWeight: 600,
-  color: colors.gray700,
-  backgroundColor: colors.gray50,
-  border: 'none',
-  borderRadius: '6px',
-  padding: '2px 8px',
-  cursor: 'not-allowed',
-  '@media': {
-    [media.phone]: {
-      minHeight: '36px',
-      padding: '6px 10px',
-    },
-  },
-  opacity: 0.85,
+export const detailCell = style({
+  padding: 0,
 })
 
 export const detailRow = style({
-  backgroundColor: colors.background,
+  backgroundColor: colors.white,
 })
 
 export const detailInner = style({
-  padding: '20px 24px',
+  padding: '16px',
   borderBottom: `1px solid ${colors.gray100}`,
   minWidth: 0,
   maxWidth: '100%',
   boxSizing: 'border-box',
-  overflow: 'hidden',
+  '@media': {
+    [media.phone]: {
+      padding: '12px',
+    },
+  },
+})
+
+export const detailHead = style({
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'space-between',
+  gap: '12px',
+  marginBottom: '12px',
+  '@media': {
+    [media.phone]: {
+      flexDirection: 'column',
+      alignItems: 'stretch',
+    },
+  },
 })
 
 export const detailTitle = style({
   fontFamily: 'Pretendard, sans-serif',
   fontSize: '16px',
   fontWeight: 600,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
   color: colors.gray900,
-  marginBottom: '16px',
 })
 
-export const studentNameRow = style({
+export const detailHint = style({
+  marginTop: '2px',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '13px',
+  fontWeight: 400,
+  lineHeight: 1.4,
+  color: colors.gray500,
+})
+
+export const innerChipRow = style({
   display: 'flex',
-  flexDirection: 'column',
+  flexWrap: 'wrap',
   gap: '8px',
-  marginBottom: '16px',
-  maxHeight: '220px',
-  overflowY: 'auto',
-  overflowX: 'hidden',
-  width: '100%',
-  maxWidth: '100%',
-  minWidth: 0,
-  boxSizing: 'border-box',
-  paddingRight: '4px',
+  marginBottom: '12px',
 })
 
-export const studentNameChip = style({
+export const innerChip = style({
   fontFamily: 'Pretendard, sans-serif',
   fontSize: '14px',
-  fontWeight: 600,
+  fontWeight: 500,
   lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  borderRadius: '999px',
   border: `1px solid ${colors.gray100}`,
-  borderRadius: '10px',
-  padding: '10px 14px',
   backgroundColor: colors.white,
   color: colors.gray700,
+  padding: '4px 14px',
+  height: '32px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '8px',
   cursor: 'pointer',
-  width: '100%',
-  maxWidth: '100%',
-  minWidth: 0,
-  boxSizing: 'border-box',
-  textAlign: 'left',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-  flexShrink: 0,
-  selectors: {
-    '&:hover': {
-      borderColor: colors.primary200,
-      color: colors.primary600,
+  '@media': {
+    [media.phone]: {
+      minHeight: '36px',
+      height: 'auto',
     },
   },
 })
 
-export const studentNameChipActive = style({
-  borderColor: colors.primary500,
-  backgroundColor: colors.primary50,
-  color: colors.primary500,
+export const innerChipActive = style({
+  backgroundColor: colors.gray900,
+  borderColor: colors.gray900,
+  color: colors.white,
+  fontWeight: 600,
 })
 
-export const studentCard = style({
-  backgroundColor: colors.white,
+export const innerTableWrap = style({
+  overflowX: 'auto',
   border: `1px solid ${colors.gray100}`,
+  borderRadius: '10px',
+  WebkitOverflowScrolling: 'touch',
+})
+
+export const innerTable = style({
+  width: '100%',
+  borderCollapse: 'collapse',
+  minWidth: '720px',
+})
+
+export const phoneStack = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '6px',
+})
+
+export const phoneLine = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  minHeight: '22px',
+})
+
+export const phoneFail = style({
+  color: colors.error500,
+})
+
+export const guideText = style({
+  color: colors.gray700,
+  fontWeight: 400,
+  lineHeight: 1.4,
+  whiteSpace: 'normal',
+})
+
+export const resendBtn = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '4px',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '14px',
+  fontWeight: 600,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  color: colors.white,
+  backgroundColor: colors.primary500,
+  border: 'none',
+  borderRadius: '6px',
+  padding: '6px 12px',
+  cursor: 'pointer',
+  whiteSpace: 'nowrap',
+  alignSelf: 'flex-start',
+  '@media': {
+    [media.phone]: {
+      minHeight: '36px',
+    },
+  },
+  selectors: {
+    '&:disabled': {
+      color: colors.gray500,
+      backgroundColor: colors.gray50,
+      cursor: 'default',
+    },
+  },
+})
+
+export const previewCell = style({
+  backgroundColor: colors.white,
+  padding: '8px 16px 16px',
+})
+
+export const previewBlock = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+  marginTop: '8px',
+})
+
+export const previewMeta = style({
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '14px',
+  fontWeight: 500,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  color: colors.gray900,
+})
+
+export const previewMetaMuted = style({
+  color: colors.gray500,
+  fontWeight: 400,
+})
+
+export const previewBubble = style({
+  backgroundColor: colors.gray50,
   borderRadius: '12px',
   padding: '16px',
-})
-
-export const statusPill = style({
-  fontSize: '12px',
-  fontWeight: 600,
-  padding: '2px 8px',
-  borderRadius: '4px',
-  marginLeft: '8px',
-})
-
-export const msgBlock = style({
-  marginTop: '12px',
+  fontFamily: 'Pretendard, sans-serif',
   fontSize: fontStyles.bodyMd.fontSize,
-  fontWeight: fontStyles.bodyMd.fontWeight,
+  fontWeight: 400,
+  lineHeight: 1.5,
+  letterSpacing: '-0.03em',
   color: colors.gray700,
   whiteSpace: 'pre-wrap',
-  lineHeight: '140%',
+})
+
+export const moreRow = style({
+  display: 'flex',
+  justifyContent: 'center',
+  padding: '12px 0 4px',
+})
+
+export const moreBtn = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '4px',
+  border: 'none',
+  background: 'none',
+  color: colors.primary500,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '14px',
+  fontWeight: 500,
+  cursor: 'pointer',
+  padding: '8px',
+  '@media': {
+    [media.phone]: {
+      minHeight: '36px',
+    },
+  },
+})
+
+export const innerTh = style({
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '14px',
+  fontWeight: 400,
+  color: colors.gray700,
+  textAlign: 'left',
+  padding: '10px 16px',
+  backgroundColor: colors.gray50,
+  borderBottom: `1px solid ${colors.gray100}`,
+  whiteSpace: 'nowrap',
+})
+
+export const innerTd = style({
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '14px',
+  fontWeight: 500,
+  color: colors.gray900,
   letterSpacing: '-0.03em',
+  padding: '10px 16px',
+  borderBottom: `1px solid ${colors.gray100}`,
+  verticalAlign: 'middle',
+  backgroundColor: colors.white,
+})
+
+export const nameBtn = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '4px',
+  border: 'none',
+  background: 'none',
+  padding: 0,
+  cursor: 'pointer',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '14px',
+  fontWeight: 500,
+  letterSpacing: '-0.03em',
+  color: colors.gray900,
+  whiteSpace: 'nowrap',
+})
+
+export const nameCell = style({
+  whiteSpace: 'nowrap',
+  width: '140px',
+})
+
+export const phoneCell = style({
+  whiteSpace: 'nowrap',
 })
 
 export const emptyState = style({
@@ -341,5 +508,21 @@ export const emptyState = style({
 export const loadMoreRow = style({
   padding: '16px',
   textAlign: 'center',
-  borderTop: `1px solid ${colors.gray100}`,
+})
+
+export const loadMoreBtn = style({
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '14px',
+  fontWeight: 500,
+  color: colors.gray700,
+  backgroundColor: colors.background,
+  border: `1px solid ${colors.gray50}`,
+  borderRadius: '8px',
+  padding: '10px 20px',
+  cursor: 'pointer',
+  selectors: {
+    '&:disabled': {
+      cursor: 'wait',
+    },
+  },
 })

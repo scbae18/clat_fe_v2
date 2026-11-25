@@ -42,7 +42,7 @@ export function HistoryFilterChips({ chip, onChipChange, stats }: HistoryFilterC
         className={`${styles.chip} ${chip === 'fail' ? styles.chipActive : styles.chipInactive}`}
         onClick={() => onChipChange('fail')}
       >
-        실패
+        실패 포함
         <span>{stats.fail}</span>
       </button>
       <button

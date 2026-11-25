@@ -36,9 +36,15 @@ export default function AlimtalkHistoryPage() {
             details={batches.details}
             detailLoading={batches.detailLoading}
             detailSelectedStudentId={batches.detailSelectedStudentId}
+            resending={batches.resending}
             onToggleRow={(id) => void batches.toggleRow(id)}
-            onSelectStudent={batches.setDetailSelectedStudentId}
-            onResendClick={batches.onResendClick}
+            onSelectStudent={(studentId) =>
+              batches.setDetailSelectedStudentId((current) =>
+                current === studentId ? null : studentId,
+              )
+            }
+            onResendAll={batches.resendAll}
+            onResendStudent={batches.resendStudent}
           />
         )}
       </div>
@@ -47,12 +53,7 @@ export default function AlimtalkHistoryPage() {
         <div className={styles.loadMoreRow}>
           <button
             type="button"
-            className={styles.chipInactive}
-            style={{
-              cursor: batches.loadingMore ? 'wait' : 'pointer',
-              padding: '10px 20px',
-              borderRadius: 8,
-            }}
+            className={styles.loadMoreBtn}
             disabled={batches.loadingMore}
             onClick={() => void batches.loadPage(batches.page + 1, true)}
           >

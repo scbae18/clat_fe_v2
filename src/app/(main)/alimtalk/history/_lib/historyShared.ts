@@ -7,8 +7,7 @@ export type ChipFilter = 'all' | 'complete' | 'fail' | 'LESSON' | 'ATTENDANCE' |
 
 export type GroupedStudentMessages = {
   name: string
-  student?: AlimtalkBatchMessage
-  parent?: AlimtalkBatchMessage
+  messages: AlimtalkBatchMessage[]
 }
 
 export function maskPhone(phone: string): string {
@@ -18,18 +17,23 @@ export function maskPhone(phone: string): string {
 }
 
 function groupHasFailure(group: GroupedStudentMessages): boolean {
-  return group.student?.status === 'FAIL' || group.parent?.status === 'FAIL'
+  return group.messages.some((message) => message.status === 'FAIL')
 }
 
 export function groupMessages(messages: AlimtalkBatchMessage[]) {
   const m = new Map<number, GroupedStudentMessages>()
   for (const msg of messages) {
     const studentId = msg.student_id ?? 0
-    const cur = m.get(studentId) ?? { name: msg.student_name }
+    const cur = m.get(studentId) ?? { name: msg.student_name, messages: [] }
     cur.name = msg.student_name
-    if (msg.phone_type === 'STUDENT') cur.student = msg
-    else cur.parent = msg
+    cur.messages.push(msg)
     m.set(studentId, cur)
+  }
+  for (const group of m.values()) {
+    group.messages.sort((a, b) => {
+      if (a.phone_type !== b.phone_type) return a.phone_type === 'STUDENT' ? -1 : 1
+      return a.message_id - b.message_id
+    })
   }
   return Array.from(m.entries()).sort((a, b) => {
     const aFail = groupHasFailure(a[1])
@@ -37,6 +41,60 @@ export function groupMessages(messages: AlimtalkBatchMessage[]) {
     if (aFail !== bFail) return aFail ? -1 : 1
     return a[1].name.localeCompare(b[1].name, 'ko')
   })
+}
+
+export function channelLabel(phoneType: AlimtalkBatchMessage['phone_type']): string {
+  return phoneType === 'STUDENT' ? '학생' : '학부모'
+}
+
+export function previewTitle(phoneType: AlimtalkBatchMessage['phone_type']): string {
+  return phoneType === 'STUDENT' ? '[학생용 문자]' : '[학부모용 문자]'
+}
+
+export function guidanceText(message: AlimtalkBatchMessage): string | null {
+  if (message.status !== 'FAIL') return null
+  if (message.kakao_unavailable) return MANUAL_TEXT_LABEL
+  const raw = message.error_message?.trim() ?? ''
+  if (!raw) return null
+  const fail = raw.match(/^SOLAPI_FAIL\s+\d+\s*(.*)$/)
+  if (fail) return fail[1].trim() || raw
+  const named = raw.match(/^SOLAPI_[^:]+:\s*(.*)$/)
+  if (named) return named[1].trim() || '발송 결과를 확인하지 못했어요.'
+  return raw
+}
+
+export function deliveryNote(message: AlimtalkBatchMessage): string {
+  if (message.status === 'SUCCESS') return '카카오톡으로 전달됨'
+  if (message.status === 'PENDING') return '보내는 중'
+  if (message.kakao_unavailable) return MANUAL_TEXT_LABEL
+  return '전달되지 않음'
+}
+
+export function canResendMessage(message: AlimtalkBatchMessage): boolean {
+  if (typeof message.resendable === 'boolean') return message.resendable
+  return message.status === 'FAIL' && !message.kakao_unavailable
+}
+
+export function batchStatusView(row: {
+  fail_count: number
+  fail_student_count?: number
+  status?: 'queued' | 'sending' | 'done' | 'partial_fail'
+}): { label: string; tone: 'success' | 'fail' | 'pending' } {
+  const fails = row.fail_student_count ?? row.fail_count
+  if (fails > 0) return { label: `${fails}명 실패`, tone: 'fail' }
+  if (row.status === 'queued' || row.status === 'sending') {
+    return { label: '보내는 중', tone: 'pending' }
+  }
+  return { label: '발송 완료', tone: 'success' }
+}
+
+export function isBatchComplete(row: {
+  fail_count: number
+  status?: 'queued' | 'sending' | 'done' | 'partial_fail'
+}): boolean {
+  if (row.fail_count > 0) return false
+  if (row.status === 'queued' || row.status === 'sending') return false
+  return true
 }
 
 export const MANUAL_TEXT_LABEL = '직접 문자 발송 필요'
