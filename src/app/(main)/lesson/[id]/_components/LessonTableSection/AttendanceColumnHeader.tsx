@@ -35,6 +35,7 @@ interface AttendanceColumnHeaderProps {
   onToggleAllAttend: () => void
   onAddOption?: (label: string) => void
   onRemoveOption?: (optionId: number, label: string) => void
+  showAllAttend?: boolean
 }
 
 export function AttendanceColumnHeader({
@@ -43,6 +44,7 @@ export function AttendanceColumnHeader({
   onToggleAllAttend,
   onAddOption,
   onRemoveOption,
+  showAllAttend = true,
 }: AttendanceColumnHeaderProps) {
   const [draft, setDraft] = useState('')
   const [isAdding, setIsAdding] = useState(false)
@@ -129,13 +131,15 @@ export function AttendanceColumnHeader({
               </button>
             ) : null}
           </div>
-          <div
-            className={`${checkboxLabelStyle}${allAttend ? ` ${checkboxLabelActiveStyle}` : ''}`}
-            onClick={onToggleAllAttend}
-          >
-            <CheckIcon width={14} height={14} />
-            전체 출석
-          </div>
+          {showAllAttend ? (
+            <div
+              className={`${checkboxLabelStyle}${allAttend ? ` ${checkboxLabelActiveStyle}` : ''}`}
+              onClick={onToggleAllAttend}
+            >
+              <CheckIcon width={14} height={14} />
+              전체 출석
+            </div>
+          ) : null}
         </div>
         {extraOptions.length > 0 || isAdding ? (
           <div className={attendanceExtraRowStyle}>

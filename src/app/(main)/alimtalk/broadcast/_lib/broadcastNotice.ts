@@ -25,10 +25,10 @@ export const BROADCAST_NOTICE_MIDDLE: Record<BroadcastNoticeType, string> = {
 }
 
 export const BROADCAST_NOTICE_HINT: Record<BroadcastNoticeType, string> = {
-  MAKEUP: '예: 내일 오후 7시, 3층에서 보강합니다.',
-  SCHEDULE: '예: 이번 주 수업은 토요일 오전 10시입니다.',
-  PREP: '예: 자습서와 필기구를 챙겨 와 주세요.',
-  PROGRESS: '예: 오늘은 3단원까지 나갔습니다.',
+  MAKEUP: '예: 내일 13시, 3층 강의실에서 보강합니다.',
+  SCHEDULE: '예: 이번 주 수업은 토요일 오전 10시예요.',
+  PREP: '예: 학습지와 필기구를 꼭 챙겨 주세요.',
+  PROGRESS: '예: 오늘은 3단원까지 진행했어요.',
 }
 
 export const BROADCAST_CHAR_LIMIT = 1000
@@ -59,9 +59,4 @@ export function academyNameForStudent(
     .filter((cls) => (classStudentIds[cls.id] ?? []).includes(studentId))
     .sort((a, b) => a.id - b.id)
   return memberships.find((cls) => cls.academy_name.trim())?.academy_name.trim() ?? ''
-}
-
-export function renderBroadcastPreviewHeader(noticeType: BroadcastNoticeType): string {
-  const middle = BROADCAST_NOTICE_MIDDLE[noticeType]
-  return `안녕하세요. {학원명} {강사명}입니다.\n{학생이름} 학생의 ${middle}입니다.`
 }

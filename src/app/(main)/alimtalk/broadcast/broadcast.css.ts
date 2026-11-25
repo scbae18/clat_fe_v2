@@ -1,16 +1,36 @@
 import { style } from '@vanilla-extract/css'
+
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
 import { media } from '@/styles/tokens/breakpoints'
 
 export const layout = style({
   display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1.1fr) minmax(320px, 0.9fr)',
+  gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
   gap: '24px',
   alignItems: 'start',
   '@media': {
     [media.tablet]: {
       gridTemplateColumns: '1fr',
+    },
+  },
+})
+
+export const leftColumn = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '14px',
+  minWidth: 0,
+})
+
+export const previewSticky = style({
+  position: 'sticky',
+  top: '24px',
+  alignSelf: 'start',
+  minWidth: 0,
+  '@media': {
+    [media.tablet]: {
+      position: 'static',
     },
   },
 })
@@ -30,43 +50,17 @@ export const panel = style({
   },
 })
 
-export const recipientPanel = style({
-  minHeight: '640px',
-  '@media': {
-    [media.phone]: {
-      minHeight: 0,
-    },
-  },
-})
-
-export const composeStack = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '24px',
-  minWidth: 0,
-})
-
 export const sectionHeader = style({
   display: 'flex',
-  alignItems: 'flex-start',
+  alignItems: 'center',
   justifyContent: 'space-between',
   gap: '12px',
-})
-
-export const sectionHeaderText = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '4px',
 })
 
 export const sectionBlock = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '8px',
-})
-
-export const searchWrap = style({
-  width: '100%',
 })
 
 export const typeGrid = style({
@@ -126,14 +120,13 @@ export const typeCardHint = style({
   lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray500,
+  wordBreak: 'keep-all',
 })
 
 export const filterRow = style({
   display: 'flex',
   flexWrap: 'wrap',
   gap: '8px',
-  maxHeight: '104px',
-  overflowY: 'auto',
 })
 
 export const filterChip = style({
@@ -178,37 +171,90 @@ export const toolbar = style({
 export const toolbarActions = style({
   display: 'flex',
   alignItems: 'center',
-  gap: '4px',
+  gap: '12px',
   flexWrap: 'wrap',
 })
 
-export const studentList = style({
-  flex: 1,
-  minHeight: '320px',
-  maxHeight: '480px',
-  overflowY: 'auto',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '2px',
-  border: `1px solid ${colors.gray100}`,
-  borderRadius: '12px',
-  backgroundColor: colors.white,
-  padding: '8px',
-})
-
-export const studentRowButton = style({
-  width: '100%',
+export const textAction = style({
   border: 'none',
   backgroundColor: 'transparent',
+  padding: 0,
+  cursor: 'pointer',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.titleSm.fontSize,
+  fontWeight: 500,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.primary500,
+  selectors: {
+    '&:disabled': {
+      color: colors.gray300,
+      cursor: 'not-allowed',
+    },
+  },
+})
+
+export const textActionMuted = style({
+  border: 'none',
+  backgroundColor: 'transparent',
+  padding: 0,
+  cursor: 'pointer',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.titleSm.fontSize,
+  fontWeight: 500,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.gray500,
+})
+
+export const studentList = style({
+  display: 'flex',
+  flexDirection: 'column',
+  backgroundColor: colors.white,
+  borderRadius: '12px',
+  maxHeight: '240px',
+  overflowX: 'hidden',
+  overflowY: 'auto',
+})
+
+export const studentRow = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+  width: '100%',
+  flexShrink: 0,
+  height: '48px',
+  padding: '0 16px',
+  border: 'none',
+  borderBottom: `1px solid ${colors.gray100}`,
+  backgroundColor: colors.white,
   textAlign: 'left',
+  cursor: 'pointer',
+  boxSizing: 'border-box',
+  selectors: {
+    '&:last-child': {
+      borderBottom: 'none',
+    },
+    '&:hover': {
+      backgroundColor: colors.gray50,
+    },
+  },
+})
+
+export const studentRowSelected = style({
+  backgroundColor: colors.primary50,
+  selectors: {
+    '&:hover': {
+      backgroundColor: colors.primary50,
+    },
+  },
 })
 
 export const studentRowDisabled = style({
-  opacity: 0.4,
   cursor: 'not-allowed',
   selectors: {
     '&:hover': {
-      backgroundColor: 'transparent',
+      backgroundColor: colors.white,
     },
   },
 })
@@ -219,7 +265,7 @@ export const studentName = style({
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
-  fontSize: fontStyles.titleSm.fontSize,
+  fontSize: '13px',
   fontWeight: fontStyles.titleSm.fontWeight,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
@@ -246,9 +292,17 @@ export const checkBoxOn = style({
   color: colors.primary500,
 })
 
-export const studentMeta = style({
+export const studentMetaGroup = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: '8px',
   flexShrink: 0,
-  maxWidth: '140px',
+  maxWidth: '52%',
+  minWidth: 0,
+})
+
+export const studentMeta = style({
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -273,9 +327,11 @@ export const channelRow = style({
 })
 
 export const channelCheck = style({
+  flex: '1 1 0',
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
+  minWidth: 0,
   padding: '12px 16px',
   borderRadius: '8px',
   backgroundColor: colors.white,
@@ -305,9 +361,53 @@ export const bodyField = style({
   gap: '8px',
 })
 
-export const bodyTextarea = style({
-  minHeight: '132px',
+export const bodyBox = style({
+  display: 'flex',
+  flexDirection: 'column',
+  backgroundColor: colors.white,
+  border: `1px solid ${colors.gray100}`,
+  borderRadius: '8px',
+  overflow: 'hidden',
+  selectors: {
+    '&:focus-within': {
+      borderColor: colors.primary500,
+    },
+  },
 })
+
+export const bodyTextarea = style({
+  minHeight: '88px',
+  resize: 'none',
+  selectors: {
+    '&&': {
+      border: 'none',
+      borderRadius: 0,
+      backgroundColor: 'transparent',
+    },
+    '&&:focus': {
+      borderColor: 'transparent',
+    },
+  },
+})
+
+export const bodyCount = style({
+  margin: 0,
+  padding: '0 16px 12px',
+  textAlign: 'right',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.labelSm.fontWeight,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.gray500,
+})
+
+export const bodyCountOver = style([
+  bodyCount,
+  {
+    color: colors.error500,
+  },
+])
 
 export const studentMetaOver = style({
   flexShrink: 0,
@@ -317,10 +417,6 @@ export const studentMetaOver = style({
   letterSpacing: '-0.03em',
   color: colors.error500,
   whiteSpace: 'nowrap',
-})
-
-export const lengthLine = style({
-  margin: '8px 0 0',
 })
 
 export const lengthBody = style({

@@ -101,6 +101,18 @@ export const hintStyle = style({
   color: colors.gray500,
 })
 
+export const kakaoFrameText = style({
+  margin: 0,
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: 500,
+  lineHeight: 1.5,
+  letterSpacing: '-0.03em',
+  color: colors.gray700,
+  opacity: 0.54,
+  whiteSpace: 'pre-wrap',
+  overflowWrap: 'anywhere',
+})
+
 export const emptyHintStyle = style({
   padding: '24px 16px',
   textAlign: 'center',

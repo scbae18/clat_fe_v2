@@ -1,11 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Button from '@/components/common/Button'
-import Text from '@/components/common/Text'
 import useToast from '@/hooks/useToast'
-import { splitScoreStorage } from '@/lib/lessonScore'
-import type { Attendance, CompletionStatus } from '@/types/lessonStudent'
 import {
   alimtalkService,
   kakaoUnavailableToastMessage,
@@ -14,17 +11,15 @@ import {
   type AlimtalkTestKind,
   type BroadcastNoticeType,
 } from '@/services/alimtalk'
-import {
-  AttendanceCell,
-  CompletionCell,
-  ScoreEarnedCell,
-  TextInputCell,
-} from '@/app/(main)/lesson/[id]/_components/LessonTableSection/LessonTableCells'
 import { AlimtalkTabs } from '../_components/AlimtalkTabs'
+import LessonTestTable, { type LessonTestValue } from './LessonTestTable'
 import {
+  BROADCAST_CHAR_LIMIT,
+  BROADCAST_NOTICE_HINT,
   BROADCAST_NOTICE_LABEL,
   BROADCAST_NOTICE_TYPES,
 } from '../broadcast/_lib/broadcastNotice'
+import * as noticeStyles from '../broadcast/broadcast.css'
 import * as baseStyles from '../alimtalkSettings.css'
 import * as styles from './test.css'
 
@@ -34,21 +29,23 @@ const KINDS: Array<{ kind: AlimtalkTestKind; label: string }> = [
   { kind: 'BROADCAST', label: '공지 문자 받아보기' },
 ]
 
-const SCORE_MAX = '100'
-
 export default function AlimtalkTestPage() {
   const { success, error, warning } = useToast()
   const [phone, setPhone] = useState<string | null>(null)
   const [remaining, setRemaining] = useState<number | null>(null)
   const [limit, setLimit] = useState(5)
   const [deliveryMode, setDeliveryMode] = useState<AlimtalkDeliveryMode>('mock')
-  const [panel, setPanel] = useState<AlimtalkTestKind | null>(null)
-  const [noticeType, setNoticeType] = useState<BroadcastNoticeType | null>(null)
-  const [content, setContent] = useState('')
-  const [attendance, setAttendance] = useState<Attendance>(null)
-  const [score, setScore] = useState('')
-  const [homework, setHomework] = useState<CompletionStatus>(null)
+  const [panel, setPanel] = useState<AlimtalkTestKind>('LESSON')
+  const [noticeType, setNoticeType] = useState<BroadcastNoticeType>('MAKEUP')
+  const [noticeBody, setNoticeBody] = useState('')
   const [sending, setSending] = useState<AlimtalkTestKind | null>(null)
+  const lessonRef = useRef<LessonTestValue>({
+    content: '',
+    attendance: null,
+    score: '',
+    scoreMax: '',
+    homework: null,
+  })
 
   useEffect(() => {
     let cancelled = false
@@ -73,7 +70,6 @@ export default function AlimtalkTestPage() {
 
   const openPanel = (kind: AlimtalkTestKind) => {
     setPanel(kind)
-    if (kind === 'BROADCAST') setNoticeType(null)
   }
 
   const send = async (kind: AlimtalkTestKind) => {
@@ -87,18 +83,20 @@ export default function AlimtalkTestPage() {
     }
     setSending(kind)
     try {
-      const earned = splitScoreStorage(score).earned.trim()
+      const lesson = lessonRef.current
+      const earned = lesson.score.trim()
+      const scoreMax = lesson.scoreMax.trim()
       const queued = await alimtalkService.sendTest({
         kind,
-        notice_type: kind === 'BROADCAST' ? (noticeType ?? undefined) : undefined,
+        notice_type: kind === 'BROADCAST' ? noticeType : undefined,
         lesson:
           kind === 'LESSON'
             ? {
-                content,
-                attendance: attendance ?? undefined,
+                content: lesson.content,
+                attendance: lesson.attendance ?? undefined,
                 score: earned || undefined,
-                score_max: earned ? SCORE_MAX : undefined,
-                homework: homework ?? undefined,
+                score_max: earned && scoreMax ? scoreMax : undefined,
+                homework: lesson.homework ?? undefined,
               }
             : undefined,
       })
@@ -124,6 +122,7 @@ export default function AlimtalkTestPage() {
   }
 
   const blocked = sending != null || remaining === 0 || !phone
+  const noticeCount = Array.from(noticeBody).length
 
   return (
     <div className={baseStyles.pageRoot}>
@@ -135,115 +134,122 @@ export default function AlimtalkTestPage() {
       ) : null}
       <AlimtalkTabs />
       <div className={styles.layout}>
-        <div className={styles.stack}>
-          <div className={styles.card} data-tour="alimtalk-test-phone">
-            <Text variant="titleMd">알림톡 테스트</Text>
-            <Text variant="bodyMd" color="gray700">
-              {phone ? `수신 번호 ${phone}` : '가입한 전화번호가 없어요.'}
-            </Text>
-            <Text variant="bodyMd" color="gray500">
+        <div className={styles.menu}>
+          <div className={styles.infoCard} data-tour="alimtalk-test-phone">
+            <h2 className={styles.infoTitle}>알림톡 테스트</h2>
+            <p className={styles.infoPhone}>
+              {phone ? `수신 번호 ${phone}` : '수신 번호 없음'}
+            </p>
+            <p className={styles.infoRemain}>
               {remaining == null
-                ? '남은 횟수를 확인하는 중이에요.'
-                : `오늘 ${remaining}/${limit}번 남았어요.`}
-            </Text>
+                ? '오늘 남은 테스트를 확인하는 중이에요.'
+                : `오늘 남은 테스트 ${remaining} / ${limit}회`}
+            </p>
           </div>
-          <div className={styles.actions} data-tour="alimtalk-test-kinds">
+          <div className={styles.menuList} data-tour="alimtalk-test-kinds">
             {KINDS.map((item) => (
-              <Button
+              <button
                 key={item.kind}
-                variant={panel === item.kind ? 'primary' : 'outlined'}
-                size="md"
-                fullWidth
-                disabled={blocked}
+                type="button"
+                className={`${styles.menuButton}${panel === item.kind ? ` ${styles.menuButtonActive}` : ''}`}
+                aria-pressed={panel === item.kind}
                 onClick={() => openPanel(item.kind)}
               >
                 {item.label}
-              </Button>
+              </button>
             ))}
           </div>
         </div>
 
         {panel === 'LESSON' ? (
-          <div className={styles.card}>
-            <Text variant="titleMd">수업 내용</Text>
-            <div className={styles.field}>
-              <div className={styles.fieldHead}>
-                <p className={styles.fieldLabel}>오늘 학습 내용</p>
-                <p className={styles.fieldType}>텍스트형</p>
-              </div>
-              <TextInputCell value={content} onChange={setContent} />
+          <section className={styles.detail} aria-label="수업 문자 내용">
+            <div>
+              <h2 className={styles.detailTitle}>수업 문자 내용</h2>
+              <p className={styles.detailHint}>
+                입력한 내용으로 테스트 문자를 보내요. 비워 두면 예시 문구로 채워져요.
+              </p>
             </div>
-            <div className={styles.field}>
-              <p className={styles.fieldLabel}>출결</p>
-              <AttendanceCell value={attendance} onChange={setAttendance} />
-            </div>
-            <div className={styles.field}>
-              <div className={styles.fieldHead}>
-                <p className={styles.fieldLabel}>단원평가</p>
-                <p className={styles.fieldType}>점수형</p>
-              </div>
-              <ScoreEarnedCell value={score} columnMax={SCORE_MAX} onChange={setScore} />
-            </div>
-            <div className={styles.field}>
-              <div className={styles.fieldHead}>
-                <p className={styles.fieldLabel}>과제</p>
-                <p className={styles.fieldType}>완료형</p>
-              </div>
-              <CompletionCell value={homework} onChange={setHomework} />
-            </div>
-            <Button
-              variant="primary"
-              size="md"
-              disabled={blocked}
-              onClick={() => void send('LESSON')}
-            >
+            <LessonTestTable onChange={(value) => { lessonRef.current = value }} />
+            <Button variant="primary" size="md" fullWidth disabled={blocked} onClick={() => void send('LESSON')}>
               {sending === 'LESSON' ? '보내는 중…' : '이 내용으로 받아보기'}
             </Button>
-          </div>
-        ) : null}
-
-        {panel === 'BROADCAST' ? (
-          <div className={styles.card}>
-            <Text variant="titleMd">공지 종류</Text>
-            <div className={styles.noticeRow}>
-              {BROADCAST_NOTICE_TYPES.map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  className={`${styles.noticeChip}${type === noticeType ? ` ${styles.noticeChipActive}` : ''}`}
-                  onClick={() => setNoticeType(type)}
-                  disabled={sending != null}
-                >
-                  {BROADCAST_NOTICE_LABEL[type]}
-                </button>
-              ))}
-            </div>
-            <Button
-              variant="primary"
-              size="md"
-              disabled={blocked || !noticeType}
-              onClick={() => void send('BROADCAST')}
-            >
-              {sending === 'BROADCAST' ? '보내는 중…' : '이 공지로 받아보기'}
-            </Button>
-          </div>
+          </section>
         ) : null}
 
         {panel === 'ATTENDANCE' ? (
-          <div className={styles.card}>
-            <Text variant="titleMd">출결 문자</Text>
-            <Text variant="bodyMd" color="gray700">
-              받은 문자에서 출결 코드에 0000을 입력해보세요.
-            </Text>
+          <section className={styles.detail} aria-label="출결 문자">
+            <div>
+              <h2 className={styles.detailTitle}>출결 문자</h2>
+              <p className={styles.detailHint}>받은 문자의 링크에서 출결 코드를 입력해 보세요.</p>
+            </div>
+            <div className={styles.codeBox}>
+              <p className={styles.codeLabel}>테스트 출결 코드</p>
+              <p className={styles.codeValue}>0000</p>
+            </div>
             <Button
               variant="primary"
               size="md"
+              fullWidth
               disabled={blocked}
               onClick={() => void send('ATTENDANCE')}
             >
               {sending === 'ATTENDANCE' ? '보내는 중…' : '출결 문자 받아보기'}
             </Button>
-          </div>
+          </section>
+        ) : null}
+
+        {panel === 'BROADCAST' ? (
+          <section className={styles.detail} aria-label="공지 문자">
+            <div className={styles.noticeBlock}>
+              <h2 className={styles.detailTitle}>공지 종류</h2>
+              <div className={noticeStyles.typeGrid} role="radiogroup" aria-label="공지 종류">
+                {BROADCAST_NOTICE_TYPES.map((type) => {
+                  const active = noticeType === type
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      className={`${noticeStyles.typeCard}${active ? ` ${noticeStyles.typeCardActive}` : ''}`}
+                      onClick={() => setNoticeType(type)}
+                    >
+                      <span
+                        className={`${noticeStyles.typeCardTitle}${active ? ` ${noticeStyles.typeCardTitleActive}` : ''}`}
+                      >
+                        {BROADCAST_NOTICE_LABEL[type]}
+                      </span>
+                      <span className={noticeStyles.typeCardHint}>{BROADCAST_NOTICE_HINT[type]}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+            <div className={styles.noticeBlock}>
+              <h2 className={styles.detailTitle}>안내 사항</h2>
+              <div className={styles.noticeBox}>
+                <textarea
+                  className={styles.noticeArea}
+                  value={noticeBody}
+                  onChange={(event) => setNoticeBody(event.target.value)}
+                  placeholder="예: 내일 13시, 3층 강의실에서 보강합니다."
+                  aria-label="안내 사항"
+                />
+                <p
+                  className={
+                    noticeCount > BROADCAST_CHAR_LIMIT
+                      ? noticeStyles.bodyCountOver
+                      : noticeStyles.bodyCount
+                  }
+                >
+                  {`${noticeCount.toLocaleString('ko-KR')} / 1,000자`}
+                </p>
+              </div>
+            </div>
+            <Button variant="primary" size="md" fullWidth disabled={blocked} onClick={() => void send('BROADCAST')}>
+              {sending === 'BROADCAST' ? '보내는 중…' : '이 공지로 받아보기'}
+            </Button>
+          </section>
         ) : null}
       </div>
     </div>

@@ -35,6 +35,8 @@ import {
   tdStyle,
   thCompactStyle,
 } from '@/app/(main)/lesson/[id]/_components/LessonTableSection/LessonTable.css'
+import { alimtalkService } from '@/services/alimtalk'
+import { classService, type Class } from '@/services/class'
 import { lessonItemRef, matchesLessonItem } from '@/lib/lessonItemRef'
 import type { LessonItemDetail } from '@/services/lesson'
 import type { Attendance, CompletionStatus, LessonStudent } from '@/types/lessonStudent'
@@ -62,6 +64,7 @@ import {
   captionMarkStyle,
   captionStyle,
   emptyHintStyle,
+  kakaoFrameText,
   fadeStyle,
   hintStyle,
   lessonStackStyle,
@@ -92,11 +95,11 @@ function plainLabel(label: string) {
   return label.replace(' *', '')
 }
 
-function todayLessonDate() {
-  const date = new Date()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${date.getFullYear()}-${month}-${day}`
+const PREVIEW_STUDENT_NAME = '홍길동'
+const PREVIEW_DATE = '11월 25일'
+
+function pickPreviewClass(classes: Class[]) {
+  return classes.find((item) => !item.ended_at) ?? classes[0] ?? null
 }
 
 function previewClock(date = new Date()) {
@@ -503,6 +506,10 @@ function LessonPreview({
   )
 }
 
+function fillPreviewText(text: string, samples: Record<string, string>) {
+  return text.replace(/\{[^}]+\}/g, (token) => samples[token] ?? token.slice(1, -1))
+}
+
 function AlimtalkPreview({
   messageOrder,
   allItemsMap,
@@ -510,18 +517,53 @@ function AlimtalkPreview({
   messageOrder: string[]
   allItemsMap: Map<string, TemplateItem>
 }) {
-  const teacherName = useUserStore((state) => state.user?.name) || '강사명'
+  const teacherName = useUserStore((state) => state.user?.name)?.trim() || '선생님'
+  const [academyName, setAcademyName] = useState('학원명')
+  const [className, setClassName] = useState('반 이름')
+  const [savedIntro, setSavedIntro] = useState('')
+  const [savedOutro, setSavedOutro] = useState('')
   const items = messageOrder
     .map((id) => allItemsMap.get(id))
     .filter(
       (item): item is TemplateItem =>
         !!item && item.isActive && item.isInMessage && (item.sendToParent || item.sendToStudent),
     )
-  const intro = fillLessonAlimtalkFrameHeader({
-    academyName: '학원명',
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const [settings, classRes] = await Promise.all([
+        alimtalkService.getSettings().catch(() => null),
+        classService.getClasses().catch(() => null),
+      ])
+      if (cancelled) return
+      setSavedIntro(settings?.intro_text ?? '')
+      setSavedOutro(settings?.outro_text ?? '')
+      const picked = pickPreviewClass(classRes?.data ?? [])
+      if (!picked) return
+      const academy = picked.academy_name.trim()
+      const name = picked.name.trim()
+      if (academy) setAcademyName(academy)
+      if (name) setClassName(name)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const samples: Record<string, string> = {
+    '{학원명}': academyName,
+    '{강사명}': teacherName,
+    '{학생이름}': PREVIEW_STUDENT_NAME,
+    '{날짜}': PREVIEW_DATE,
+    '{수업일}': PREVIEW_DATE,
+    '{반이름}': className,
+  }
+  const frameIntro = fillLessonAlimtalkFrameHeader({
+    academyName,
     teacherName,
-    studentName: '홍길동',
-    lessonDate: todayLessonDate(),
+    studentName: PREVIEW_STUDENT_NAME,
+    lessonDate: PREVIEW_DATE,
   })
 
   return (
@@ -534,7 +576,10 @@ function AlimtalkPreview({
         <div className={kakaoBubble}>
           <div className={kakaoArrive}>알림톡 도착</div>
           <div className={kakaoBody}>
-            <p className={kakaoMessage}>{intro}</p>
+            <p className={kakaoFrameText}>{frameIntro}</p>
+            {savedIntro.trim() ? (
+              <p className={kakaoFrameText}>{fillPreviewText(savedIntro.trim(), samples)}</p>
+            ) : null}
             {items.length > 0 ? (
               <div>
                 {items.map((item) => {
@@ -554,7 +599,10 @@ function AlimtalkPreview({
                 })}
               </div>
             ) : null}
-            <p className={kakaoMessage}>{LESSON_ALIMTALK_FRAME_FOOTER}</p>
+            {savedOutro.trim() ? (
+              <p className={kakaoFrameText}>{fillPreviewText(savedOutro.trim(), samples)}</p>
+            ) : null}
+            <p className={kakaoFrameText}>{LESSON_ALIMTALK_FRAME_FOOTER}</p>
             <div className={kakaoCta}>{LESSON_ALIMTALK_CTA_LABEL}</div>
           </div>
         </div>

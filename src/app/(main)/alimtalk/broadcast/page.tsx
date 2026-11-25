@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Button from '@/components/common/Button'
@@ -9,8 +10,9 @@ import Input from '@/components/common/Input'
 import Modal from '@/components/common/Modal'
 import Text from '@/components/common/Text'
 import Textarea from '@/components/common/Textarea'
-import { listItemRowStyle, listItemRowSelectedStyle } from '@/components/common/styles/listItem.css'
 import CheckIcon from '@/assets/icons/icon-check.svg'
+import SearchIcon from '@/assets/icons/icon-search.svg'
+import clatIcon from '@/assets/images/clat-alimtalk-icon.png'
 import useToast from '@/hooks/useToast'
 import { isAxiosError } from '@/lib/api/http'
 import { queryKeys } from '@/lib/queryKeys'
@@ -36,14 +38,12 @@ import {
   BROADCAST_CHAR_LIMIT,
   BROADCAST_NOTICE_HINT,
   BROADCAST_NOTICE_LABEL,
+  BROADCAST_NOTICE_MIDDLE,
   BROADCAST_NOTICE_TYPES,
   academyNameForStudent,
   broadcastCharCount,
   renderBroadcastMessage,
-  renderBroadcastPreviewHeader,
 } from './_lib/broadcastNotice'
-import { AlimtalkPreviewVarText } from '@/components/message/LessonAlimtalkFramePreview'
-import * as frameStyles from '@/components/message/LessonAlimtalkFramePreview.css'
 import * as baseStyles from '../alimtalkSettings.css'
 import * as styles from './broadcast.css'
 
@@ -167,7 +167,7 @@ export default function AlimtalkBroadcastPage() {
   const [search, setSearch] = useState('')
   const [filterClassId, setFilterClassId] = useState<number | null>(null)
   const [sendToParent, setSendToParent] = useState(true)
-  const [sendToStudent, setSendToStudent] = useState(false)
+  const [sendToStudent, setSendToStudent] = useState(true)
   const [noticeType, setNoticeType] = useState<BroadcastNoticeType>('MAKEUP')
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [body, setBody] = useState('')
@@ -325,11 +325,6 @@ export default function AlimtalkBroadcastPage() {
     return classes.find((c) => c.id === filterClassId)?.name ?? null
   }, [classes, filterClassId])
 
-  const previewHeader = useMemo(
-    () => renderBroadcastPreviewHeader(noticeType),
-    [noticeType],
-  )
-
   const noticeBody = body.trim()
 
   const academyNameFor = useCallback(
@@ -380,6 +375,14 @@ export default function AlimtalkBroadcastPage() {
     sendToParent,
     sendToStudent,
   )
+
+  const previewStudent =
+    students.find(
+      (student) =>
+        selectedIds.has(student.id) && isSelectable(student, sendToParent, sendToStudent),
+    ) ?? null
+  const previewAcademy = previewStudent ? academyNameFor(previewStudent.id).trim() : ''
+  const previewName = previewStudent?.name.trim() ?? ''
 
   const confirmSchedule = async () => {
     if (scheduling || !channel || selectedIds.size === 0 || !body.trim() || !timeValue) return
@@ -502,37 +505,26 @@ export default function AlimtalkBroadcastPage() {
       <AlimtalkTabs />
 
       <div className={styles.layout}>
+        <div className={styles.leftColumn}>
         <section
-          className={`${styles.panel} ${styles.recipientPanel}`}
+          className={styles.panel}
           aria-label="수신자 선택"
           data-tour="alimtalk-broadcast-recipients"
         >
           <div className={styles.sectionHeader}>
-            <div className={styles.sectionHeaderText}>
-              <Text as="h2" variant="headingSm">
-                수신자 선택
-              </Text>
-              <Text as="p" variant="labelSm" color="gray500">
-                반으로 목록을 좁힌 뒤, 보이는 학생을 선택하세요
-              </Text>
-            </div>
+            <h2 className={baseStyles.settingsTitle}>수신자 선택</h2>
             <span className={styles.countBadge}>{selectedIds.size}명 선택</span>
           </div>
 
-          <div className={styles.searchWrap}>
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="학생 이름 · 반 이름 검색"
-              aria-label="학생 검색"
-            />
-          </div>
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="학생 이름 · 반 이름 검색"
+            aria-label="학생 검색"
+            trailing={<SearchIcon width={16} height={16} />}
+          />
 
-          <div className={styles.sectionBlock}>
-            <Text as="h3" variant="titleSm" color="gray700">
-              반
-            </Text>
-            <div className={styles.filterRow}>
+          <div className={styles.filterRow}>
               <button
                 type="button"
                 className={`${styles.filterChip} ${filterClassId == null ? styles.filterChipActive : styles.filterChipInactive}`}
@@ -554,13 +546,12 @@ export default function AlimtalkBroadcastPage() {
                 </button>
               ))}
             </div>
-          </div>
 
           <div className={styles.toolbar}>
             <div className={styles.toolbarActions}>
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
+                type="button"
+                className={styles.textAction}
                 onClick={allFilteredSelected ? clearFiltered : selectAllFiltered}
                 disabled={selectableFiltered.length === 0}
               >
@@ -569,10 +560,10 @@ export default function AlimtalkBroadcastPage() {
                   : filterClassName
                     ? `${filterClassName} 전체 선택`
                     : '표시된 학생 전체 선택'}
-              </Button>
-              <Button variant="ghost" size="sm" onClick={clearAll}>
+              </button>
+              <button type="button" className={styles.textActionMuted} onClick={clearAll}>
                 선택 모두 해제
-              </Button>
+              </button>
             </div>
             <Text as="span" variant="labelSm" color="gray500">
               표시 {filteredStudents.length}명 · 선택 가능 {selectableFiltered.length}명
@@ -591,11 +582,12 @@ export default function AlimtalkBroadcastPage() {
                 const ok = isSelectable(s, sendToParent, sendToStudent)
                 const checked = selectedIds.has(s.id)
                 const over = ok && charCountFor(s) > BROADCAST_CHAR_LIMIT
+                const classLabel = s.classes?.map((c) => c.name).join(' · ') ?? ''
                 return (
                   <button
                     key={s.id}
                     type="button"
-                    className={`${listItemRowStyle} ${styles.studentRowButton}${checked ? ` ${listItemRowSelectedStyle}` : ''}${ok ? '' : ` ${styles.studentRowDisabled}`}`}
+                    className={`${styles.studentRow}${checked ? ` ${styles.studentRowSelected}` : ''}${ok ? '' : ` ${styles.studentRowDisabled}`}`}
                     aria-pressed={checked}
                     disabled={!ok}
                     onClick={() => toggleStudent(s)}
@@ -608,12 +600,19 @@ export default function AlimtalkBroadcastPage() {
                       <span className={styles.checkBox} aria-hidden />
                     )}
                     <span className={styles.studentName}>{s.name}</span>
-                    <span className={over ? styles.studentMetaOver : styles.studentMeta}>
-                      {over
-                        ? '1,000자 초과'
-                        : ok
-                          ? s.classes?.map((c) => c.name).join(', ') || '—'
-                          : disableReason(s, sendToParent, sendToStudent)}
+                    <span className={styles.studentMetaGroup}>
+                      {!ok ? (
+                        <span className={styles.studentMetaOver}>
+                          {disableReason(s, sendToParent, sendToStudent)}
+                        </span>
+                      ) : null}
+                      {over ? (
+                        <span className={styles.studentMetaOver}>1,000자 초과</span>
+                      ) : classLabel ? (
+                        <span className={styles.studentMeta}>{classLabel}</span>
+                      ) : ok ? (
+                        <span className={styles.studentMeta}>—</span>
+                      ) : null}
                     </span>
                   </button>
                 )
@@ -622,16 +621,12 @@ export default function AlimtalkBroadcastPage() {
           </div>
         </section>
 
-        <section className={styles.composeStack} aria-label="공지 작성">
-          <div className={styles.panel} data-tour="alimtalk-broadcast-compose">
-            <div className={styles.sectionHeaderText}>
-              <Text as="h2" variant="headingSm">
-                공지 작성
-              </Text>
-              <Text as="p" variant="labelSm" color="gray500">
-                종류를 고르면 알림톡 문안이 바뀌고, 입력은 안내사항만 들어갑니다
-              </Text>
-            </div>
+        <section
+          className={styles.panel}
+          aria-label="공지 작성"
+          data-tour="alimtalk-broadcast-compose"
+        >
+            <h2 className={baseStyles.settingsTitle}>공지 작성</h2>
 
             <div className={styles.sectionBlock}>
               <Text as="h3" variant="titleSm" color="gray700">
@@ -690,15 +685,24 @@ export default function AlimtalkBroadcastPage() {
                 안내사항
               </Text>
               <div className={styles.suggestionWrap} ref={suggestionAnchorRef}>
-                <Textarea
-                  className={styles.bodyTextarea}
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                  onFocus={() => setBodyFocused(true)}
-                  onBlur={() => setBodyFocused(false)}
-                  placeholder="예: 내일 오후 7시, 3층 강의실에서 보강합니다."
-                  aria-label="안내사항"
-                />
+                <div className={styles.bodyBox}>
+                  <Textarea
+                    className={styles.bodyTextarea}
+                    value={body}
+                    onChange={(e) => setBody(e.target.value)}
+                    onFocus={() => setBodyFocused(true)}
+                    onBlur={() => setBodyFocused(false)}
+                    placeholder="예: 내일 13시, 3층 강의실에서 보강합니다."
+                    aria-label="안내사항"
+                  />
+                  <p
+                    className={
+                      previewCount > BROADCAST_CHAR_LIMIT ? styles.bodyCountOver : styles.bodyCount
+                    }
+                  >
+                    {`${previewCount.toLocaleString('ko-KR')} / 1,000자`}
+                  </p>
+                </div>
                 {bodyFocused && !body.trim() && suggestion && hasSuggestionContent(suggestion) ? (
                   <CommonSuggestionPopover
                     suggestion={suggestion}
@@ -714,7 +718,6 @@ export default function AlimtalkBroadcastPage() {
               <Text as="p" variant="bodyMd" color="gray700">
                 선택 {selectedIds.size}명 · 예상 발송 {expectedCount}건
               </Text>
-              <QuotaNotice needed={expectedCount} />
               <div className={styles.summaryActions}>
                 <Button
                   variant="outlined"
@@ -738,6 +741,7 @@ export default function AlimtalkBroadcastPage() {
                 </Button>
               </div>
             </div>
+            <QuotaNotice needed={expectedCount} />
             {pickingTime ? (
               <div className={styles.schedulePick}>
                 <Text as="span" variant="bodyMd" color="gray500">
@@ -775,42 +779,51 @@ export default function AlimtalkBroadcastPage() {
                 ))}
               </ul>
             ) : null}
-          </div>
+        </section>
+        </div>
 
-          <div className={baseStyles.previewColumn} data-tour="alimtalk-broadcast-preview">
-            <h2 className={baseStyles.previewTitle}>알림톡 미리보기</h2>
-            <div className={baseStyles.previewPhoneShell}>
-              <div className={baseStyles.previewLogoRow}>
-                <div className={baseStyles.previewLogoPlaceholder} />
-                <span className={baseStyles.previewAppLabel}>클랫 수업 알림</span>
+        <aside className={styles.previewSticky} data-tour="alimtalk-broadcast-preview">
+          <div className={baseStyles.settingsPreview}>
+            <div className={baseStyles.previewHeading}>
+              <h2 className={baseStyles.previewHeadingTitle}>알림톡 미리보기</h2>
+              <p className={baseStyles.previewHeadingText}>
+                실제로 받는 예시 모습이에요. 파란 글씨는 채워진 정보예요.
+              </p>
+            </div>
+            <div className={baseStyles.previewChat}>
+              <Image src={clatIcon} alt="" width={36} height={36} className={baseStyles.previewAvatar} />
+              <div className={baseStyles.previewThread}>
+                <p className={baseStyles.previewName}>클랫 수업 알림</p>
+                <div className={baseStyles.previewBubbleRow}>
+                  <div className={baseStyles.previewMessage}>
+                    <div className={baseStyles.previewArrive}>알림톡 공지 도착</div>
+                    <div className={baseStyles.previewBody}>
+                      <p className={baseStyles.previewPhrase}>
+                        {'안녕하세요. '}
+                        <span className={baseStyles.previewFilled}>
+                          {previewAcademy || '{학원명}'}
+                        </span>
+                        {' '}
+                        <span className={baseStyles.previewFilled}>
+                          {teacherName.trim() || '{강사명}'}
+                        </span>
+                        {'입니다.\n'}
+                        <span className={baseStyles.previewFilled}>
+                          {previewName || '{학생이름}'}
+                        </span>
+                        {` 학생의 ${BROADCAST_NOTICE_MIDDLE[noticeType]}입니다.\n\n`}
+                        <span className={baseStyles.previewFilled}>
+                          {noticeBody || '{안내사항}'}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <p className={baseStyles.previewClock}>오후 09:54</p>
+                </div>
               </div>
-              <div className={baseStyles.previewHeaderBar}>
-                <p className={baseStyles.previewHeaderText}>알림톡 상세 도착</p>
-              </div>
-              <div className={baseStyles.previewBubble}>
-                <AlimtalkPreviewVarText text={previewHeader} highlightVars />
-                {body.trim() ? (
-                  <p className={frameStyles.bodyText}>{body.trim()}</p>
-                ) : (
-                  <AlimtalkPreviewVarText
-                    text="{안내사항}"
-                    highlightVars
-                    className={frameStyles.bodyText}
-                  />
-                )}
-              </div>
-              <Text
-                as="p"
-                variant="labelSm"
-                color={previewCount > BROADCAST_CHAR_LIMIT ? 'error500' : 'gray500'}
-                className={styles.lengthLine}
-              >
-                {`${previewCount.toLocaleString('ko-KR')}자 / 1,000자`}
-              </Text>
-              <p className={baseStyles.previewTime}>오후 09:54</p>
             </div>
           </div>
-        </section>
+        </aside>
       </div>
       <Modal isOpen={lengthOpen} onClose={() => setLengthOpen(false)} size="sm">
         <div className={styles.lengthBody}>

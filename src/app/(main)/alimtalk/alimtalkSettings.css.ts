@@ -105,11 +105,10 @@ export const deliveryBanner = style({
   },
 })
 
-export const columns = style({
+export const settingsColumns = style({
   display: 'flex',
   gap: '24px',
   alignItems: 'flex-start',
-  flexWrap: 'wrap',
   '@media': {
     [media.phone]: {
       flexDirection: 'column',
@@ -117,21 +116,317 @@ export const columns = style({
   },
 })
 
-export const formColumn = style({
-  flex: '0 0 448px',
-  minWidth: '320px',
+export const settingsFormSide = style({
+  flex: '1 1 0',
+  minWidth: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '14px',
+  '@media': {
+    [media.phone]: {
+      width: '100%',
+    },
+  },
+})
+
+export const settingsCard = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '52px',
   backgroundColor: colors.gray50,
   borderRadius: '16px',
   padding: '32px',
   boxSizing: 'border-box',
   '@media': {
     [media.phone]: {
-      flex: '1 1 auto',
-      width: '100%',
-      minWidth: 0,
+      gap: '32px',
       padding: '20px',
     },
   },
+})
+
+export const settingsSection = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
+})
+
+export const settingsTitleRow = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  flexWrap: 'wrap',
+})
+
+export const settingsTitle = style({
+  margin: 0,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '24px',
+  fontWeight: 500,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  color: colors.gray900,
+})
+
+export const settingsTitleHint = style({
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '12px',
+  fontWeight: 500,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  color: colors.gray500,
+})
+
+export const autoInsert = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '10px',
+})
+
+export const autoInsertHelp = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  padding: '0 3px',
+})
+
+export const autoInsertTitle = style({
+  margin: 0,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '14px',
+  fontWeight: 500,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  color: colors.gray900,
+})
+
+export const autoInsertText = style({
+  margin: 0,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '12px',
+  fontWeight: 500,
+  lineHeight: 1.5,
+  color: colors.gray500,
+})
+
+export const insertChipRow = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '6px',
+})
+
+export const insertChip = style({
+  border: `1px solid ${colors.gray100}`,
+  backgroundColor: colors.white,
+  borderRadius: '999px',
+  padding: '6px 10px 6px 8px',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '14px',
+  fontWeight: 500,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  color: colors.primary500,
+  cursor: 'pointer',
+  selectors: {
+    '&:hover': {
+      backgroundColor: colors.primary50,
+    },
+  },
+})
+
+export const saveButton = style({
+  alignSelf: 'flex-start',
+  minHeight: '40px',
+  padding: '8px 12px',
+})
+
+export const templateBox = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0',
+  padding: '14px 16px',
+  borderRadius: '12px',
+  backgroundColor: colors.primary50,
+  textDecoration: 'none',
+  boxSizing: 'border-box',
+})
+
+export const templateBoxText = style({
+  margin: 0,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '13px',
+  fontWeight: 500,
+  lineHeight: 1.5,
+  color: colors.gray700,
+})
+
+export const templateBoxAction = style({
+  margin: 0,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '13px',
+  fontWeight: 700,
+  lineHeight: 1.5,
+  color: colors.primary500,
+})
+
+export const settingsPreview = style({
+  flex: '1 1 0',
+  minWidth: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '20px',
+  backgroundColor: previewPanelBg,
+  borderRadius: '16px',
+  padding: '32px',
+  boxSizing: 'border-box',
+  '@media': {
+    [media.phone]: {
+      width: '100%',
+      padding: '20px',
+    },
+  },
+})
+
+export const previewHeading = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+})
+
+export const previewHeadingTitle = style({
+  margin: 0,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '20px',
+  fontWeight: 700,
+  lineHeight: 1.4,
+  color: colors.gray900,
+})
+
+export const previewHeadingText = style({
+  margin: 0,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '14px',
+  fontWeight: 400,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  color: colors.gray700,
+})
+
+export const previewChat = style({
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: '8px',
+  minWidth: 0,
+})
+
+export const previewAvatar = style({
+  width: '36px',
+  height: '36px',
+  borderRadius: '14px',
+  backgroundColor: colors.white,
+  objectFit: 'cover',
+  flexShrink: 0,
+})
+
+export const previewThread = style({
+  flex: '1 1 0',
+  minWidth: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '6px',
+  paddingTop: '6px',
+})
+
+export const previewName = style({
+  margin: 0,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '13px',
+  fontWeight: 500,
+  lineHeight: 1.4,
+  color: colors.gray600,
+})
+
+export const previewBubbleRow = style({
+  display: 'flex',
+  alignItems: 'flex-end',
+  gap: '8px',
+  minWidth: 0,
+})
+
+export const previewMessage = style({
+  flex: '1 1 360px',
+  width: 'min(360px, 100%)',
+  maxWidth: '360px',
+  backgroundColor: colors.white,
+  borderRadius: '20px',
+  overflow: 'hidden',
+})
+
+export const previewArrive = style({
+  backgroundColor: kakaoHeaderYellow,
+  padding: '12px 16px',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '14px',
+  fontWeight: 400,
+  lineHeight: 1.4,
+  color: colors.gray900,
+})
+
+export const previewBody = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '14px',
+  padding: '16px',
+})
+
+export const previewPhrase = style({
+  margin: 0,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '14px',
+  fontWeight: 500,
+  lineHeight: 1.5,
+  color: colors.gray900,
+  whiteSpace: 'pre-wrap',
+  overflowWrap: 'anywhere',
+})
+
+export const previewFilled = style({
+  color: colors.primary500,
+  fontWeight: 700,
+})
+
+export const previewLesson = style({
+  margin: 0,
+  opacity: 0.54,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '13px',
+  fontWeight: 500,
+  lineHeight: 1.5,
+  color: colors.gray700,
+  whiteSpace: 'pre-wrap',
+})
+
+export const settingsCta = style({
+  backgroundColor: colors.gray50,
+  borderRadius: '8px',
+  padding: '12px',
+  textAlign: 'center',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '14px',
+  fontWeight: 400,
+  lineHeight: 1.4,
+  color: colors.gray600,
+})
+
+export const previewClock = style({
+  flexShrink: 0,
+  margin: 0,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '12px',
+  fontWeight: 500,
+  lineHeight: 1.4,
+  color: colors.gray600,
+  whiteSpace: 'nowrap',
 })
 
 export const previewColumn = style({
@@ -149,111 +444,6 @@ export const previewColumn = style({
       padding: '20px',
     },
   },
-})
-
-export const hintRow = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  marginBottom: '24px',
-})
-
-export const hintText = style({
-  fontFamily: 'Pretendard, sans-serif',
-  fontSize: '14px',
-  fontWeight: 500,
-  lineHeight: 1.4,
-  color: colors.primary500,
-})
-
-export const sectionLabel = style({
-  fontFamily: 'Pretendard, sans-serif',
-  fontSize: '20px',
-  fontWeight: 600,
-  lineHeight: 1.4,
-  letterSpacing: '-0.03em',
-  color: colors.gray900,
-  margin: '0 0 12px',
-})
-
-export const sectionBlock = style({
-  marginBottom: '24px',
-})
-
-export const textareaBox = style({
-  width: '100%',
-  minHeight: '72px',
-  padding: '14px 16px',
-  borderRadius: '8px',
-  border: `1px solid ${colors.gray50}`,
-  backgroundColor: colors.white,
-  fontFamily: 'Pretendard, sans-serif',
-  fontSize: '14px',
-  fontWeight: 500,
-  lineHeight: 1.4,
-  color: colors.gray900,
-  resize: 'vertical',
-  boxSizing: 'border-box',
-  selectors: {
-    '&:focus': {
-      outline: `2px solid ${colors.primary200}`,
-      outlineOffset: '1px',
-    },
-    '&::placeholder': {
-      color: colors.gray300,
-    },
-  },
-})
-
-export const varSectionLabel = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '4px',
-  marginTop: '8px',
-  marginBottom: '8px',
-})
-
-export const varLabelText = style({
-  fontFamily: 'Pretendard, sans-serif',
-  fontSize: '14px',
-  fontWeight: 600,
-  color: colors.gray700,
-})
-
-export const varChipsRow = style({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '4px',
-})
-
-export const varChip = style({
-  fontFamily: 'Pretendard, sans-serif',
-  fontSize: '12px',
-  fontWeight: 500,
-  lineHeight: 1.4,
-  color: colors.primary500,
-  backgroundColor: colors.primary100,
-  border: 'none',
-  borderRadius: '6px',
-  padding: '4px 8px',
-  cursor: 'pointer',
-  selectors: {
-    '&:hover': {
-      backgroundColor: colors.primary200,
-    },
-  },
-})
-
-export const varIconBox = style({
-  width: '16px',
-  height: '16px',
-  borderRadius: '4px',
-  backgroundColor: colors.primary100,
-  flexShrink: 0,
-})
-
-export const saveRow = style({
-  marginTop: '24px',
 })
 
 export const previewTitle = style({

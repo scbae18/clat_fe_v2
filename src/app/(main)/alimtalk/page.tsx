@@ -1,47 +1,93 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
 import Button from '@/components/common/Button'
 import useToast from '@/hooks/useToast'
 import { alimtalkService, type AlimtalkDeliveryMode } from '@/services/alimtalk'
-import InfoIcon from '@/assets/icons/icon-info.svg'
+import { classService, type Class } from '@/services/class'
+import { useUserStore } from '@/stores/userStore'
+import SaveIcon from '@/assets/icons/icon-save.svg'
+import clatIcon from '@/assets/images/clat-alimtalk-icon.png'
+import {
+  LESSON_ALIMTALK_CTA_LABEL,
+  LESSON_ALIMTALK_FRAME_FOOTER,
+  fillLessonAlimtalkFrameHeader,
+} from '@/lib/lessonAlimtalkFrame'
 import { AlimtalkTabs } from './_components/AlimtalkTabs'
-import { LESSON_ALIMTALK_FRAME_HEADER } from '@/lib/lessonAlimtalkFrame'
-import LessonAlimtalkFramePreview from '@/components/message/LessonAlimtalkFramePreview'
+import VariablePhraseField, {
+  VARIABLE_INSERTS,
+  type VariablePhraseFieldHandle,
+} from './_components/VariablePhraseField/VariablePhraseField'
 import * as styles from './alimtalkSettings.css'
 
-const PREVIEW_MIDDLE =
-  '\u25A0 \uC624\uB298\uC758 \uD559\uC2B5 \uB0B4\uC6A9: {\uB0B4\uC6A9}\n' +
-  '\u25A0 \uCD9C\uACB0: {\uCD9C\uACB0}\n' +
-  '\u25A0 \uC2DC\uD5D8 \uC810\uC218: {\uC810\uC218}\n' +
-  '\u25A0 \uD53C\uB4DC\uBC31: {\uD53C\uB4DC\uBC31}'
+const LESSON_SAMPLE = [
+  '■ 오늘 학습 내용: 이차함수의 그래프',
+  '■ 출결: 출석',
+  '■ 시험 점수: 84점',
+  '■ 피드백: 꾸준히 노력한 흔적이 보여요.',
+].join('\n')
 
-const VARIABLE_INSERTS: { display: string; snippet: string }[] = [
-  { display: '{ \uAC15\uC0AC\uBA85 }', snippet: '{\uAC15\uC0AC\uBA85}' },
-  { display: '{ \uD559\uC6D0\uBA85 }', snippet: '{\uD559\uC6D0\uBA85}' },
-  { display: '{ \uD559\uC0DD\uC774\uB984 }', snippet: '{\uD559\uC0DD\uC774\uB984}' },
-  { display: '{ \uB0A0\uC9DC }', snippet: '{\uB0A0\uC9DC}' },
-  { display: '{ \uBC18\uC774\uB984 }', snippet: '{\uBC18\uC774\uB984}' },
-]
+const PREVIEW_STUDENT_NAME = '홍길동'
+const PREVIEW_DATE = '11월 25일'
 
-function insertAtCursor(el: HTMLTextAreaElement, text: string) {
-  const start = el.selectionStart ?? el.value.length
-  const end = el.selectionEnd ?? el.value.length
-  const next = el.value.slice(0, start) + text + el.value.slice(end)
-  el.value = next
-  const pos = start + text.length
-  el.setSelectionRange(pos, pos)
-  el.focus()
+function pickPreviewClass(classes: Class[]) {
+  return classes.find((item) => !item.ended_at) ?? classes[0] ?? null
+}
+
+function PreviewPhrase({ text, samples }: { text: string; samples: Record<string, string> }) {
+  const parts = text.split(/(\{[^}]+\})/g)
+  return (
+    <p className={styles.previewPhrase}>
+      {parts.map((part, index) =>
+        part.startsWith('{') && part.endsWith('}') ? (
+          <strong key={`${part}-${index}`} className={styles.previewFilled}>
+            {samples[part] ?? part.slice(1, -1)}
+          </strong>
+        ) : (
+          <span key={`${part}-${index}`}>{part}</span>
+        ),
+      )}
+    </p>
+  )
+}
+
+function InsertChips({ onInsert }: { onInsert: (token: string) => void }) {
+  return (
+    <div className={styles.autoInsert}>
+      <div className={styles.autoInsertHelp}>
+        <p className={styles.autoInsertTitle}>자동 정보 넣기</p>
+        <p className={styles.autoInsertText}>보낼 때 실제 정보로 바뀌어요.</p>
+      </div>
+      <div className={styles.insertChipRow}>
+        {VARIABLE_INSERTS.map((item) => (
+          <button
+            key={item.token}
+            type="button"
+            className={styles.insertChip}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => onInsert(item.token)}
+          >
+            {`+ ${item.label}`}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export default function AlimtalkSettingsPage() {
   const { success, error } = useToast()
-  const introRef = useRef<HTMLTextAreaElement>(null)
-  const outroRef = useRef<HTMLTextAreaElement>(null)
+  const teacherName = useUserStore((state) => state.user?.name)?.trim() || '선생님'
+  const introRef = useRef<VariablePhraseFieldHandle>(null)
+  const outroRef = useRef<VariablePhraseFieldHandle>(null)
 
   const [intro, setIntro] = useState('')
   const [outro, setOutro] = useState('')
   const [deliveryMode, setDeliveryMode] = useState<AlimtalkDeliveryMode>('mock')
+  const [academyName, setAcademyName] = useState('학원명')
+  const [className, setClassName] = useState('반 이름')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -49,13 +95,22 @@ export default function AlimtalkSettingsPage() {
     let cancelled = false
     ;(async () => {
       try {
-        const s = await alimtalkService.getSettings()
+        const [settings, classRes] = await Promise.all([
+          alimtalkService.getSettings(),
+          classService.getClasses().catch(() => null),
+        ])
         if (cancelled) return
-        setIntro(s.intro_text ?? '')
-        setOutro(s.outro_text ?? '')
-        setDeliveryMode(s.delivery_mode)
+        setIntro(settings.intro_text ?? '')
+        setOutro(settings.outro_text ?? '')
+        setDeliveryMode(settings.delivery_mode)
+        const picked = pickPreviewClass(classRes?.data ?? [])
+        if (!picked) return
+        const academy = picked.academy_name.trim()
+        const name = picked.name.trim()
+        if (academy) setAcademyName(academy)
+        if (name) setClassName(name)
       } catch {
-        if (!cancelled) error('\uC124\uC815\uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC5B4\uC694.')
+        if (!cancelled) error('설정을 불러오지 못했어요.')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -67,19 +122,14 @@ export default function AlimtalkSettingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- load settings once on mount
   }, [])
 
-  const onInsertIntro = useCallback((snippet: string) => {
-    const el = introRef.current
-    if (!el) return
-    insertAtCursor(el, snippet)
-    setIntro(el.value)
-  }, [])
-
-  const onInsertOutro = useCallback((snippet: string) => {
-    const el = outroRef.current
-    if (!el) return
-    insertAtCursor(el, snippet)
-    setOutro(el.value)
-  }, [])
+  const previewSamples: Record<string, string> = {
+    '{학원명}': academyName,
+    '{강사명}': teacherName,
+    '{학생이름}': PREVIEW_STUDENT_NAME,
+    '{날짜}': PREVIEW_DATE,
+    '{수업일}': PREVIEW_DATE,
+    '{반이름}': className,
+  }
 
   const handleSave = async () => {
     setSaving(true)
@@ -88,15 +138,13 @@ export default function AlimtalkSettingsPage() {
         intro_text: intro.trim() || null,
         outro_text: outro.trim() || null,
       })
-      success('\uC800\uC7A5\uD588\uC5B4\uC694.')
+      success('저장했어요.')
     } catch {
-      error('\uC800\uC7A5\uC5D0 \uC2E4\uD328\uD588\uC5B4\uC694.')
+      error('저장에 실패했어요.')
     } finally {
       setSaving(false)
     }
   }
-
-  const previewBlock = [intro.trim(), PREVIEW_MIDDLE, outro.trim()].filter(Boolean).join('\n\n')
 
   if (loading) {
     return null
@@ -104,115 +152,105 @@ export default function AlimtalkSettingsPage() {
 
   return (
     <div className={styles.pageRoot}>
-      <h1 className={styles.pageTitle}>{'\uC54C\uB9BC\uD1A1'}</h1>
+      <h1 className={styles.pageTitle}>알림톡</h1>
       {deliveryMode === 'mock' && (
         <div className={styles.deliveryBanner}>
-          {'\uD604\uC7AC '}
-          <strong>{'\uBAA8\uC758 \uC804\uC1A1(mock)'}</strong>
-          {
-            ' \uBAA8\uB4DC\uC785\uB2C8\uB2E4. \uC2E4\uC81C \uCE74\uCE74\uC624 \uC54C\uB9BC\uD1A1\uC740 \uBC1C\uC1A1\uB418\uC9C0 \uC54A\uC544\uC694.'
-          }
+          {'현재 '}
+          <strong>모의 전송(mock)</strong>
+          {' 모드입니다. 실제 카카오 알림톡은 발송되지 않아요.'}
         </div>
       )}
 
       <AlimtalkTabs />
 
-      <div className={styles.columns}>
-        <div className={styles.formColumn}>
-          <div className={styles.hintRow}>
-            <InfoIcon width={20} height={20} />
-            <span className={styles.hintText}>
-              {
-                '\uBB38\uC790\uC5D0 \uD3EC\uD568\uD560 \uD56D\uBAA9\uC740 \uAC01 \uC218\uC5C5 \uD654\uBA74\uC5D0\uC11C \uC124\uC815\uD560 \uC218 \uC788\uC5B4\uC694'
-              }
-            </span>
-          </div>
+      <div className={styles.settingsColumns}>
+        <div className={styles.settingsFormSide}>
+          <div className={styles.settingsCard}>
+            <section className={styles.settingsSection} data-tour="alimtalk-intro">
+              <div className={styles.settingsTitleRow}>
+                <h2 className={styles.settingsTitle}>인트로</h2>
+                <span className={styles.settingsTitleHint}>문자 맨 앞에 들어가는 첫인사</span>
+              </div>
+              <VariablePhraseField
+                ref={introRef}
+                value={intro}
+                onChange={setIntro}
+                placeholder="비워 두면 문자에 넣지 않아요"
+                ariaLabel="인트로 문구"
+              />
+              <InsertChips onInsert={(token) => introRef.current?.insertToken(token)} />
+            </section>
 
-          <div className={styles.sectionBlock} data-tour="alimtalk-intro">
-            <h2 className={styles.sectionLabel}>{'\uC778\uD2B8\uB85C'}</h2>
-            <textarea
-              ref={introRef}
-              className={styles.textareaBox}
-              value={intro}
-              onChange={(e) => setIntro(e.target.value)}
-              rows={4}
-              placeholder="비워 두면 문자에 넣지 않아요"
-              aria-label={'\uC778\uD2B8\uB85C \uBB38\uAD6C'}
-            />
-            <div className={styles.varSectionLabel}>
-              <span className={styles.varIconBox} aria-hidden />
-              <span className={styles.varLabelText}>{'\uBCC0\uC218 \uC0BD\uC785'}</span>
-            </div>
-            <div className={styles.varChipsRow}>
-              {VARIABLE_INSERTS.map((v) => (
-                <button
-                  key={`intro-${v.snippet}`}
-                  type="button"
-                  className={styles.varChip}
-                  onClick={() => onInsertIntro(v.snippet)}
-                >
-                  {v.display}
-                </button>
-              ))}
-            </div>
-          </div>
+            <section className={styles.settingsSection} data-tour="alimtalk-outro">
+              <div className={styles.settingsTitleRow}>
+                <h2 className={styles.settingsTitle}>아웃트로</h2>
+                <span className={styles.settingsTitleHint}>문자 맨 끝에 들어가는 끝인사</span>
+              </div>
+              <VariablePhraseField
+                ref={outroRef}
+                value={outro}
+                onChange={setOutro}
+                placeholder="비워 두면 문자에 넣지 않아요"
+                ariaLabel="아웃트로 문구"
+              />
+              <InsertChips onInsert={(token) => outroRef.current?.insertToken(token)} />
+            </section>
 
-          <div className={styles.sectionBlock} data-tour="alimtalk-outro">
-            <h2 className={styles.sectionLabel}>{'\uC544\uC6C3\uD2B8\uB85C'}</h2>
-            <textarea
-              ref={outroRef}
-              className={styles.textareaBox}
-              value={outro}
-              onChange={(e) => setOutro(e.target.value)}
-              rows={4}
-              placeholder="비워 두면 문자에 넣지 않아요"
-              aria-label={'\uC544\uC6C3\uD2B8\uB85C \uBB38\uAD6C'}
-            />
-            <div className={styles.varSectionLabel}>
-              <span className={styles.varIconBox} aria-hidden />
-              <span className={styles.varLabelText}>{'\uBCC0\uC218 \uC0BD\uC785'}</span>
-            </div>
-            <div className={styles.varChipsRow}>
-              {VARIABLE_INSERTS.map((v) => (
-                <button
-                  key={`outro-${v.snippet}`}
-                  type="button"
-                  className={styles.varChip}
-                  onClick={() => onInsertOutro(v.snippet)}
-                >
-                  {v.display}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.saveRow}>
-            <Button variant="primary" size="md" onClick={handleSave} disabled={saving}>
-              {saving ? '\uC800\uC7A5 \uC911\u2026' : '\uC800\uC7A5'}
+            <Button
+              variant="primary"
+              size="sm"
+              className={styles.saveButton}
+              leftIcon={<SaveIcon width={20} height={20} />}
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? '저장 중…' : '저장'}
             </Button>
           </div>
+
+          <Link href="/template" className={styles.templateBox}>
+            <p className={styles.templateBoxText}>
+              가운데 수업 내용(학습 내용·출결·점수 등)은 수업 템플릿에서 정해져요.
+            </p>
+            <p className={styles.templateBoxAction}>수업 템플릿 보기 →</p>
+          </Link>
         </div>
 
-        <div className={styles.previewColumn} data-tour="alimtalk-preview">
-          <h2 className={styles.previewTitle}>{'\uC54C\uB9BC\uD1A1 \uBBF8\uB9AC\uBCF4\uAE30'}</h2>
-          <div className={styles.previewPhoneShell}>
-            <div className={styles.previewLogoRow}>
-              <div className={styles.previewLogoPlaceholder} />
-              <span className={styles.previewAppLabel}>{'\uD074\uB7AB \uC218\uC5C5 \uC54C\uB9BC'}</span>
-            </div>
-            <div className={styles.previewHeaderBar}>
-              <p className={styles.previewHeaderText}>{'\uC54C\uB9BC\uD1A1 \uC0C1\uC138 \uB3C4\uCC29'}</p>
-            </div>
-            <div className={styles.previewBubble}>
-              <LessonAlimtalkFramePreview
-                header={LESSON_ALIMTALK_FRAME_HEADER}
-                body={previewBlock}
-                highlightVars
-              />
-            </div>
-            <p className={styles.previewTime}>{'\uC624\uD6C4 09:54'}</p>
+        <aside className={styles.settingsPreview} data-tour="alimtalk-preview">
+          <div className={styles.previewHeading}>
+            <h2 className={styles.previewHeadingTitle}>알림톡 미리보기</h2>
+            <p className={styles.previewHeadingText}>
+              실제로 받는 예시 모습이에요. 파란 글씨는 자동으로 정보가 채워져요.
+            </p>
           </div>
-        </div>
+          <div className={styles.previewChat}>
+            <Image src={clatIcon} alt="" width={36} height={36} className={styles.previewAvatar} />
+            <div className={styles.previewThread}>
+              <p className={styles.previewName}>클랫 수업 알림</p>
+              <div className={styles.previewBubbleRow}>
+                <div className={styles.previewMessage}>
+                  <div className={styles.previewArrive}>알림톡 도착</div>
+                  <div className={styles.previewBody}>
+                    <p className={styles.previewLesson}>
+                      {fillLessonAlimtalkFrameHeader({
+                        academyName,
+                        teacherName,
+                        studentName: PREVIEW_STUDENT_NAME,
+                        lessonDate: PREVIEW_DATE,
+                      })}
+                    </p>
+                    {intro.trim() ? <PreviewPhrase text={intro.trim()} samples={previewSamples} /> : null}
+                    <p className={styles.previewLesson}>{LESSON_SAMPLE}</p>
+                    {outro.trim() ? <PreviewPhrase text={outro.trim()} samples={previewSamples} /> : null}
+                    <p className={styles.previewLesson}>{LESSON_ALIMTALK_FRAME_FOOTER}</p>
+                    <div className={styles.settingsCta}>{LESSON_ALIMTALK_CTA_LABEL}</div>
+                  </div>
+                </div>
+                <p className={styles.previewClock}>오후 09:54</p>
+              </div>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   )
