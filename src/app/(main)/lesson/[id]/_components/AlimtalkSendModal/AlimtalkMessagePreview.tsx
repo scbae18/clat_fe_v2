@@ -12,18 +12,6 @@ import type { LessonPreviewRow } from '@/services/lesson'
 import { listParentPhones } from '@/lib/parentPhones'
 import * as styles from './AlimtalkSendModal.css'
 
-const CHAR_LIMIT = 1000
-
-function CharCount({ count }: { count: number | undefined }) {
-  if (typeof count !== 'number') return null
-  const over = count > CHAR_LIMIT
-  return (
-    <Text variant="labelSm" color={over ? 'error500' : 'gray500'} className={styles.lengthLine}>
-      {`${count.toLocaleString('ko-KR')}자 / 1,000자`}
-    </Text>
-  )
-}
-
 function hasPhone(value: string | null | undefined) {
   return Boolean(value && String(value).replace(/\D/g, '').length >= 8)
 }
@@ -46,14 +34,12 @@ function KakaoPreview({
   header,
   body,
   missingMessage,
-  count,
   clock,
 }: {
   audience: '학부모용' | '학생용'
   header: string
   body: string
   missingMessage: string | null
-  count: number | undefined
   clock: string
 }) {
   return (
@@ -82,7 +68,6 @@ function KakaoPreview({
           <p className={styles.kakaoTime}>{clock}</p>
         </div>
       </div>
-      {missingMessage ? null : <CharCount count={count} />}
     </div>
   )
 }
@@ -114,14 +99,12 @@ export default function AlimtalkMessagePreview({
 
   return (
     <div className={styles.previewStack}>
-      <Text variant="titleMd">메시지 미리보기</Text>
       {sendToParent ? (
         <KakaoPreview
           audience="학부모용"
           header={frameHeader}
           body={stripParentDashboardPreviewLine(focused.message_for_parent || '')}
           missingMessage={parentReady ? null : '학부모 연락처가 없어 이 채널로는 발송되지 않아요.'}
-          count={focused.parent_char_count}
           clock={clock}
         />
       ) : null}
@@ -131,7 +114,6 @@ export default function AlimtalkMessagePreview({
           header={frameHeader}
           body={focused.message || ''}
           missingMessage={studentReady ? null : '학생 연락처가 없어 이 채널로는 발송되지 않아요.'}
-          count={focused.student_char_count}
           clock={clock}
         />
       ) : null}

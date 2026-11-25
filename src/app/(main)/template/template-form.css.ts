@@ -44,11 +44,26 @@ export const sectionBoxStyle = style({
   backgroundColor: colors.gray50,
   borderRadius: '16px',
   padding: '32px',
+  minWidth: 0,
   '@media': {
     [media.phone]: {
       padding: '20px',
     },
   },
+})
+
+export const leftStackStyle = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '32px',
+  minWidth: 0,
+})
+
+export const stackDividerStyle = style({
+  height: '1px',
+  backgroundColor: colors.gray100,
+  border: 'none',
+  margin: 0,
 })
 
 export const formHeaderStyle = style({

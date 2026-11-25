@@ -24,6 +24,10 @@ import {
   rowListStyle,
   rowStyle,
   rowDraggingStyle,
+  compactRowStyle,
+  compactHeaderStyle,
+  categoryMarkStyle,
+  categoryDividerStyle,
   dragHandleStyle,
   dragDotRowStyle,
   dragDotStyle,
@@ -51,6 +55,8 @@ interface MessageSettingsProps {
   onRecipientToggle?: (id: string, channel: RecipientChannel) => void
   /** 수업 화면 등: 토글은 표시만 하고 순서만 변경 */
   toggleDisabled?: boolean
+  /** 템플릿 설정: 유형 뱃지 없이 한 줄로 표시 */
+  density?: 'default' | 'compact'
 }
 
 interface SortableRowProps {
@@ -58,6 +64,7 @@ interface SortableRowProps {
   onToggle: (id: string) => void
   onRecipientToggle?: (id: string, channel: RecipientChannel) => void
   toggleDisabled?: boolean
+  compact?: boolean
 }
 
 function DragHandle() {
@@ -81,11 +88,13 @@ function DragHandle() {
 
 function RecipientToggleButton({
   label,
+  ariaLabel,
   pressed,
   disabled,
   onChange,
 }: {
   label: string
+  ariaLabel: string
   pressed: boolean
   disabled?: boolean
   onChange: () => void
@@ -94,7 +103,7 @@ function RecipientToggleButton({
     <button
       type="button"
       aria-pressed={pressed}
-      aria-label={label}
+      aria-label={ariaLabel}
       disabled={disabled}
       data-pressed={pressed}
       className={recipientButtonStyle}
@@ -105,7 +114,7 @@ function RecipientToggleButton({
   )
 }
 
-function SortableRow({ item, onToggle, onRecipientToggle, toggleDisabled }: SortableRowProps) {
+function SortableRow({ item, onToggle, onRecipientToggle, toggleDisabled, compact }: SortableRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
   })
@@ -116,38 +125,51 @@ function SortableRow({ item, onToggle, onRecipientToggle, toggleDisabled }: Sort
   }
 
   const recipientDisabled = toggleDisabled || !item.isInMessage
+  const attendanceLocked = item.itemType === 'attendance'
+  const showRecipients = compact || !attendanceLocked
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`${rowStyle}${isDragging ? ` ${rowDraggingStyle}` : ''}`}
+      className={`${rowStyle}${compact ? ` ${compactRowStyle}` : ''}${isDragging ? ` ${rowDraggingStyle}` : ''}`}
     >
       <span {...attributes} {...listeners}>
         <DragHandle />
       </span>
-      <Chip
-        label={item.category === 'common' ? '공통' : '개별'}
-        variant={item.category === 'common' ? 'active' : 'default'}
-      />
+      {compact ? (
+        <span className={categoryMarkStyle}>
+          {item.category === 'common' ? '공통' : '개별'}
+          <span className={categoryDividerStyle}>|</span>
+        </span>
+      ) : (
+        <Chip
+          label={item.category === 'common' ? '공통' : '개별'}
+          variant={item.category === 'common' ? 'active' : 'default'}
+        />
+      )}
       <span className={rowLabelStyle}>{item.label.replace(' *', '')}</span>
-      <span className={itemTypeBadgeStyle}>{ITEM_TYPE_LABELS[item.itemType] ?? ''}</span>
-      {item.itemType !== 'attendance' && (
+      {compact ? null : (
+        <span className={itemTypeBadgeStyle}>{ITEM_TYPE_LABELS[item.itemType] ?? ''}</span>
+      )}
+      {showRecipients ? (
         <div className={recipientGroupStyle}>
           <RecipientToggleButton
-            label="학부모에게 전송"
+            label={compact ? '학부모' : '학부모에게 전송'}
+            ariaLabel="학부모에게 전송"
             pressed={item.sendToParent}
-            disabled={recipientDisabled}
+            disabled={recipientDisabled || attendanceLocked}
             onChange={() => onRecipientToggle?.(item.id, 'parent')}
           />
           <RecipientToggleButton
-            label="학생에게 전송"
+            label={compact ? '학생' : '학생에게 전송'}
+            ariaLabel="학생에게 전송"
             pressed={item.sendToStudent}
-            disabled={recipientDisabled}
+            disabled={recipientDisabled || attendanceLocked}
             onChange={() => onRecipientToggle?.(item.id, 'student')}
           />
         </div>
-      )}
+      ) : null}
       <Toggle
         checked={item.isInMessage}
         onChange={() => onToggle(item.id)}
@@ -164,7 +186,9 @@ export default function MessageSettings({
   onReorder,
   onRecipientToggle,
   toggleDisabled,
+  density = 'default',
 }: MessageSettingsProps) {
+  const compact = density === 'compact'
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   )
@@ -181,10 +205,12 @@ export default function MessageSettings({
 
   return (
     <div>
-      <div className={sectionHeaderStyle}>
+      <div className={compact ? compactHeaderStyle : sectionHeaderStyle}>
         <Text variant="headingMd">문자 설정</Text>
         <Text variant="bodyMd" color="gray500">
-          순서를 바꾸거나 항목을 켜고 끌 수 있어요
+          {compact
+            ? '알림톡에 넣을 항목을 켜고, 끌어서 순서를 바꾸세요'
+            : '순서를 바꾸거나 항목을 켜고 끌 수 있어요'}
         </Text>
       </div>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -200,6 +226,7 @@ export default function MessageSettings({
                   onToggle={onToggle}
                   onRecipientToggle={onRecipientToggle}
                   toggleDisabled={toggleDisabled}
+                  compact={compact}
                 />
               )
             })}

@@ -43,7 +43,7 @@ export const drawerShell = style({
   height: '100%',
   maxWidth: '100vw',
   display: 'flex',
-  alignItems: 'flex-end',
+  alignItems: 'flex-start',
   animation: `${slideIn} 0.3s ease-out`,
   '@media': {
     [media.phone]: {
@@ -379,15 +379,6 @@ export const phoneLine = style({
   gridTemplateColumns: '36px minmax(0, 1fr)',
   columnGap: '9px',
   alignItems: 'center',
-})
-
-export const lengthLine = style({
-  marginTop: '8px',
-})
-
-export const overLimit = style({
-  display: 'block',
-  margin: '2px 0 0',
 })
 
 export const lengthBody = style({
@@ -845,7 +836,7 @@ export const checkDock = style({
   position: 'relative',
   width: '242px',
   maxHeight: '70vh',
-  marginBottom: '24px',
+  marginTop: '72px',
   flexShrink: 0,
   display: 'flex',
   flexDirection: 'column',

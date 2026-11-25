@@ -1,12 +1,37 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { media } from '@/styles/tokens/breakpoints'
 
 export const sectionHeaderStyle = style({
   display: 'flex',
   alignItems: 'center',
   gap: '12px',
   marginBottom: '12px',
+})
+
+export const compactHeaderStyle = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: '4px',
+  marginBottom: '12px',
+})
+
+export const categoryMarkStyle = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '6px',
+  flexShrink: 0,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.labelSm.fontWeight,
+  color: colors.gray500,
+  letterSpacing: '-0.03em',
+  lineHeight: '140%',
+})
+
+export const categoryDividerStyle = style({
+  color: colors.gray200,
 })
 
 export const rowListStyle = style({
@@ -30,6 +55,17 @@ export const rowStyle = style({
 export const rowDraggingStyle = style({
   opacity: 0.5,
   boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+})
+
+export const compactRowStyle = style({
+  flexWrap: 'nowrap',
+  minHeight: '44px',
+  padding: '8px 12px',
+  '@media': {
+    [media.phone]: {
+      flexWrap: 'wrap',
+    },
+  },
 })
 
 export const dragHandleStyle = style({
@@ -60,6 +96,7 @@ export const dragDotStyle = style({
 
 export const rowLabelStyle = style({
   flex: 1,
+  minWidth: 0,
   fontSize: fontStyles.titleMd.fontSize,
   fontWeight: fontStyles.titleMd.fontWeight,
   color: colors.gray700,

@@ -11,8 +11,9 @@ export const sectionStyle = style({
 
 export const sectionHeaderStyle = style({
   display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: '4px',
 })
 
 export const itemListStyle = style({

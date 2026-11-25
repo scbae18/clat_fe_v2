@@ -101,40 +101,37 @@ function channelOver(
   return { student, parent }
 }
 
-function overRowLabel(
-  row: LessonPreviewRow,
-  sendToParent: boolean,
-  sendToStudent: boolean,
-): string | null {
-  const hit = channelOver(row, sendToParent, sendToStudent)
-  if (!hit.student && !hit.parent) return null
-  if (sendToParent && sendToStudent && hit.student !== hit.parent) {
-    return hit.parent ? '학부모 1,000자 초과' : '학생 1,000자 초과'
-  }
-  return '1,000자 초과'
-}
-
-function overSendLines(
+function charOverIssues(
   previewRows: LessonPreviewRow[],
   selectedIds: Set<number>,
   sendToParent: boolean,
   sendToStudent: boolean,
-): string[] {
-  const lines: string[] = []
+): SendCheckIssue[] {
+  const issues: SendCheckIssue[] = []
   for (const row of previewRows) {
     if (!selectedIds.has(row.student_id)) continue
     const hit = channelOver(row, sendToParent, sendToStudent)
-    if (!hit.student && !hit.parent) continue
-    if (sendToParent && sendToStudent && hit.student !== hit.parent) {
-      lines.push(`${row.student_name} · ${hit.parent ? '학부모' : '학생'}`)
-    } else {
-      lines.push(row.student_name)
+    if (hit.student) {
+      issues.push({
+        code: 'CHAR_LIMIT',
+        student_id: row.student_id,
+        student_name: row.student_name,
+        text: `${row.student_name} 학생의 글자수가 초과되었어요`,
+      })
+    }
+    if (hit.parent) {
+      issues.push({
+        code: 'CHAR_LIMIT',
+        student_id: row.student_id,
+        student_name: row.student_name,
+        text: `${row.student_name} 학부모의 글자수가 초과되었어요`,
+      })
     }
   }
-  return lines
+  return issues
 }
 
-function linesFromTooLongError(error: unknown, bothChannels: boolean): string[] | null {
+function linesFromTooLongError(error: unknown): string[] | null {
   const body = (
     error as {
       response?: {
@@ -162,11 +159,12 @@ function linesFromTooLongError(error: unknown, bothChannels: boolean): string[] 
     if (row.student_name) cur.name = row.student_name
     grouped.set(id, cur)
   })
-  return [...grouped.values()].map((hit) => {
-    if (bothChannels && hit.student !== hit.parent) {
-      return `${hit.name} · ${hit.parent ? '학부모' : '학생'}`
-    }
-    return hit.name
+  return [...grouped.values()].flatMap((hit) => {
+    const lines: string[] = []
+    if (hit.student) lines.push(`${hit.name} 학생의 글자수가 초과되었어요`)
+    if (hit.parent) lines.push(`${hit.name} 학부모의 글자수가 초과되었어요`)
+    if (lines.length === 0) lines.push(`${hit.name}의 글자수가 초과되었어요`)
+    return lines
   })
 }
 
@@ -452,9 +450,11 @@ export default function AlimtalkSendModal({
   useEffect(() => () => setTutorialGate('feedback', false), [])
 
   const sendChannel = resolveSendChannel(sendToParent, sendToStudent)
-  const visibleChecks = sendChecks.filter(
-    (issue) => issue.student_id == null || selected.has(issue.student_id),
-  )
+  const charIssues = charOverIssues(rows, selected, sendToParent, sendToStudent)
+  const visibleChecks = [
+    ...charIssues,
+    ...sendChecks.filter((issue) => issue.student_id == null || selected.has(issue.student_id)),
+  ]
 
   useEffect(() => {
     if (!isOpen || !sendChannel) {
@@ -611,9 +611,8 @@ export default function AlimtalkSendModal({
       })
       return
     }
-    const overLines = overSendLines(rows, selected, sendToParent, sendToStudent)
-    if (overLines.length > 0) {
-      setLengthNames(overLines)
+    if (charIssues.length > 0) {
+      setLengthNames(charIssues.map((issue) => issue.text))
       setLengthOpen(true)
       return
     }
@@ -693,7 +692,7 @@ export default function AlimtalkSendModal({
       }
       setIsClosing(true)
     } catch (err) {
-      const tooLong = linesFromTooLongError(err, sendToParent && sendToStudent)
+      const tooLong = linesFromTooLongError(err)
       if (tooLong) {
         setLengthNames(tooLong)
         setLengthOpen(true)
@@ -866,7 +865,6 @@ export default function AlimtalkSendModal({
                   const selectable = isRowSelectable(r, sendToParent, sendToStudent)
                   const checked = selected.has(r.student_id)
                   const isFocus = focusId === r.student_id
-                  const limitLabel = overRowLabel(r, sendToParent, sendToStudent)
                   return (
                     <div
                       key={r.student_id}
@@ -926,11 +924,6 @@ export default function AlimtalkSendModal({
                         {r.locked ? (
                           <Text as="p" variant="labelSm" color="gray500">
                             잠긴 학생은 보낼 수 없어요.
-                          </Text>
-                        ) : null}
-                        {limitLabel ? (
-                          <Text as="p" variant="labelSm" color="error500" className={styles.overLimit}>
-                            {limitLabel}
                           </Text>
                         ) : null}
                       </div>
@@ -1156,7 +1149,7 @@ export default function AlimtalkSendModal({
       <Modal isOpen={lengthOpen} onClose={() => setLengthOpen(false)} size="sm">
         <div className={styles.lengthBody}>
           <Text variant="headingMd" as="h2" className={styles.lengthTitle}>
-            1000자를 넘어가는 문자가 있어요
+            글자수가 초과되었어요
           </Text>
           {lengthNames.map((name, index) => (
             <Text key={`${name}-${index}`} variant="bodyLg" color="gray500">
