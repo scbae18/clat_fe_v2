@@ -338,11 +338,6 @@ function ParentDashboardPage({ params }: { params: Promise<{ token: string }> })
               <article key={notice.batch_id} className={styles.noticeCard}>
                 <div className={styles.noticeHead}>
                   <span className={styles.noticeType}>{noticeLabel(notice.notice_type)}</span>
-                  {(notice.class_names ?? []).map((name, nameIndex) => (
-                    <span key={`${notice.batch_id}-${name}-${nameIndex}`} className={styles.noticeClass}>
-                      {name}
-                    </span>
-                  ))}
                   {index === 0 ? <span className={styles.noticeNew}>NEW</span> : null}
                 </div>
                 <p className={styles.noticeBody}>{notice.body}</p>

@@ -301,8 +301,8 @@ export const todoName = style({
 })
 
 export const todoHomework = style({
-  fontSize: fontStyles.bodyLg.fontSize,
-  fontWeight: fontStyles.bodyLg.fontWeight,
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: 600,
   color: colors.gray900,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
@@ -655,19 +655,6 @@ export const noticeType = style({
   alignItems: 'center',
   backgroundColor: colors.primary50,
   color: colors.primary500,
-  borderRadius: '4px',
-  padding: '2px 6px',
-  fontSize: fontStyles.bodyMd.fontSize,
-  fontWeight: fontStyles.bodyMd.fontWeight,
-  lineHeight: '140%',
-  letterSpacing: '-0.03em',
-})
-
-export const noticeClass = style({
-  display: 'inline-flex',
-  alignItems: 'center',
-  backgroundColor: colors.gray50,
-  color: colors.gray700,
   borderRadius: '4px',
   padding: '2px 6px',
   fontSize: fontStyles.bodyMd.fontSize,
