@@ -1,5 +1,7 @@
 'use client'
 
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react'
+import { createPortal } from 'react-dom'
 import type { CommonSuggestionItem } from '@/types/commonSuggestion'
 import {
   getSuggestionApplyValue,
@@ -36,6 +38,7 @@ function SparkleIcon({ size = 14 }: { size?: number }) {
 
 interface CommonSuggestionPopoverProps {
   suggestion: CommonSuggestionItem
+  anchorRef: RefObject<HTMLElement | null>
   onApplyLastClass: (value: string) => void
   onApplySuggestion: (value: string) => void
 }
@@ -129,19 +132,67 @@ function buildOptions(
 
 export default function CommonSuggestionPopover({
   suggestion,
+  anchorRef,
   onApplyLastClass,
   onApplySuggestion,
 }: CommonSuggestionPopoverProps) {
   const options = buildOptions(suggestion, onApplyLastClass, onApplySuggestion)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const [mounted, setMounted] = useState(false)
 
-  if (options.length === 0) return null
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
-  return (
+  const place = useCallback(() => {
+    const anchor = anchorRef.current
+    const panel = panelRef.current
+    if (!anchor || !panel) return
+    const rect = anchor.getBoundingClientRect()
+    const width = panel.offsetWidth
+    const height = panel.offsetHeight
+    const margin = 8
+    const gap = 10
+    const left = Math.min(Math.max(margin, rect.left), window.innerWidth - width - margin)
+    const below = rect.bottom + gap
+    const above = rect.top - height - gap
+    const placeAbove = below + height > window.innerHeight - margin && above >= margin
+    const top = placeAbove ? above : below
+    const arrow = Math.min(Math.max(16, rect.left + 20 - left), Math.max(16, width - 28))
+    panel.style.setProperty('--suggestion-x', `${left}px`)
+    panel.style.setProperty('--suggestion-y', `${top}px`)
+    panel.style.setProperty('--suggestion-arrow-x', `${arrow}px`)
+    panel.dataset.placement = placeAbove ? 'above' : 'below'
+  }, [anchorRef])
+
+  useLayoutEffect(() => {
+    if (!mounted || options.length === 0) return
+    place()
+  }, [mounted, options.length, place])
+
+  useEffect(() => {
+    if (!mounted || options.length === 0) return
+    window.addEventListener('resize', place)
+    window.addEventListener('scroll', place, true)
+    return () => {
+      window.removeEventListener('resize', place)
+      window.removeEventListener('scroll', place, true)
+    }
+  }, [mounted, options.length, place])
+
+  if (!mounted || options.length === 0) return null
+
+  return createPortal(
     <div
+      ref={panelRef}
       className={popoverStyle}
       role="listbox"
       aria-label="빠른 입력 제안"
-      onMouseDown={(e) => e.preventDefault()}
+      data-suggestion-popover=""
+      onMouseDown={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+      }}
     >
       <header className={popoverHeaderStyle}>
         <p className={popoverHeaderTitleStyle}>
@@ -193,6 +244,7 @@ export default function CommonSuggestionPopover({
           </button>
         ))}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

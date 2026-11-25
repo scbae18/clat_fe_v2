@@ -104,6 +104,7 @@ export default function CommonContent({
   const [isAdding, setIsAdding] = useState(false)
   const [newName, setNewName] = useState('')
   const wrapRef = useRef<HTMLDivElement>(null)
+  const suggestionAnchorRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!lessonId) {
@@ -134,7 +135,10 @@ export default function CommonContent({
 
   useEffect(() => {
     const onDocMouseDown = (e: MouseEvent) => {
-      if (!wrapRef.current?.contains(e.target as Node)) {
+      const target = e.target
+      if (!(target instanceof Node)) return
+      if (target instanceof Element && target.closest('[data-suggestion-popover]')) return
+      if (!wrapRef.current?.contains(target)) {
         setFocusedId(null)
       }
     }
@@ -192,7 +196,10 @@ export default function CommonContent({
                   </div>
                 </th>
                 <td className={tdStyle}>
-                  <div className={inputCellWrapStyle}>
+                  <div
+                    className={inputCellWrapStyle}
+                    ref={focusedId === refKey ? suggestionAnchorRef : undefined}
+                  >
                     <GrowingTextarea
                       value={current}
                       dataTour={index === 0 ? 'lesson-common' : undefined}
@@ -205,6 +212,7 @@ export default function CommonContent({
                     {showPopover && suggestion ? (
                       <CommonSuggestionPopover
                         suggestion={suggestion}
+                        anchorRef={suggestionAnchorRef}
                         onApplyLastClass={(value) => applyValue(refKey, value)}
                         onApplySuggestion={(value) => applyValue(refKey, value)}
                       />

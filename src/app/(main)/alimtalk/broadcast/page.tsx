@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Button from '@/components/common/Button'
@@ -173,6 +173,7 @@ export default function AlimtalkBroadcastPage() {
   const [body, setBody] = useState('')
   const [bodyFocused, setBodyFocused] = useState(false)
   const [suggestion, setSuggestion] = useState<CommonSuggestionItem | null>(null)
+  const suggestionAnchorRef = useRef<HTMLDivElement>(null)
   const [pickingTime, setPickingTime] = useState(false)
   const [timeValue, setTimeValue] = useState('')
   const [scheduling, setScheduling] = useState(false)
@@ -688,7 +689,7 @@ export default function AlimtalkBroadcastPage() {
               <Text as="label" variant="titleSm" color="gray700">
                 안내사항
               </Text>
-              <div className={styles.suggestionWrap}>
+              <div className={styles.suggestionWrap} ref={suggestionAnchorRef}>
                 <Textarea
                   className={styles.bodyTextarea}
                   value={body}
@@ -701,6 +702,7 @@ export default function AlimtalkBroadcastPage() {
                 {bodyFocused && !body.trim() && suggestion && hasSuggestionContent(suggestion) ? (
                   <CommonSuggestionPopover
                     suggestion={suggestion}
+                    anchorRef={suggestionAnchorRef}
                     onApplyLastClass={(value) => setBody(value)}
                     onApplySuggestion={(value) => setBody(value)}
                   />

@@ -1,6 +1,7 @@
 import { style } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
+import { zIndex } from '@/styles/tokens/zIndex'
 
 export const inputCellWrapStyle = style({
   position: 'relative',
@@ -10,10 +11,10 @@ export const inputCellWrapStyle = style({
 })
 
 export const popoverStyle = style({
-  position: 'absolute',
-  left: 0,
-  top: 'calc(100% + 10px)',
-  zIndex: 50,
+  position: 'fixed',
+  left: 'var(--suggestion-x, -9999px)',
+  top: 'var(--suggestion-y, 0px)',
+  zIndex: zIndex.tooltip,
   width: 'min(360px, calc(100vw - 48px))',
   padding: '14px',
   borderRadius: '14px',
@@ -25,13 +26,21 @@ export const popoverStyle = style({
       content: '""',
       position: 'absolute',
       top: '-6px',
-      left: '20px',
+      left: 'var(--suggestion-arrow-x, 20px)',
       width: '12px',
       height: '12px',
       backgroundColor: colors.white,
       borderLeft: `1px solid ${colors.gray100}`,
       borderTop: `1px solid ${colors.gray100}`,
       transform: 'rotate(45deg)',
+    },
+    '&[data-placement="above"]::before': {
+      top: 'auto',
+      bottom: '-6px',
+      borderLeft: 'none',
+      borderTop: 'none',
+      borderRight: `1px solid ${colors.gray100}`,
+      borderBottom: `1px solid ${colors.gray100}`,
     },
   },
 })
