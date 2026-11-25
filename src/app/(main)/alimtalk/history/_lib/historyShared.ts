@@ -53,7 +53,7 @@ export function previewTitle(phoneType: AlimtalkBatchMessage['phone_type']): str
 
 export function guidanceText(message: AlimtalkBatchMessage): string | null {
   if (message.status !== 'FAIL') return null
-  if (message.kakao_unavailable) return MANUAL_TEXT_LABEL
+  if (message.kakao_unavailable) return KAKAO_MANUAL_GUIDANCE
   const raw = message.error_message?.trim() ?? ''
   if (!raw) return null
   const fail = raw.match(/^SOLAPI_FAIL\s+\d+\s*(.*)$/)
@@ -66,7 +66,7 @@ export function guidanceText(message: AlimtalkBatchMessage): string | null {
 export function deliveryNote(message: AlimtalkBatchMessage): string {
   if (message.status === 'SUCCESS') return '카카오톡으로 전달됨'
   if (message.status === 'PENDING') return '보내는 중'
-  if (message.kakao_unavailable) return MANUAL_TEXT_LABEL
+  if (message.kakao_unavailable) return KAKAO_MANUAL_GUIDANCE
   return '전달되지 않음'
 }
 
@@ -98,6 +98,9 @@ export function isBatchComplete(row: {
 }
 
 export const MANUAL_TEXT_LABEL = '직접 문자 발송 필요'
+
+export const KAKAO_MANUAL_GUIDANCE =
+  '카카오톡 미사용자이거나 전화번호에 카카오톡이 연결되어있지 않습니다(직접 발송 필요)'
 
 export function statusLabel(s: 'SUCCESS' | 'FAIL' | 'PENDING'): string {
   if (s === 'SUCCESS') return '성공'

@@ -350,6 +350,33 @@ export const guideText = style({
   fontWeight: 400,
   lineHeight: 1.4,
   whiteSpace: 'normal',
+  display: 'inline-block',
+  maxWidth: '320px',
+})
+
+export const copyBtn = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '4px',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: '14px',
+  fontWeight: 600,
+  lineHeight: 1.4,
+  letterSpacing: '-0.03em',
+  color: colors.primary500,
+  backgroundColor: colors.white,
+  border: `1px solid ${colors.primary500}`,
+  borderRadius: '6px',
+  padding: '6px 12px',
+  cursor: 'pointer',
+  whiteSpace: 'nowrap',
+  alignSelf: 'flex-start',
+  '@media': {
+    [media.phone]: {
+      minHeight: '36px',
+    },
+  },
 })
 
 export const resendBtn = style({
@@ -460,6 +487,12 @@ export const innerTh = style({
   whiteSpace: 'nowrap',
 })
 
+export const studentRow = style({
+  cursor: 'pointer',
+})
+
+export const studentRowOpen = style({})
+
 export const innerTd = style({
   fontFamily: 'Pretendard, sans-serif',
   fontSize: '14px',
@@ -470,6 +503,17 @@ export const innerTd = style({
   borderBottom: `1px solid ${colors.gray100}`,
   verticalAlign: 'middle',
   backgroundColor: colors.white,
+  selectors: {
+    [`${studentRow}:hover &`]: {
+      backgroundColor: colors.gray50,
+    },
+    [`${studentRowOpen} &`]: {
+      backgroundColor: colors.primary50,
+    },
+    [`${studentRowOpen}:hover &`]: {
+      backgroundColor: colors.primary50,
+    },
+  },
 })
 
 export const nameBtn = style({

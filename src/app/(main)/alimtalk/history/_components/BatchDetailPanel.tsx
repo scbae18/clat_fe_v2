@@ -3,8 +3,10 @@
 import { Fragment, useState } from 'react'
 import ChevronDownIcon from '@/assets/icons/icon-chevron-down.svg'
 import ChevronRightIcon from '@/assets/icons/icon-chevron-right.svg'
+import ClipboardIcon from '@/assets/icons/icon-clipboard.svg'
 import RefreshIcon from '@/assets/icons/icon-refresh.svg'
 import type { AlimtalkBatchDetail, AlimtalkBatchMessage } from '@/services/alimtalk'
+import { useToastStore } from '@/stores/toastStore'
 import * as styles from '../history.css'
 import {
   canResendMessage,
@@ -41,6 +43,10 @@ function lineStatusClass(message: AlimtalkBatchMessage): string {
   return styles.badgeFail
 }
 
+function isManualCopy(message: AlimtalkBatchMessage): boolean {
+  return message.kakao_unavailable === true
+}
+
 export function BatchDetailPanel({
   detail,
   selectedStudentId,
@@ -70,6 +76,16 @@ export function BatchDetailPanel({
   })
   const visible = filtered.slice(0, shown)
   const hidden = filtered.length - visible.length
+  const addToast = useToastStore((state) => state.addToast)
+
+  const copyMessage = async (body: string) => {
+    try {
+      await navigator.clipboard.writeText(body)
+      addToast({ variant: 'success', message: '문자를 복사했어요.' })
+    } catch {
+      addToast({ variant: 'error', message: '문자를 복사하지 못했어요.' })
+    }
+  }
 
   const chooseFilter = (next: StudentFilter) => {
     setFilter(next)
@@ -82,7 +98,7 @@ export function BatchDetailPanel({
         <div>
           <div className={styles.detailTitle}>보낸 학생 {grouped.length}명</div>
           <p className={styles.detailHint}>
-            학생 이름을 누르면 그 학생에게 보낸 문자를 볼 수 있어요.
+            학생 행을 누르면 그 학생에게 보낸 문자를 볼 수 있어요.
           </p>
         </div>
         {resendCount > 0 && (
@@ -146,19 +162,25 @@ export function BatchDetailPanel({
             )}
             {visible.map(([studentId, group]) => {
               const open = selectedStudentId === studentId
-              const failed = group.messages.some((message) => message.status === 'FAIL')
-              const resendable = group.messages.some((message) => canResendMessage(message))
               const span = group.messages.length || 1
+              const rowClass = `${styles.studentRow}${open ? ` ${styles.studentRowOpen}` : ''}`
               return (
                 <Fragment key={studentId}>
                   {group.messages.map((message, index) => (
-                    <tr key={message.message_id}>
+                    <tr
+                      key={message.message_id}
+                      className={rowClass}
+                      onClick={() => onSelectStudent(studentId)}
+                    >
                       {index === 0 && (
                         <td className={`${styles.innerTd} ${styles.nameCell}`} rowSpan={span}>
                           <button
                             type="button"
                             className={styles.nameBtn}
-                            onClick={() => onSelectStudent(studentId)}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              onSelectStudent(studentId)
+                            }}
                           >
                             <span className={`${styles.chevron}${open ? ` ${styles.chevronOpen}` : ''}`}>
                               <ChevronRightIcon width={16} height={16} />
@@ -178,21 +200,34 @@ export function BatchDetailPanel({
                       <td className={styles.innerTd}>
                         <span className={styles.guideText}>{guidanceText(message) ?? ''}</span>
                       </td>
-                      {index === 0 && (
-                        <td className={styles.innerTd} rowSpan={span}>
-                          {failed && (
-                            <button
-                              type="button"
-                              className={styles.resendBtn}
-                              disabled={resending || !resendable}
-                              onClick={() => onResendStudent(studentId)}
-                            >
-                              <RefreshIcon width={16} height={16} />
-                              재발송
-                            </button>
-                          )}
-                        </td>
-                      )}
+                      <td className={styles.innerTd}>
+                        {isManualCopy(message) ? (
+                          <button
+                            type="button"
+                            className={styles.copyBtn}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              void copyMessage(message.message_body)
+                            }}
+                          >
+                            <ClipboardIcon width={16} height={16} />
+                            복사
+                          </button>
+                        ) : message.status === 'FAIL' ? (
+                          <button
+                            type="button"
+                            className={styles.resendBtn}
+                            disabled={resending || !canResendMessage(message)}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              onResendStudent(studentId)
+                            }}
+                          >
+                            <RefreshIcon width={16} height={16} />
+                            재발송
+                          </button>
+                        ) : null}
+                      </td>
                     </tr>
                   ))}
                   {open && (
