@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import useToggleArray from '@/hooks/useToggleArray'
+import { hangulIncludes } from '@/lib/hangulSearch'
 import { studentService } from '@/services/student'
 import type { Student } from '@/types/student'
 
@@ -28,7 +29,7 @@ export function useEnrollStudentsModal({
 
   const filtered = candidates
     .filter((s) => !currentStudentIds.includes(s.id))
-    .filter((s) => s.name.includes(search) || s.phone.includes(search))
+    .filter((s) => hangulIncludes(s.name, search) || s.phone.includes(search))
     .sort((a, b) => a.name.localeCompare(b.name, 'ko'))
 
   const handleClose = () => {

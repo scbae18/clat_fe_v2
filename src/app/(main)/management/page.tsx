@@ -7,6 +7,7 @@ import Text from '@/components/common/Text'
 import useDisclosure from '@/hooks/useDisclosure'
 import { classService, type Class } from '@/services/class'
 import { apiErrorMessage } from '@/lib/api/http'
+import { hangulIncludes } from '@/lib/hangulSearch'
 import Button from '@/components/common/Button'
 import PlusIcon from '@/assets/icons/icon-plus.svg'
 import UploadIcon from '@/assets/icons/icon-upload.svg'
@@ -120,7 +121,7 @@ function ManagementContent() {
   const filteredStudents = useMemo(() => {
     const query = studentSearchQuery.trim().toLowerCase()
     const matched = query
-      ? students.filter((s) => s.name.toLowerCase().includes(query))
+      ? students.filter((s) => hangulIncludes(s.name, query))
       : students
     return sortStudents(matched, studentSortKey)
   }, [students, studentSearchQuery, studentSortKey])

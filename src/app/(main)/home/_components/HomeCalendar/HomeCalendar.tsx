@@ -11,6 +11,7 @@ import Modal from '@/components/common/Modal'
 import Text from '@/components/common/Text'
 import Textarea from '@/components/common/Textarea'
 import { notifyCalendarEventsChanged, sortCalendarEvents } from '@/lib/calendarEvents'
+import { hangulIncludes } from '@/lib/hangulSearch'
 import { calendarService } from '@/services/calendar'
 import { studentService } from '@/services/student'
 import type { CalendarEvent } from '@/types/calendar'
@@ -245,7 +246,7 @@ export default function HomeCalendar() {
   const visibleStudents = students.filter(
     (student) =>
       studentQueryTrimmed === '' ||
-      student.name.includes(studentQueryTrimmed) ||
+      hangulIncludes(student.name, studentQueryTrimmed) ||
       student.phone.includes(studentQueryTrimmed),
   )
 
@@ -267,7 +268,7 @@ export default function HomeCalendar() {
   }, [students])
 
   const visibleClasses = classGroups.filter(
-    (group) => studentQueryTrimmed === '' || group.name.includes(studentQueryTrimmed),
+    (group) => studentQueryTrimmed === '' || hangulIncludes(group.name, studentQueryTrimmed),
   )
 
   const toggleStudent = (id: number) => {

@@ -15,6 +15,7 @@ import Modal from '@/components/common/Modal'
 import ConfirmModal from '@/components/common/ConfirmModal'
 import EnrollStudentsModal from '@/components/student/EnrollStudentsModal/EnrollStudentsModal'
 import useDisclosure from '@/hooks/useDisclosure'
+import { hangulIncludes } from '@/lib/hangulSearch'
 import { lessonItemRef, matchesLessonItem } from '@/lib/lessonItemRef'
 import type { ItemSource } from '@/lib/lessonItemRef'
 import { isLessonStudentInputComplete } from '@/lib/lessonProgress'
@@ -106,7 +107,7 @@ export default function LessonTable({
   const filteredStudents = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
     if (!query) return students
-    return students.filter((s) => s.name.toLowerCase().includes(query))
+    return students.filter((s) => hangulIncludes(s.name, query))
   }, [students, searchQuery])
 
   useLayoutEffect(() => {

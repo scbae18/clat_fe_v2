@@ -15,6 +15,7 @@ import SearchIcon from '@/assets/icons/icon-search.svg'
 import clatIcon from '@/assets/images/clat-alimtalk-icon.png'
 import useToast from '@/hooks/useToast'
 import { isAxiosError } from '@/lib/api/http'
+import { hangulIncludes } from '@/lib/hangulSearch'
 import { queryKeys } from '@/lib/queryKeys'
 import { useUserStore } from '@/stores/userStore'
 import { classService, type Class } from '@/services/class'
@@ -266,8 +267,8 @@ export default function AlimtalkBroadcastPage() {
       }
       if (!q) return true
       return (
-        s.name.toLowerCase().includes(q) ||
-        s.classes?.some((c) => c.name.toLowerCase().includes(q))
+        hangulIncludes(s.name, q) ||
+        s.classes?.some((c) => hangulIncludes(c.name, q))
       )
     })
   }, [students, search, filterClassId, classStudentIds])
