@@ -3,12 +3,14 @@
 import * as styles from './me.css'
 import { MSG } from './_lib/meShared'
 import { useMyProfile } from './_hooks/useMyProfile'
+import { useBillingMe } from './_hooks/useBillingMe'
+import { MeIdentityCard } from './_components/MeIdentityCard'
 import { MeAccountSections } from './_components/MeAccountSections'
-import BillingMeLink from '@/components/billing/BillingMeLink'
 import { MeAccountModals } from './_components/MeAccountModals'
 
 export default function MyProfilePage() {
   const profile = useMyProfile()
+  const billing = useBillingMe()
 
   if (profile.loading || !profile.user) {
     return (
@@ -21,33 +23,37 @@ export default function MyProfilePage() {
   return (
     <div className={styles.pageRoot}>
       <h1 className={styles.pageTitle}>{MSG.pageTitle}</h1>
-      <p className={styles.pageDesc}>{MSG.pageDesc}</p>
-
-      <BillingMeLink />
-      <MeAccountSections
-        user={profile.user}
-        joinedLabel={profile.joinedLabel}
-        editingName={profile.editingName}
-        name={profile.name}
-        onNameChange={profile.setName}
-        phone={profile.phone}
-        onPhoneChange={profile.setPhone}
-        phoneError={profile.phoneError}
-        nameError={profile.nameError}
-        nameSaving={profile.nameSaving}
-        canSaveName={profile.canSaveName}
-        phoneSecret={profile.phoneSecret}
-        onPhoneSecretChange={profile.setPhoneSecret}
-        phoneChanged={profile.phoneChanged}
-        codeSending={profile.codeSending}
-        onSendAccountCode={() => void profile.sendAccountCode()}
-        onStartEditName={profile.startEditName}
-        onCancelEditName={profile.cancelEditName}
-        onSaveName={() => void profile.onSaveName()}
-        onOpenEmailModal={profile.openEmailModal}
-        onOpenPassModal={profile.openPassModal}
-        onStartWithdraw={profile.startWithdraw}
-      />
+      <div className={styles.pageBody}>
+        <MeIdentityCard user={profile.user} enforced={billing.enforced} />
+        <div className={styles.pageContent}>
+          <MeAccountSections
+            user={profile.user}
+            joinedLabel={profile.joinedLabel}
+            editingName={profile.editingName}
+            name={profile.name}
+            onNameChange={profile.setName}
+            phone={profile.phone}
+            onPhoneChange={profile.setPhone}
+            phoneError={profile.phoneError}
+            nameError={profile.nameError}
+            nameSaving={profile.nameSaving}
+            canSaveName={profile.canSaveName}
+            phoneSecret={profile.phoneSecret}
+            onPhoneSecretChange={profile.setPhoneSecret}
+            phoneChanged={profile.phoneChanged}
+            codeSending={profile.codeSending}
+            onSendAccountCode={() => void profile.sendAccountCode()}
+            onStartEditName={profile.startEditName}
+            onCancelEditName={profile.cancelEditName}
+            onSaveName={() => void profile.onSaveName()}
+            onOpenEmailModal={profile.openEmailModal}
+            onOpenPassModal={profile.openPassModal}
+            onStartWithdraw={profile.startWithdraw}
+            enforced={billing.enforced}
+            invoices={billing.invoices}
+          />
+        </div>
+      </div>
 
       <MeAccountModals
         emailModalOpen={profile.emailModalOpen}

@@ -3,8 +3,14 @@
 import Button from '@/components/common/Button'
 import { formatPhoneInput } from '@/lib/phone'
 import type { User } from '@/types/user'
+import type { EnforcedBilling } from '@/lib/billingView'
+import type { BillingInvoice } from '@/services/billing'
+import PencilIcon from '@/assets/icons/icon-pencil-01.svg'
+import MessageIcon from '@/assets/icons/icon-message.svg'
 import * as styles from '../me.css'
-import { MSG, initialFrom } from '../_lib/meShared'
+import { MSG } from '../_lib/meShared'
+import { displayPhone } from '../_lib/meBilling'
+import { MeBillingPanel } from './MeBillingPanel'
 
 type MeAccountSectionsProps = {
   user: User
@@ -29,6 +35,8 @@ type MeAccountSectionsProps = {
   onOpenEmailModal: () => void
   onOpenPassModal: () => void
   onStartWithdraw: () => void
+  enforced: EnforcedBilling | null
+  invoices: BillingInvoice[]
 }
 
 export function MeAccountSections({
@@ -54,156 +62,151 @@ export function MeAccountSections({
   onOpenEmailModal,
   onOpenPassModal,
   onStartWithdraw,
+  enforced,
+  invoices,
 }: MeAccountSectionsProps) {
+  const noPassword = user.has_password === false
+
   return (
-    <div className={styles.cardStack}>
-      <section className={styles.card}>
-        <div className={styles.profileTop}>
-          <div className={styles.avatar}>{initialFrom(user.name)}</div>
-          <div>
-            <div className={styles.profileName}>{user.name}</div>
-            <div className={styles.profileEmail}>{user.email}</div>
-            <div className={styles.profileMeta}>
-              {MSG.joinedLabel} · {joinedLabel}
+    <>
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>프로필</h2>
+        <div>
+          <div className={styles.row} data-tour="me-name">
+            <span className={styles.rowLabel}>{MSG.nameLabel}</span>
+            {editingName ? (
+              <input
+                className={`${styles.input} ${styles.rowMain}`}
+                value={name}
+                onChange={(e) => onNameChange(e.target.value)}
+                maxLength={100}
+                autoComplete="name"
+              />
+            ) : (
+              <span className={`${styles.rowValue} ${styles.rowMain}`}>{user.name}</span>
+            )}
+            {editingName ? null : (
+              <button type="button" className={styles.iconButton} onClick={onStartEditName} aria-label="이름 수정">
+                <PencilIcon width={14} height={14} />
+              </button>
+            )}
+          </div>
+
+          <div className={styles.row} data-tour="me-phone">
+            <span className={styles.rowLabel}>{MSG.phoneLabel}</span>
+            {editingName ? (
+              <input
+                className={`${styles.input} ${styles.rowMain}`}
+                value={phone}
+                onChange={(e) => onPhoneChange(formatPhoneInput(e.target.value))}
+                maxLength={13}
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="010-0000-0000"
+              />
+            ) : (
+              <span className={`${styles.rowValue} ${styles.rowMain}`}>{displayPhone(user.phone)}</span>
+            )}
+            {editingName ? null : (
+              <button type="button" className={styles.iconButton} onClick={onStartEditName} aria-label="전화번호 수정">
+                <PencilIcon width={14} height={14} />
+              </button>
+            )}
+          </div>
+
+          {editingName && phoneChanged ? (
+            <div className={styles.row}>
+              <span className={styles.rowLabel}>{noPassword ? MSG.codeLabel : MSG.currentPassLabel}</span>
+              <input
+                className={`${styles.input} ${styles.rowMain}`}
+                type={noPassword ? 'text' : 'password'}
+                inputMode={noPassword ? 'numeric' : undefined}
+                value={phoneSecret}
+                onChange={(e) =>
+                  onPhoneSecretChange(noPassword ? e.target.value.replace(/\D/g, '').slice(0, 6) : e.target.value)
+                }
+                autoComplete={noPassword ? 'one-time-code' : 'current-password'}
+              />
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.card}>
-        <div className={styles.sectionHead}>
-          <div>
-            <h2 className={styles.sectionTitle}>{MSG.basicTitle}</h2>
-            <p className={styles.sectionDesc}>{MSG.basicDesc}</p>
-          </div>
-          {!editingName ? (
-            <Button variant="ghost" size="sm" onClick={onStartEditName}>
-              {MSG.edit}
-            </Button>
           ) : null}
-        </div>
+          {editingName && phoneChanged && noPassword ? (
+            <div className={styles.editActions}>
+              <Button variant="ghost" size="sm" onClick={onSendAccountCode} disabled={codeSending}>
+                {codeSending ? '보내는 중…' : MSG.sendCode}
+              </Button>
+            </div>
+          ) : null}
 
-        <div className={styles.fieldGrid} data-tour="me-name">
-          <span className={styles.fieldLabel}>{MSG.nameLabel}</span>
-          {editingName ? (
-            <input
-              className={styles.input}
-              value={name}
-              onChange={(e) => onNameChange(e.target.value)}
-              maxLength={100}
-              autoComplete="name"
-            />
-          ) : (
-            <span className={styles.fieldValue}>{user.name}</span>
-          )}
-        </div>
-
-        <div className={styles.fieldGrid} data-tour="me-phone">
-          <span className={styles.fieldLabel}>{MSG.phoneLabel}</span>
-          {editingName ? (
-            <input
-              className={styles.input}
-              value={phone}
-              onChange={(e) => onPhoneChange(formatPhoneInput(e.target.value))}
-              maxLength={13}
-              inputMode="tel"
-              autoComplete="tel"
-              placeholder="010-0000-0000"
-            />
-          ) : (
-            <span className={styles.fieldValue}>{user.phone || MSG.phoneEmpty}</span>
-          )}
-        </div>
-
-        {editingName && phoneChanged ? (
-          <div className={styles.fieldGrid}>
-            <span className={styles.fieldLabel}>{user.has_password === false ? MSG.codeLabel : MSG.currentPassLabel}</span>
-            <input
-              className={styles.input}
-              type={user.has_password === false ? 'text' : 'password'}
-              inputMode={user.has_password === false ? 'numeric' : undefined}
-              value={phoneSecret}
-              onChange={(e) => onPhoneSecretChange(user.has_password === false ? e.target.value.replace(/\D/g, '').slice(0, 6) : e.target.value)}
-              autoComplete={user.has_password === false ? 'one-time-code' : 'current-password'}
-            />
+          <div className={styles.row}>
+            <span className={styles.rowLabel}>{MSG.emailLabel}</span>
+            <span className={`${styles.rowValue} ${styles.rowMain}`}>{user.email}</span>
           </div>
-        ) : null}
-        {editingName && phoneChanged && user.has_password === false ? (
-          <div className={styles.actionsRow}>
-            <Button variant="ghost" size="sm" onClick={onSendAccountCode} disabled={codeSending}>
-              {codeSending ? '보내는 중…' : MSG.sendCode}
-            </Button>
-          </div>
-        ) : null}
+        </div>
 
-        {nameError || phoneError ? (
-          <p className={styles.errorText}>{nameError || phoneError}</p>
-        ) : null}
+        {nameError || phoneError ? <p className={styles.errorText}>{nameError || phoneError}</p> : null}
 
         {editingName ? (
-          <div className={styles.actionsRow}>
+          <div className={styles.editActions}>
             <Button variant="ghost" size="sm" onClick={onCancelEditName} disabled={nameSaving}>
               {MSG.cancel}
             </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={onSaveName}
-              disabled={!canSaveName}
-            >
+            <Button variant="primary" size="sm" onClick={onSaveName} disabled={!canSaveName}>
               {nameSaving ? '저장 중…' : MSG.save}
             </Button>
           </div>
         ) : null}
       </section>
 
-      <section className={styles.card}>
-        <div className={styles.sectionHead}>
-          <div>
-            <h2 className={styles.sectionTitle}>{MSG.loginTitle}</h2>
-            <p className={styles.sectionDesc}>
-              {user.has_password === false
-                ? '로그인에 쓰는 이메일이에요. 바꿀 때 인증번호로 확인할게요.'
-                : MSG.loginDesc}
-            </p>
+      <MeBillingPanel user={user} enforced={enforced} invoices={invoices} />
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>로그인 · 보안</h2>
+        <div>
+          <div className={styles.row}>
+            <span className={styles.rowLabel}>{MSG.emailLabel}</span>
+            <span className={`${styles.rowValue} ${styles.rowMain}`}>{user.email}</span>
+            <button type="button" className={styles.iconButton} onClick={onOpenEmailModal} aria-label="이메일 변경">
+              <PencilIcon width={14} height={14} />
+            </button>
           </div>
-          <Button variant="ghost" size="sm" onClick={onOpenEmailModal}>
-            {MSG.changeEmail}
-          </Button>
-        </div>
-        <div className={styles.fieldGrid}>
-          <span className={styles.fieldLabel}>{MSG.emailLabel}</span>
-          <span className={styles.fieldValue}>{user.email}</span>
+          <div className={styles.row}>
+            <span className={styles.rowLabel}>비밀번호</span>
+            <span className={`${styles.rowValue} ${styles.rowMain}`}>{noPassword ? '' : '••••••••'}</span>
+            <button type="button" className={styles.iconButton} onClick={onOpenPassModal} aria-label="비밀번호 변경">
+              <PencilIcon width={14} height={14} />
+            </button>
+          </div>
         </div>
       </section>
 
-      <section className={styles.card}>
-        <div className={styles.sectionHead}>
-          <div>
-            <h2 className={styles.sectionTitle}>{MSG.securityTitle}</h2>
-            <p className={styles.sectionDesc}>
-              {user.has_password === false
-                ? '비밀번호가 없어요. 비밀번호 찾기에서 만들 수 있어요.'
-                : MSG.securityDesc}
-            </p>
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>알림 설정</h2>
+        <div className={styles.noticeRow}>
+          <MessageIcon width={18} height={18} />
+          <div className={styles.noticeCopy}>
+            <p className={styles.noticeTitle}>알림은 모두 알림톡으로 발송 돼요.</p>
+            <p className={styles.noticeSub}>수신 번호: {displayPhone(user.phone)}</p>
           </div>
-          <Button variant="secondary" size="sm" onClick={onOpenPassModal}>
-            {user.has_password === false ? '비밀번호 만들기' : MSG.changePassword}
-          </Button>
         </div>
       </section>
 
-      <section className={styles.dangerCard}>
-        <div className={styles.sectionHead}>
-          <div>
-            <h2 className={styles.dangerTitle}>{MSG.dangerTitle}</h2>
-            <p className={styles.sectionDesc}>{MSG.dangerDesc}</p>
-          </div>
-          <Button variant="deleteClass" size="sm" onClick={onStartWithdraw}>
-            {MSG.withdraw}
-          </Button>
+      <section className={styles.section}>
+        <h2 className={styles.accountTitle}>계정</h2>
+        <div className={styles.row}>
+          <span className={styles.rowLabel}>{MSG.joinedLabel}</span>
+          <span className={styles.rowValue}>{joinedLabel}</span>
         </div>
       </section>
-    </div>
+
+      <div className={styles.dangerRow}>
+        <div className={styles.dangerCopy}>
+          <p className={styles.dangerTitle}>{MSG.dangerTitle}</p>
+          <p className={styles.dangerDesc}>{MSG.dangerDesc}</p>
+        </div>
+        <button type="button" className={styles.dangerPill} onClick={onStartWithdraw}>
+          {MSG.withdraw}
+        </button>
+      </div>
+    </>
   )
 }
