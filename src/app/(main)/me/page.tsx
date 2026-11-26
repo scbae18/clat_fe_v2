@@ -24,7 +24,7 @@ export default function MyProfilePage() {
     <div className={styles.pageRoot}>
       <h1 className={styles.pageTitle}>{MSG.pageTitle}</h1>
       <div className={styles.pageBody}>
-        <MeIdentityCard user={profile.user} enforced={billing.enforced} />
+        <MeIdentityCard user={profile.user} enforced={billing.enforced} billingOff={billing.billingOff} />
         <div className={styles.pageContent}>
           <MeAccountSections
             user={profile.user}

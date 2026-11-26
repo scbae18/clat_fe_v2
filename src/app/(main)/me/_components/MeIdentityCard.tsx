@@ -9,15 +9,17 @@ import { displayPhone } from '../_lib/meBilling'
 type MeIdentityCardProps = {
   user: User
   enforced: EnforcedBilling | null
+  billingOff: boolean
 }
 
-export function MeIdentityCard({ user, enforced }: MeIdentityCardProps) {
+export function MeIdentityCard({ user, enforced, billingOff }: MeIdentityCardProps) {
+  const planLabel = enforced?.plan.name ?? (billingOff ? '테스터' : '')
   return (
     <aside className={styles.identityCard}>
       <div className={styles.identityAvatar}>{initialFrom(user.name)}</div>
       <div className={styles.identityNameBlock}>
         <p className={styles.identityName}>{user.name}</p>
-        <span className={enforced ? styles.planChip : styles.planChipEmpty}>{enforced?.plan.name ?? ''}</span>
+        <span className={planLabel ? styles.planChip : styles.planChipEmpty}>{planLabel}</span>
       </div>
       <div className={styles.identityContact}>
         <p>{displayPhone(user.phone)}</p>

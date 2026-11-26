@@ -22,6 +22,7 @@ export function useBillingMe() {
 
   return {
     enforced,
+    billingOff: meQuery.isSuccess && !isEnforcedBilling(meQuery.data),
     invoices: (enforced ? invoicesQuery.data : []) ?? ([] as BillingInvoice[]),
   }
 }
