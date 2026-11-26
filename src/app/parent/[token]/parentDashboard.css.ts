@@ -49,7 +49,7 @@ export const classBadge = style({
   backgroundColor: colors.primary400,
   color: colors.white,
   borderRadius: '4px',
-  padding: '4px 8px',
+  padding: '1px 6px',
   fontSize: fontStyles.labelSm.fontSize,
   fontWeight: 600,
   lineHeight: '140%',
@@ -57,12 +57,13 @@ export const classBadge = style({
 })
 
 export const title = style({
-  margin: '8px 0 20px',
+  margin: '4px 0 16px',
   textAlign: 'center',
-  fontSize: '26px',
+  fontSize: fontStyles.headingSm.fontSize,
   fontWeight: 700,
   color: colors.gray900,
-  lineHeight: '135%',
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
 })
 
 export const stack = style({
@@ -281,12 +282,12 @@ export const moreButton = style({
 export const todoItem = style({
   backgroundColor: colors.gray50,
   borderRadius: '8px',
-  padding: '8px 8px 8px 12px',
+  padding: '6px 8px 6px 10px',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
   gap: '8px',
-  minHeight: '34px',
+  minHeight: '28px',
 })
 
 export const todoName = style({
@@ -339,12 +340,12 @@ export const todoClassBlue = style({
   maxWidth: '9rem',
   backgroundColor: colors.primary100,
   color: colors.primary500,
-  fontSize: fontStyles.bodyMd.fontSize,
-  fontWeight: fontStyles.bodyMd.fontWeight,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.labelSm.fontWeight,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
-  padding: '4px 8px',
-  borderRadius: '6px',
+  padding: '1px 6px',
+  borderRadius: '4px',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -356,12 +357,12 @@ export const todoTemplateGreen = style({
   flexShrink: 0,
   backgroundColor: colors.success50,
   color: colors.success500,
-  fontSize: fontStyles.bodyMd.fontSize,
-  fontWeight: fontStyles.bodyMd.fontWeight,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: fontStyles.labelSm.fontWeight,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
-  padding: '4px 8px',
-  borderRadius: '6px',
+  padding: '1px 6px',
+  borderRadius: '4px',
   whiteSpace: 'nowrap',
 })
 
@@ -585,22 +586,22 @@ export const lessonCard = style({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  gap: '12px',
+  gap: '8px',
   textAlign: 'left',
   border: `1px solid ${colors.gray75}`,
-  borderRadius: '16px',
+  borderRadius: '12px',
   background: colors.white,
-  padding: '16px 20px',
+  padding: '10px 14px',
   cursor: 'pointer',
   color: colors.gray900,
-  marginBottom: '10px',
+  marginBottom: '8px',
   fontFamily: 'inherit',
 })
 
 export const lessonCardText = style({
   display: 'flex',
   flexDirection: 'column',
-  gap: '6px',
+  gap: '2px',
   minWidth: 0,
 })
 
@@ -684,7 +685,7 @@ export const emptyLine = style({
 })
 
 export const listTitle = style({
-  fontSize: fontStyles.headingSm.fontSize,
+  fontSize: fontStyles.titleMd.fontSize,
   fontWeight: 700,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
