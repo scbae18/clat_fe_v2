@@ -3,7 +3,7 @@
 import { FormEvent, useState } from 'react'
 import Link from 'next/link'
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
-import { loadTossPayments } from '@tosspayments/tosspayments-sdk'
+import { beginBillingCard, isCardCancel, withBillingProgress } from '@/lib/billingCard'
 import Button from '@/components/common/Button'
 import ConfirmModal from '@/components/common/ConfirmModal/ConfirmModal'
 import Input from '@/components/common/Input'
@@ -179,7 +179,7 @@ export default function BillingPage() {
     setBusy(true)
     try {
       if (payPanel.mode === 'upgrade') {
-        await billingService.changePlan(payPanel.preview.plan_code)
+        await withBillingProgress('요금제를 바꾸는 중…', () => billingService.changePlan(payPanel.preview.plan_code))
         success(`${payPanel.preview.plan_name} 요금제로 바꿨어요.`)
         setPayPanel(null)
         await queryClient.invalidateQueries({ queryKey: ['billing'] })
@@ -194,25 +194,18 @@ export default function BillingPage() {
       if (typedCode) {
         await billingService.redeemBenefit(typedCode, plan.code)
       }
-      sessionStorage.setItem('clat.billing.cardIntent', 'subscribe')
-      sessionStorage.setItem('clat.billing.plan', plan.code)
       if (!me.card) {
-        const clientKey = process.env.NEXT_PUBLIC_TOSS_PAYMENTS_CLIENT_KEY
-        if (!clientKey) {
-          error('결제 키가 없습니다.')
-          return
-        }
-        const toss = await loadTossPayments(clientKey)
-        await toss.payment({ customerKey: me.customer_key }).requestBillingAuth({
-          method: 'CARD',
-          successUrl: `${window.location.origin}/billing/card/success`,
-          failUrl: `${window.location.origin}/billing/card/fail`,
-          customerEmail: user?.email,
-          customerName: user?.name,
+        await beginBillingCard({
+          customerKey: me.customer_key,
+          intent: 'subscribe',
+          planCode: plan.code,
+          planName: plan.name,
+          email: user?.email,
+          name: user?.name,
         })
         return
       }
-      const result = await billingService.subscribe(plan.code)
+      const result = await withBillingProgress('결제하는 중…', () => billingService.subscribe(plan.code))
       sessionStorage.removeItem('clat.billing.plan')
       success(
         result.enforced && result.billing?.no_charge_until
@@ -222,7 +215,7 @@ export default function BillingPage() {
       setPayPanel(null)
       await queryClient.invalidateQueries({ queryKey: ['billing'] })
     } catch (err) {
-      error(apiErrorMessage(err, '결제를 시작하지 못했어요.'))
+      if (!isCardCancel(err)) error(err instanceof Error ? err.message : apiErrorMessage(err, '결제를 시작하지 못했어요.'))
     } finally {
       setBusy(false)
     }
@@ -231,7 +224,7 @@ export default function BillingPage() {
   const retryPayment = async () => {
     setBusy(true)
     try {
-      await billingService.retryPastDue()
+      await withBillingProgress('결제하는 중…', () => billingService.retryPastDue())
       success('결제됐어요. 오늘이 새 결제일이에요.')
       await queryClient.invalidateQueries({ queryKey: ['billing'] })
     } catch (err) {
@@ -246,21 +239,16 @@ export default function BillingPage() {
       error('결제 정보를 만들지 못했어요. 화면을 다시 열어 주세요.')
       return
     }
-    const clientKey = process.env.NEXT_PUBLIC_TOSS_PAYMENTS_CLIENT_KEY
-    if (!clientKey) {
-      error('결제 키가 없습니다.')
-      return
+    try {
+      await beginBillingCard({
+        customerKey: me.customer_key,
+        intent: me.status === 'PAST_DUE' ? 'past_due' : 'change',
+        email: user?.email,
+        name: user?.name,
+      })
+    } catch (err) {
+      if (!isCardCancel(err)) error(err instanceof Error ? err.message : apiErrorMessage(err, '카드를 바꾸지 못했어요.'))
     }
-    sessionStorage.setItem('clat.billing.cardIntent', me.status === 'PAST_DUE' ? 'past_due' : 'change')
-    sessionStorage.removeItem('clat.billing.plan')
-    const toss = await loadTossPayments(clientKey)
-    await toss.payment({ customerKey: me.customer_key }).requestBillingAuth({
-      method: 'CARD',
-      successUrl: `${window.location.origin}/billing/card/success`,
-      failUrl: `${window.location.origin}/billing/card/fail`,
-      customerEmail: user?.email,
-      customerName: user?.name,
-    })
   }
 
   const selectedPlan =

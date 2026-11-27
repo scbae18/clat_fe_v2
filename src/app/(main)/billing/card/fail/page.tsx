@@ -1,8 +1,9 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Button from '@/components/common/Button'
+import { BILLING_CARD_SOURCE, BILLING_POPUP_KEY, takeBillingReturn } from '@/lib/billingCard'
 import * as styles from '../../billing.css'
 
 function CardFail() {
@@ -16,12 +17,20 @@ function CardFail() {
       : code === 'NOT_SUPPORTED_CARD_TYPE'
         ? '이 테스트 상점에 그 카드사 계약이 없어요. 다른 카드를 넣어도 같은 문구가 납니다. 토스 개발자센터에서 자동결제 상점의 카드사를 확인해야 해요.'
         : raw || '카드 등록이 취소됐어요. 다른 카드로 다시 할 수 있어요.'
+
+  useEffect(() => {
+    if (!window.opener) return
+    window.opener.postMessage({ source: BILLING_CARD_SOURCE, ok: false, message }, window.location.origin)
+    sessionStorage.removeItem(BILLING_POPUP_KEY)
+    window.close()
+  }, [message])
+
   return (
     <>
       <h1 className={styles.pageTitle}>카드를 등록하지 못했어요</h1>
       <p className={styles.pageDesc}>{message}</p>
-      <Button variant="primary" size="sm" onClick={() => router.push('/billing')}>
-        요금제 화면으로
+      <Button variant="primary" size="sm" onClick={() => router.push(takeBillingReturn())}>
+        돌아가기
       </Button>
     </>
   )

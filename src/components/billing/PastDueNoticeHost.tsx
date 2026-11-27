@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { loadTossPayments } from '@tosspayments/tosspayments-sdk'
+import { beginBillingCard, isCardCancel, withBillingProgress } from '@/lib/billingCard'
 import Button from '@/components/common/Button'
 import Modal from '@/components/common/Modal'
 import Text from '@/components/common/Text'
@@ -41,7 +41,7 @@ export default function PastDueNoticeHost() {
   const retry = async () => {
     setBusy(true)
     try {
-      await billingService.retryPastDue()
+      await withBillingProgress('결제하는 중…', () => billingService.retryPastDue())
       success('결제됐어요. 오늘이 새 결제일이에요.')
       close()
     } catch (err) {
@@ -56,21 +56,18 @@ export default function PastDueNoticeHost() {
       error('결제 정보를 만들지 못했어요. 화면을 다시 열어 주세요.')
       return
     }
-    const clientKey = process.env.NEXT_PUBLIC_TOSS_PAYMENTS_CLIENT_KEY
-    if (!clientKey) {
-      error('결제 키가 없습니다.')
-      return
+    try {
+      const opening = beginBillingCard({
+        customerKey: me.customer_key,
+        intent: 'past_due',
+        email: user?.email,
+        name: user?.name,
+      })
+      close()
+      await opening
+    } catch (err) {
+      if (!isCardCancel(err)) error(err instanceof Error ? err.message : '카드를 바꾸지 못했어요.')
     }
-    sessionStorage.setItem('clat.billing.cardIntent', 'past_due')
-    sessionStorage.removeItem('clat.billing.plan')
-    const toss = await loadTossPayments(clientKey)
-    await toss.payment({ customerKey: me.customer_key }).requestBillingAuth({
-      method: 'CARD',
-      successUrl: `${window.location.origin}/billing/card/success`,
-      failUrl: `${window.location.origin}/billing/card/fail`,
-      customerEmail: user?.email,
-      customerName: user?.name,
-    })
   }
 
   const dueMe = me?.status === 'PAST_DUE' ? me : null

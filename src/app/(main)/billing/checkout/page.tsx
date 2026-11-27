@@ -3,7 +3,7 @@
 import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { loadTossPayments } from '@tosspayments/tosspayments-sdk'
+import { beginBillingCard, isCardCancel, withBillingProgress } from '@/lib/billingCard'
 import Button from '@/components/common/Button'
 import BusinessInfo from '@/components/legal/BusinessInfo'
 import Text from '@/components/common/Text'
@@ -66,28 +66,22 @@ function CheckoutForm() {
     try {
       sessionStorage.setItem(PLAN_KEY, plan.code)
       if (!me.card) {
-        const clientKey = process.env.NEXT_PUBLIC_TOSS_PAYMENTS_CLIENT_KEY
-        if (!clientKey) {
-          error('결제 키가 없습니다.')
-          return
-        }
-        const toss = await loadTossPayments(clientKey)
-        const payment = toss.payment({ customerKey: me.customer_key })
-        await payment.requestBillingAuth({
-          method: 'CARD',
-          successUrl: `${window.location.origin}/billing/card/success`,
-          failUrl: `${window.location.origin}/billing/card/fail`,
-          customerEmail: user?.email,
-          customerName: user?.name,
+        await beginBillingCard({
+          customerKey: me.customer_key,
+          intent: 'subscribe',
+          planCode: plan.code,
+          planName: plan.name,
+          email: user?.email,
+          name: user?.name,
         })
         return
       }
-      await billingService.subscribe(plan.code)
+      await withBillingProgress('결제하는 중…', () => billingService.subscribe(plan.code))
       sessionStorage.removeItem(PLAN_KEY)
       await queryClient.invalidateQueries({ queryKey: ['billing'] })
       router.replace('/billing')
     } catch (err) {
-      error(apiErrorMessage(err, '결제를 시작하지 못했어요.'))
+      if (!isCardCancel(err)) error(err instanceof Error ? err.message : apiErrorMessage(err, '결제를 시작하지 못했어요.'))
     } finally {
       setBusy(false)
     }

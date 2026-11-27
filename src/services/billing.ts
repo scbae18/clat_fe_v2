@@ -38,6 +38,7 @@ export type BillingMe =
       }
       grant: { plan_name: string; months: number; ends_at: string | null } | null
       card: { company: string; last4: string } | null
+      cards: Array<{ id: number; company: string; last4: string; is_default: boolean }>
       customer_key: string | null
       pending_benefit: { months: number; plan_code: string | null; plan_name: string | null } | null
       saved_benefit_months: number
@@ -149,11 +150,22 @@ export const billingService = {
     return data.data
   },
 
-  async registerCard(authKey: string, customerKey: string) {
-    const { data } = await axiosInstance.post<Envelope<{ card: { company: string; last4: string } }>>(
-      '/billing/card',
-      { auth_key: authKey, customer_key: customerKey },
-    )
+  async registerCard(authKey: string, customerKey: string, mode: 'add' | 'replace' = 'replace') {
+    const { data } = await axiosInstance.post<
+      Envelope<{ card: { id: number; company: string; last4: string; is_default: boolean } }>
+    >('/billing/card', { auth_key: authKey, customer_key: customerKey, mode })
+    return data.data
+  },
+
+  async setDefaultCard(cardId: number) {
+    const { data } = await axiosInstance.post<
+      Envelope<{ card: { id: number; company: string; last4: string; is_default: boolean } }>
+    >(`/billing/cards/${cardId}/default`)
+    return data.data
+  },
+
+  async deleteStoredCard(cardId: number) {
+    const { data } = await axiosInstance.delete<Envelope<{ deleted: boolean }>>(`/billing/cards/${cardId}`)
     return data.data
   },
 

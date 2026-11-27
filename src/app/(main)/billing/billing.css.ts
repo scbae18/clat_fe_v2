@@ -122,12 +122,36 @@ export const compareScroll = style({
   padding: '0 4px',
 })
 
+export const compareFit = style({
+  overflow: 'hidden',
+  width: '100%',
+  '@media': {
+    [media.phone]: {
+      overflowX: 'auto',
+      WebkitOverflowScrolling: 'touch',
+    },
+  },
+})
+
 export const compareTable = style({
   width: '100%',
   minWidth: '760px',
   borderCollapse: 'separate',
   borderSpacing: 0,
   tableLayout: 'fixed',
+})
+
+export const compareTableFit = style({
+  width: '100%',
+  minWidth: 0,
+  borderCollapse: 'separate',
+  borderSpacing: 0,
+  tableLayout: 'fixed',
+  '@media': {
+    [media.phone]: {
+      minWidth: '640px',
+    },
+  },
 })
 
 export const labelCell = style({

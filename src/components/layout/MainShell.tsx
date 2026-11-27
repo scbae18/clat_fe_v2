@@ -11,6 +11,8 @@ import IdentityVerificationModal from '@/components/auth/IdentityVerificationMod
 import SocialLinkOfferModal from '@/components/auth/SocialLinkOfferModal'
 import GrantNoticeHost from '@/components/billing/GrantNoticeHost'
 import PastDueNoticeHost from '@/components/billing/PastDueNoticeHost'
+import BillingProgressHost from '@/components/billing/BillingProgressHost'
+import BillingCardReturnHost from '@/components/billing/BillingCardReturnHost'
 import HelpChat from '@/components/help/HelpChat/HelpChat'
 import { useUiStore } from '@/stores/uiStore'
 import { useAttendanceSessionStore } from '@/stores/attendanceSessionStore'
@@ -56,6 +58,8 @@ export default function MainShell({ children }: { children: React.ReactNode }) {
       <SocialLinkOfferModal />
       <GrantNoticeHost />
       <PastDueNoticeHost />
+      <BillingProgressHost />
+      <BillingCardReturnHost />
     </div>
   )
 }

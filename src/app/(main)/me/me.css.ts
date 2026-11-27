@@ -2,6 +2,7 @@ import { style, globalStyle } from '@vanilla-extract/css'
 import { colors } from '@/styles/tokens/colors'
 import { fontStyles } from '@/styles/tokens/typography'
 import { media } from '@/styles/tokens/breakpoints'
+import { zIndex } from '@/styles/tokens/zIndex'
 
 const rowBorder = `1px solid ${colors.gray75}`
 
@@ -292,6 +293,12 @@ const pillBase = {
   cursor: 'pointer',
   fontFamily: 'Pretendard, sans-serif',
   whiteSpace: 'nowrap' as const,
+  selectors: {
+    '&:disabled': {
+      opacity: 0.45,
+      cursor: 'not-allowed',
+    },
+  },
 }
 
 export const primaryPill = style({
@@ -368,16 +375,25 @@ export const cardMark = style({
 
 export const invoiceRow = style({
   display: 'grid',
-  gridTemplateColumns: 'minmax(0, 190px) 110px max-content minmax(0, 1fr) 16px',
+  gridTemplateColumns: 'minmax(0, 1.1fr) 118px max-content minmax(0, 1.4fr)',
   alignItems: 'center',
   gap: '16px',
   padding: '16px 0',
   borderTop: rowBorder,
   '@media': {
     [media.phone]: {
-      gridTemplateColumns: '1fr auto',
+      gridTemplateColumns: '1fr',
+      gap: '8px',
     },
   },
+})
+
+export const invoiceTrail = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: '12px',
+  minWidth: 0,
 })
 
 export const invoiceName = style({
@@ -397,11 +413,22 @@ export const invoiceDate = style({
 })
 
 export const invoiceAmount = style({
+  flexShrink: 0,
   fontSize: fontStyles.bodyMd.fontSize,
   fontWeight: 500,
   lineHeight: '140%',
   letterSpacing: '-0.03em',
   color: colors.gray700,
+  textAlign: 'right',
+})
+
+export const invoiceMeta = style({
+  minWidth: 0,
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 500,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.gray500,
   textAlign: 'right',
 })
 
@@ -596,6 +623,82 @@ globalStyle(`${modalActions} > *`, {
       width: '100%',
     },
   },
+})
+
+export const cardMenuWrap = style({
+  position: 'relative',
+  flexShrink: 0,
+})
+
+export const cardMenu = style({
+  position: 'absolute',
+  top: 'calc(100% + 4px)',
+  right: 0,
+  zIndex: zIndex.tooltip,
+  minWidth: '196px',
+  padding: '6px',
+  borderRadius: '12px',
+  border: `1px solid ${colors.gray100}`,
+  backgroundColor: colors.white,
+  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
+})
+
+export const cardMenuItem = style({
+  display: 'flex',
+  width: '100%',
+  alignItems: 'center',
+  padding: '10px 12px',
+  border: 'none',
+  borderRadius: '8px',
+  backgroundColor: 'transparent',
+  color: colors.gray700,
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: fontStyles.bodyMd.fontSize,
+  fontWeight: 500,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  textAlign: 'left',
+  cursor: 'pointer',
+  selectors: {
+    '&:hover': {
+      backgroundColor: colors.gray50,
+    },
+    '&:disabled': {
+      color: colors.gray300,
+      cursor: 'not-allowed',
+      backgroundColor: 'transparent',
+    },
+  },
+})
+
+export const cardMenuDanger = style({
+  color: colors.error500,
+})
+
+export const cardMenuHint = style({
+  margin: 0,
+  padding: '4px 12px 8px',
+  fontSize: fontStyles.labelSm.fontSize,
+  fontWeight: 500,
+  lineHeight: '140%',
+  letterSpacing: '-0.03em',
+  color: colors.gray500,
+})
+
+export const planModal = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+  overflowX: 'hidden',
+  maxWidth: '100%',
+})
+
+export const planBenefit = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: '8px',
+  width: '100%',
 })
 
 export const emptyState = style({

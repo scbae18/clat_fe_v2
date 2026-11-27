@@ -30,14 +30,16 @@ export default function PlanCompare({
   plans,
   currentCode,
   recommendedCode,
+  fit = false,
 }: {
   plans: Plan[]
   currentCode: string
   recommendedCode: string
+  fit?: boolean
 }) {
   return (
-    <div className={styles.compareScroll}>
-      <table className={styles.compareTable}>
+    <div className={fit ? styles.compareFit : styles.compareScroll}>
+      <table className={fit ? styles.compareTableFit : styles.compareTable}>
         <thead>
           <tr>
             <th className={styles.labelCell} scope="col" />
