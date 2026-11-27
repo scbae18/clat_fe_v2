@@ -1,4 +1,3 @@
-import { format, parseISO } from 'date-fns'
 import type { BillingMe } from '@/services/billing'
 
 export type EnforcedBilling = Extract<BillingMe, { enforced: true }>
@@ -8,9 +7,40 @@ export function isEnforcedBilling(me: BillingMe | undefined): me is EnforcedBill
 }
 
 export function resetDayLabel(iso: string): string {
-  const date = parseISO(iso)
+  return kstDateLabel(iso, 'md')
+}
+
+export function kstDateLabel(iso: string, pattern: 'md' | 'ymd' | 'dot'): string {
+  const date = new Date(iso)
   if (Number.isNaN(date.getTime())) return ''
-  return format(date, 'M월 d일')
+  const parts = new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).formatToParts(date)
+  const year = parts.find((part) => part.type === 'year')?.value ?? ''
+  const month = parts.find((part) => part.type === 'month')?.value ?? ''
+  const day = parts.find((part) => part.type === 'day')?.value ?? ''
+  if (pattern === 'md') return `${month}월 ${day}일`
+  if (pattern === 'dot') return `${year}. ${month}. ${day}.`
+  return `${year}년 ${month}월 ${day}일`
+}
+
+export function kstHourLabel(iso: string): string {
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return ''
+  const hour = new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    hour: 'numeric',
+    hourCycle: 'h23',
+  }).formatToParts(date).find((part) => part.type === 'hour')?.value
+  const hourNumber = Number(hour)
+  if (!Number.isFinite(hourNumber)) return ''
+  const day = kstDateLabel(iso, 'md')
+  if (hourNumber < 12) return `${day} 오전 ${hourNumber}시`
+  if (hourNumber === 12) return `${day} 오후 12시`
+  return `${day} 오후 ${hourNumber - 12}시`
 }
 
 export function moneyLabel(amount: number): string {

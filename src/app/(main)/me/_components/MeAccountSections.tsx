@@ -37,6 +37,9 @@ type MeAccountSectionsProps = {
   onStartWithdraw: () => void
   enforced: EnforcedBilling | null
   invoices: BillingInvoice[]
+  hasOlderInvoices?: boolean
+  loadingOlderInvoices?: boolean
+  onLoadOlderInvoices?: () => void
 }
 
 export function MeAccountSections({
@@ -64,6 +67,9 @@ export function MeAccountSections({
   onStartWithdraw,
   enforced,
   invoices,
+  hasOlderInvoices,
+  loadingOlderInvoices,
+  onLoadOlderInvoices,
 }: MeAccountSectionsProps) {
   const noPassword = user.has_password === false
 
@@ -157,7 +163,14 @@ export function MeAccountSections({
         ) : null}
       </section>
 
-      <MeBillingPanel user={user} enforced={enforced} invoices={invoices} />
+      <MeBillingPanel
+        user={user}
+        enforced={enforced}
+        invoices={invoices}
+        hasOlder={hasOlderInvoices}
+        loadingOlder={loadingOlderInvoices}
+        onLoadOlder={onLoadOlderInvoices}
+      />
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>로그인 · 보안</h2>

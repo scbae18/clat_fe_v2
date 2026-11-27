@@ -208,6 +208,15 @@ export const noticeActions = style({
   marginTop: '8px',
 })
 
+export const cardChargeRow = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: '8px',
+})
+
+export const cardChargeText = style([sectionDesc, { margin: 0 }])
+
 export const invoiceActions = style({
   display: 'flex',
   flexWrap: 'wrap',
@@ -455,6 +464,11 @@ export const benefitBox = style({
   flexDirection: 'column',
   alignItems: 'flex-start',
   gap: '12px',
+})
+
+export const agreeLink = style({
+  color: colors.primary600,
+  textDecoration: 'underline',
 })
 
 export const agreeRow = style({

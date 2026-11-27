@@ -1,11 +1,14 @@
 'use client'
 
+import { useQuery } from '@tanstack/react-query'
 import Text from '@/components/common/Text'
 import Button from '@/components/common/Button'
 import Modal from '@/components/common/Modal'
 import ConfirmModal from '@/components/common/ConfirmModal'
 import * as styles from '../me.css'
 import { MSG, type WithdrawStep } from '../_lib/meShared'
+import { isEnforcedBilling, moneyLabel } from '@/lib/billingView'
+import { billingService } from '@/services/billing'
 
 type MeAccountModalsProps = {
   emailModalOpen: boolean
@@ -76,6 +79,24 @@ export function MeAccountModals({
   onCloseWithdraw,
   onWithdraw,
 }: MeAccountModalsProps) {
+  const billingQuery = useQuery({
+    queryKey: ['billing', 'me'],
+    queryFn: () => billingService.me(),
+    enabled: withdrawStep === 'confirm',
+    refetchOnWindowFocus: false,
+  })
+  const billing = isEnforcedBilling(billingQuery.data) ? billingQuery.data : null
+  const withdrawNotes: string[] = [...MSG.withdrawStep1Desc]
+  if (billing?.card) {
+    withdrawNotes.push('등록된 카드는 지워지고, 30일 안에 다시 로그인해도 돌아오지 않아요.')
+  }
+  if (billing && billing.unsettled_overage_amount > 0) {
+    withdrawNotes.push(`초과 사용료 ${moneyLabel(billing.unsettled_overage_amount)}이 지금 결제돼요.`)
+  }
+  if (billing?.current_period_paid) {
+    withdrawNotes.push('이미 낸 이번 기간 요금은 환불되지 않아요.')
+  }
+
   return (
     <>
       <Modal isOpen={emailModalOpen} onClose={onCloseEmailModal} size="sm">
@@ -206,7 +227,7 @@ export function MeAccountModals({
         onClose={onCloseWithdraw}
         onConfirm={onWithdrawContinue}
         title={MSG.withdrawStep1Title}
-        descriptions={[...MSG.withdrawStep1Desc]}
+        descriptions={withdrawNotes}
         confirmLabel={MSG.withdrawContinue}
         confirmVariant="danger"
       />

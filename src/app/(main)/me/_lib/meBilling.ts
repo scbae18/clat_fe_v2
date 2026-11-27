@@ -1,4 +1,4 @@
-import { format, parseISO } from 'date-fns'
+import { kstDateLabel } from '@/lib/billingView'
 import type { EnforcedBilling } from '@/lib/billingView'
 import type { BillingInvoice } from '@/services/billing'
 import { normalizeKoreanMobile } from '@/lib/phone'
@@ -27,9 +27,8 @@ export function nextPayLine(me: EnforcedBilling): string {
   const hold = Boolean(billing.no_charge_until && Date.parse(billing.no_charge_until) > Date.now())
   const iso = hold ? billing.no_charge_until : billing.next_billing_at
   if (!iso) return ''
-  const date = parseISO(iso)
-  if (Number.isNaN(date.getTime())) return ''
-  const day = format(date, 'yyyy년 M월 d일')
+  const day = kstDateLabel(iso, 'ymd')
+  if (!day) return ''
   if (hold) return `${day}까지 청구 없음`
   return `다음 결제 ${day} · ${wonLabel(billing.next_amount)}`
 }
@@ -49,19 +48,18 @@ export function invoiceTitle(row: BillingInvoice): string {
   return row.plan_name
 }
 
-export function invoiceStatusLabel(status: string): { label: string; failed: boolean } {
-  if (status === 'FAILED') return { label: '결제 실패', failed: true }
-  if (status === 'PAID') return { label: '결제 완료', failed: false }
-  if (status === 'PENDING') return { label: '확인 중', failed: false }
-  if (status === 'REFUNDED') return { label: '환불됨', failed: false }
-  if (status === 'PARTIALLY_REFUNDED') return { label: '일부 환불', failed: false }
-  if (status === 'VOID') return { label: '취소됨', failed: false }
-  return { label: status, failed: false }
+export function invoiceStatusLabel(row: Pick<BillingInvoice, 'status' | 'refund_status'>): { label: string; failed: boolean } {
+  if (row.refund_status === 'REQUESTED') return { label: '환불 처리 중', failed: false }
+  if (row.status === 'FAILED') return { label: '결제 실패', failed: true }
+  if (row.status === 'PAID') return { label: '결제됨', failed: false }
+  if (row.status === 'PENDING') return { label: '확인 중', failed: false }
+  if (row.status === 'REFUNDED') return { label: '환불됨', failed: false }
+  if (row.status === 'PARTIALLY_REFUNDED') return { label: '일부 환불', failed: false }
+  if (row.status === 'VOID') return { label: '취소됨', failed: false }
+  return { label: row.status, failed: false }
 }
 
 export function invoiceDateLabel(iso: string | null): string {
   if (!iso) return ''
-  const date = parseISO(iso)
-  if (Number.isNaN(date.getTime())) return ''
-  return format(date, 'yyyy. M. d.')
+  return kstDateLabel(iso, 'dot')
 }

@@ -10,6 +10,7 @@ import WhatsNewModalHost from '@/components/whats-new/WhatsNewModal/WhatsNewModa
 import IdentityVerificationModal from '@/components/auth/IdentityVerificationModal'
 import SocialLinkOfferModal from '@/components/auth/SocialLinkOfferModal'
 import GrantNoticeHost from '@/components/billing/GrantNoticeHost'
+import PastDueNoticeHost from '@/components/billing/PastDueNoticeHost'
 import HelpChat from '@/components/help/HelpChat/HelpChat'
 import { useUiStore } from '@/stores/uiStore'
 import { useAttendanceSessionStore } from '@/stores/attendanceSessionStore'
@@ -54,6 +55,7 @@ export default function MainShell({ children }: { children: React.ReactNode }) {
       <IdentityVerificationModal />
       <SocialLinkOfferModal />
       <GrantNoticeHost />
+      <PastDueNoticeHost />
     </div>
   )
 }

@@ -32,6 +32,7 @@ export type BillingMe =
         overage_enabled: boolean
         overage_used: number
         overage_cap: number
+        overage_billable: boolean
         overage_available: boolean
         resets_at: string
       }
@@ -40,11 +41,25 @@ export type BillingMe =
       customer_key: string | null
       pending_benefit: { months: number; plan_code: string | null; plan_name: string | null } | null
       saved_benefit_months: number
+      saved_benefit_plan: { code: string; name: string; monthly_price: number } | null
+      carried_overage_amount: number
+      unsettled_overage_amount: number
+      current_period_paid: boolean
       past_due_until: string | null
+      past_due: {
+        amount: number
+        plan_amount: number
+        carried_amount: number
+        failure_message: string | null
+        next_attempt_at: string | null
+      } | null
       billing: {
         anchor_day: number | null
         next_billing_at: string
         next_amount: number
+        next_plan_amount: number
+        next_overage_amount: number
+        next_carried_amount: number
         no_charge_until: string | null
         saved_benefit_months: number
         cancel_at_period_end: boolean
@@ -71,6 +86,10 @@ export type BillingInvoice = {
   includes_upgrade?: boolean
   refund_block_reason: string | null
   locked_students: Array<{ id: number; name: string }>
+  refund_status: 'REQUESTED' | 'DONE' | 'FAILED' | null
+  refunded_amount: number | null
+  refunded_at: string | null
+  refund_failure_reason: string | null
 }
 
 export type PlanPreview =
@@ -138,6 +157,11 @@ export const billingService = {
     return data.data
   },
 
+  async deleteCard() {
+    const { data } = await axiosInstance.delete<Envelope<{ card: null }>>('/billing/card')
+    return data.data
+  },
+
   async retryPastDue() {
     const { data } = await axiosInstance.post<Envelope<BillingMe>>('/billing/retry')
     return data.data
@@ -164,9 +188,12 @@ export const billingService = {
     return data.data
   },
 
-  async invoices() {
-    const { data } = await axiosInstance.get<Envelope<{ invoices: BillingInvoice[] }>>('/billing/invoices')
-    return data.data.invoices
+  async invoices(before?: number) {
+    const { data } = await axiosInstance.get<Envelope<{ invoices: BillingInvoice[]; next_cursor: number | null }>>(
+      '/billing/invoices',
+      { params: before != null ? { before } : undefined },
+    )
+    return data.data
   },
 
   async refundInvoice(invoiceId: number) {

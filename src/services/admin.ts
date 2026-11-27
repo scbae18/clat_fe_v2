@@ -250,6 +250,23 @@ export const admin = {
     return unwrap(data)
   },
 
+  async billingReview() {
+    const { data } = await axiosInstance.get<Envelope<{
+      items: Array<{ kind: string; name: string; email: string; amount: number | null; at: string; reason: string }>
+    }>>('/admin/billing/review', { timeout: ADMIN_TIMEOUT })
+    return unwrap(data)
+  },
+
+  async billingTimeline(userId: number) {
+    const { data } = await axiosInstance.get<Envelope<{
+      user_id: number
+      name: string
+      email: string
+      items: Array<{ at: string; kind: string; amount: number | null; status: string; label: string; reason: string | null }>
+    }>>(`/admin/billing/users/${userId}/timeline`, { timeout: ADMIN_TIMEOUT })
+    return unwrap(data)
+  },
+
   async billingPrecheck(q?: string) {
     const { data } = await axiosInstance.get<Envelope<AdminBillingPrecheck>>('/admin/billing/precheck', {
       params: { q: q || undefined },
@@ -380,6 +397,9 @@ export type AdminBillingPrecheckRow = {
   plan_name: string
   next_billing_at: string | null
   no_charge_until: string | null
+  past_due_until: string | null
+  cancel_at_period_end: boolean
+  has_card: boolean
   will_lock_count: number
 }
 

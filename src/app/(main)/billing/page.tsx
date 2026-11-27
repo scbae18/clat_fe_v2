@@ -1,7 +1,8 @@
 'use client'
 
 import { FormEvent, useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import Link from 'next/link'
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import { loadTossPayments } from '@tosspayments/tosspayments-sdk'
 import Button from '@/components/common/Button'
 import ConfirmModal from '@/components/common/ConfirmModal/ConfirmModal'
@@ -10,7 +11,7 @@ import Text from '@/components/common/Text'
 import PlanCompare from '@/components/billing/PlanCompare'
 import BusinessInfo from '@/components/legal/BusinessInfo'
 import { apiErrorMessage } from '@/lib/api/http'
-import { isEnforcedBilling, moneyLabel, resetDayLabel } from '@/lib/billingView'
+import { isEnforcedBilling, kstHourLabel, moneyLabel, resetDayLabel } from '@/lib/billingView'
 import { billingService, type BillingInvoice, type PlanPreview } from '@/services/billing'
 import { useUserStore } from '@/stores/userStore'
 import useToast from '@/hooks/useToast'
@@ -44,11 +45,15 @@ export default function BillingPage() {
     queryFn: () => billingService.me(),
     refetchOnWindowFocus: false,
   })
-  const invoicesQuery = useQuery({
+  const invoicesQuery = useInfiniteQuery({
     queryKey: ['billing', 'invoices'],
-    queryFn: () => billingService.invoices(),
+    queryFn: ({ pageParam }) => billingService.invoices(pageParam),
+    initialPageParam: undefined as number | undefined,
+    getNextPageParam: (last) => last.next_cursor ?? undefined,
     enabled: isEnforcedBilling(meQuery.data),
     refetchOnWindowFocus: false,
+    refetchInterval: (query) =>
+      query.state.data?.pages.some((page) => page.invoices.some((row) => row.status === 'PENDING')) ? 4000 : false,
   })
   const plansQuery = useQuery({
     queryKey: ['billing', 'plans'],
@@ -189,6 +194,7 @@ export default function BillingPage() {
       if (typedCode) {
         await billingService.redeemBenefit(typedCode, plan.code)
       }
+      sessionStorage.setItem('clat.billing.cardIntent', 'subscribe')
       sessionStorage.setItem('clat.billing.plan', plan.code)
       if (!me.card) {
         const clientKey = process.env.NEXT_PUBLIC_TOSS_PAYMENTS_CLIENT_KEY
@@ -245,6 +251,7 @@ export default function BillingPage() {
       error('결제 키가 없습니다.')
       return
     }
+    sessionStorage.setItem('clat.billing.cardIntent', me.status === 'PAST_DUE' ? 'past_due' : 'change')
     sessionStorage.removeItem('clat.billing.plan')
     const toss = await loadTossPayments(clientKey)
     await toss.payment({ customerKey: me.customer_key }).requestBillingAuth({
@@ -269,6 +276,44 @@ export default function BillingPage() {
     me.billing?.no_charge_until &&
       me.billing.next_billing_at < me.billing.no_charge_until,
   )
+  const inFreePeriod = Boolean(
+    me.status === 'ACTIVE' &&
+      me.billing?.no_charge_until &&
+      Date.parse(me.billing.no_charge_until) > Date.now(),
+  )
+  const invoiceRows = invoicesQuery.data?.pages.flatMap((page) => page.invoices) ?? []
+  const pendingPayment = invoiceRows.some((row) => row.status === 'PENDING')
+  const savedPlan = me.saved_benefit_plan
+  const freeMonthsFirst = Boolean(
+    benefitCode.trim() ||
+      pendingMatches ||
+      (selectedPlan && me.saved_benefit_months > 0 && (!savedPlan || savedPlan.code === selectedPlan.code)),
+  )
+  const lockedBenefitPlan = Boolean(
+    selectedPlan &&
+      !benefitCode.trim() &&
+      !me.pending_benefit &&
+      me.saved_benefit_months > 0 &&
+      savedPlan &&
+      savedPlan.code !== selectedPlan.code,
+  )
+  const todayCharge = payPanel?.mode === 'upgrade'
+    ? payPanel.preview.charge_amount
+    : lockedBenefitPlan || freeMonthsFirst
+      ? 0
+      : (selectedPlan?.monthly_price ?? 0) + me.carried_overage_amount
+  const monthlyAfter = lockedBenefitPlan
+    ? (savedPlan?.monthly_price ?? 0)
+    : payPanel?.mode === 'upgrade'
+      ? payPanel.preview.new_monthly_price
+      : (selectedPlan?.monthly_price ?? 0)
+  const consentText = payPanel?.mode === 'upgrade'
+    ? `오늘 ${moneyLabel(todayCharge)}이 결제되고, 다음 결제일부터 월 ${moneyLabel(monthlyAfter)}이 결제되는 것에 동의합니다.`
+    : todayCharge === 0
+      ? `지금은 결제되지 않고, 무료 기간이 끝난 뒤 매달 이 날 오전 10시에 ${moneyLabel(monthlyAfter)}이 자동 결제되는 것에 동의합니다.`
+      : `오늘 ${moneyLabel(todayCharge)}이 결제되고, 이후 매달 이 날 오전 10시에 ${moneyLabel(monthlyAfter)}이 자동 결제되는 것에 동의합니다.`
+  const nextExtra = (me.billing?.next_overage_amount ?? 0) + (me.billing?.next_carried_amount ?? 0)
+  const nextMixed = Boolean(me.billing && me.billing.next_plan_amount > 0 && nextExtra > 0)
   const planCopy = planActionCopy(
     planAction,
     me.billing?.next_billing_at ?? null,
@@ -374,8 +419,10 @@ export default function BillingPage() {
                 {me.billing
                   ? benefitHoldsBilling
                     ? `${resetDayLabel(me.billing.no_charge_until ?? me.billing.next_billing_at)}까지 청구 없음`
-                    : `${resetDayLabel(me.billing.next_billing_at)} · ${moneyLabel(me.billing.next_amount)}`
-                  : '예정된 결제가 없어요.'}
+                    : `${resetDayLabel(me.billing.next_billing_at)} · ${moneyLabel(me.billing.next_amount)}${nextMixed ? ` · 구독료 ${moneyLabel(me.billing.next_plan_amount)} + 초과 ${moneyLabel(nextExtra)}` : ''}`
+                  : me.status === 'PAST_DUE'
+                    ? ''
+                    : '예정된 결제가 없어요.'}
               </p>
             </div>
           </div>
@@ -396,7 +443,7 @@ export default function BillingPage() {
             <div className={styles.noticeActions}>
               {me.customer_key ? (
                 <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => void changeCard()}>
-                  카드 바꾸기
+                  {inFreePeriod && !me.card ? '카드 등록' : '카드 바꾸기'}
                 </Button>
               ) : null}
               {me.billing?.pending_plan_code ? (
@@ -408,16 +455,79 @@ export default function BillingPage() {
                 <Button size="sm" variant="secondary" disabled={busy} onClick={() => setPlanAction({ kind: 'undo-cancel' })}>
                   해지 취소
                 </Button>
-              ) : (
+              ) : inFreePeriod ? null : (
                 <Button size="sm" variant="danger" disabled={busy} onClick={() => setPlanAction({ kind: 'cancel' })}>
                   해지하기
                 </Button>
               )}
             </div>
           ) : null}
-          <InvoiceList rows={invoicesQuery.data ?? []} onRefund={setRefundRow} />
+          {inFreePeriod ? (
+            <>
+              <p className={styles.sectionDesc}>무료 기간에는 해지할 수 없어요.</p>
+              {me.card ? null : (
+                <p className={styles.sectionDesc}>무료 기간에도 카드는 한 장 등록되어 있어야 해요.</p>
+              )}
+            </>
+          ) : null}
+          {me.status === 'FREE' && me.card && me.customer_key ? (
+            <div className={styles.noticeActions}>
+              <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => void changeCard()}>
+                카드 바꾸기
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="danger"
+                disabled={busy}
+                onClick={() => {
+                  if (!window.confirm('등록된 카드를 지울까요? 지우면 결제되지 않아요.')) return
+                  setBusy(true)
+                  void billingService
+                    .deleteCard()
+                    .then(async () => {
+                      success('카드를 지웠어요.')
+                      await queryClient.invalidateQueries({ queryKey: ['billing'] })
+                    })
+                    .catch((err: unknown) => {
+                      error(apiErrorMessage(err, '카드를 지우지 못했어요.'))
+                    })
+                    .finally(() => setBusy(false))
+                }}
+              >
+                카드 지우기
+              </Button>
+            </div>
+          ) : null}
+          {pendingPayment ? (
+            <p className={styles.sectionDesc}>결제 결과를 확인하고 있어요. 다시 누르지 않아도 돼요.</p>
+          ) : null}
+          <InvoiceList
+            rows={invoiceRows}
+            hasMore={invoicesQuery.hasNextPage}
+            loadingMore={invoicesQuery.isFetchingNextPage}
+            onMore={() => void invoicesQuery.fetchNextPage()}
+            onRefund={setRefundRow}
+          />
           {me.status === 'PAST_DUE' ? (
             <div className={styles.warn}>
+              <p className={styles.sectionDesc}>
+                {me.past_due
+                  ? me.past_due.carried_amount > 0
+                    ? `결제할 금액은 ${moneyLabel(me.past_due.amount)}이에요. 구독료 ${moneyLabel(me.past_due.plan_amount)} + 지난 초과 사용 ${moneyLabel(me.past_due.carried_amount)}.`
+                    : `결제할 금액은 ${moneyLabel(me.past_due.amount)}이에요.`
+                  : '결제가 되지 않았어요.'}
+              </p>
+              {me.past_due?.failure_message ? (
+                <p className={styles.sectionDesc}>거절 사유: {me.past_due.failure_message}</p>
+              ) : null}
+              <p className={styles.sectionDesc}>
+                {me.past_due?.next_attempt_at
+                  ? `다음 자동 결제는 ${kstHourLabel(me.past_due.next_attempt_at)}예요. 그때를 기다리지 않고 지금 다시 결제할 수도 있어요.`
+                  : me.past_due_until
+                    ? `${resetDayLabel(me.past_due_until)}까지 결제되지 않으면 무료로 바뀌어요.`
+                    : '지금 다시 결제할 수 있어요.'}
+              </p>
               <p className={styles.sectionDesc}>
                 결제가 되지 않았어요. 결제될 때까지 알림톡은 월 30통, 새 학생은 10명까지예요.
                 {me.past_due_until
@@ -469,6 +579,13 @@ export default function BillingPage() {
                   ? '무료 기간에는 요금이 없고 한 달 500통까지예요.'
                   : '통당 20원, 한 달 최대 1만 원. 다음 결제일에 구독료와 함께 결제돼요.'}
               </p>
+              {me.messages.overage_used > 0 && me.status !== 'FREE' ? (
+                <p className={styles.sectionDesc}>
+                  {me.status === 'GRANT' || inFreePeriod || !me.messages.overage_billable
+                    ? `이번 기간 초과 ${me.messages.overage_used}통`
+                    : `이번 기간 초과 ${me.messages.overage_used}통 · ${moneyLabel(me.billing?.next_overage_amount || me.messages.overage_used * 20)}`}
+                </p>
+              ) : null}
             </div>
             {me.messages.overage_available ? (
               <Button
@@ -567,19 +684,38 @@ export default function BillingPage() {
               <div>
                 <p className={styles.payAmountLabel}>오늘 결제 금액</p>
                 <p className={styles.payAmount}>
-                  {moneyLabel(
-                    payPanel.mode === 'subscribe'
-                      ? pendingMatches
-                        ? 0
-                        : (selectedPlan?.monthly_price ?? 0)
-                      : payPanel.preview.charge_amount,
-                  )}
+                  {moneyLabel(todayCharge)}
                 </p>
               </div>
-              {payPanel.mode === 'subscribe' && selectedPlan ? (
+              {payPanel.mode === 'subscribe' && selectedPlan && !freeMonthsFirst && !lockedBenefitPlan && me.carried_overage_amount > 0 ? (
+                <p className={styles.sectionDesc}>
+                  구독료 {moneyLabel(selectedPlan.monthly_price)} + 지난 초과 사용 {moneyLabel(me.carried_overage_amount)}
+                </p>
+              ) : null}
+              {payPanel.mode === 'subscribe' && lockedBenefitPlan && savedPlan ? (
+                <p className={styles.sectionDesc}>
+                  저장된 무료 {me.saved_benefit_months}개월은 {savedPlan.name}으로 시작돼요. 지금은 결제되지 않아요.
+                </p>
+              ) : null}
+              {payPanel.mode === 'subscribe' && freeMonthsFirst ? (
+                <p className={styles.sectionDesc}>무료 개월이 먼저 적용돼요. 지금은 결제되지 않아요.</p>
+              ) : null}
+              {payPanel.mode === 'subscribe' && selectedPlan && !freeMonthsFirst && !lockedBenefitPlan ? (
                 <p className={styles.sectionDesc}>
                   다음 결제부터는 같은 날 오전 10시에 {moneyLabel(selectedPlan.monthly_price)}이 결제돼요.
                 </p>
+              ) : null}
+              {payPanel.mode === 'subscribe' && me.card ? (
+                <div className={styles.cardChargeRow}>
+                  <p className={styles.cardChargeText}>
+                    {me.card.company} {me.card.last4}로 결제돼요.
+                  </p>
+                  {me.customer_key ? (
+                    <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => void changeCard()}>
+                      카드 바꾸기
+                    </Button>
+                  ) : null}
+                </div>
               ) : null}
               {payPanel.mode === 'upgrade' ? (
                 <>
@@ -591,6 +727,11 @@ export default function BillingPage() {
                       ? `잠긴 학생 ${payPanel.preview.unlock_count}명이 풀려요.`
                       : '학생 한도와 알림톡 한도가 바로 늘어요.'}
                   </p>
+                  {payPanel.preview.charge_amount > 0 ? (
+                    <p className={styles.sectionDesc}>
+                      이 차액만 따로 환불되지는 않아요. 구독료를 환불할 수 있을 때 함께 취소돼요.
+                    </p>
+                  ) : null}
                 </>
               ) : null}
               {payPanel.mode === 'subscribe' ? (
@@ -629,7 +770,12 @@ export default function BillingPage() {
               </p>
               <label className={styles.agreeRow}>
                 <input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} />
-                결제 내용을 확인했고 동의합니다.
+                <span>
+                  {consentText}{' '}
+                  <Link href="/terms" className={styles.agreeLink}>이용약관</Link>
+                  {' · '}
+                  <Link href="/refund" className={styles.agreeLink}>환불 규정</Link>
+                </span>
               </label>
               <Button type="button" variant="primary" size="md" disabled={busy || !agreed} onClick={() => void pay()}>
                 결제하기
@@ -791,20 +937,35 @@ function invoicePill(status: string): string {
   return styles.pillMuted
 }
 
-function invoiceStatus(status: string): string {
-  if (status === 'PAID') return '결제됨'
-  if (status === 'FAILED') return '거절됨'
-  if (status === 'PENDING') return '확인 중'
-  if (status === 'REFUNDED') return '환불됨'
-  if (status === 'PARTIALLY_REFUNDED') return '일부 환불'
-  return status
+function invoiceStatus(row: BillingInvoice): string {
+  if (row.refund_status === 'REQUESTED') return '환불 처리 중'
+  if (row.status === 'PAID') return '결제됨'
+  if (row.status === 'FAILED') return '거절됨'
+  if (row.status === 'PENDING') return '확인 중'
+  if (row.status === 'REFUNDED') return '환불됨'
+  if (row.status === 'PARTIALLY_REFUNDED') return '일부 환불'
+  return row.status
+}
+
+function invoiceMoney(row: BillingInvoice): string {
+  const extra = row.overage_amount + row.carried_amount
+  if (row.plan_amount > 0 && extra > 0) {
+    return `${moneyLabel(row.total_amount)} · 구독료 ${moneyLabel(row.plan_amount)} + 초과 ${moneyLabel(extra)}`
+  }
+  return moneyLabel(row.total_amount)
 }
 
 function InvoiceList({
   rows,
+  hasMore,
+  loadingMore,
+  onMore,
   onRefund,
 }: {
   rows: BillingInvoice[]
+  hasMore: boolean
+  loadingMore: boolean
+  onMore: () => void
   onRefund: (row: BillingInvoice) => void
 }) {
   if (rows.length === 0) {
@@ -822,12 +983,20 @@ function InvoiceList({
             <div className={styles.invoiceMain}>
               <div className={styles.invoiceTitle}>
                 <span className={styles.invoiceName}>{row.plan_name}</span>
-                <span className={`${styles.pill} ${invoicePill(row.status)}`}>{invoiceStatus(row.status)}</span>
+                <span className={`${styles.pill} ${invoicePill(row.refund_status === 'REQUESTED' ? 'PENDING' : row.status)}`}>{invoiceStatus(row)}</span>
               </div>
               <p className={styles.invoiceMeta}>
-                {moneyLabel(row.total_amount)}
+                {invoiceMoney(row)}
                 {row.paid_at ? ` · ${resetDayLabel(row.paid_at)}` : ''}
               </p>
+              {row.refund_status === 'DONE' && row.refunded_amount != null ? (
+                <p className={styles.sectionDesc}>
+                  {moneyLabel(row.refunded_amount)} 환불 · {row.refunded_at ? resetDayLabel(row.refunded_at) : ''}
+                </p>
+              ) : null}
+              {row.refund_status === 'FAILED' && row.refund_failure_reason ? (
+                <p className={styles.sectionDesc}>환불이 되지 않았어요. {row.refund_failure_reason}</p>
+              ) : null}
               {row.refund_block_reason ? <p className={styles.sectionDesc}>{row.refund_block_reason}</p> : null}
             </div>
             <div className={styles.invoiceActions}>
@@ -847,6 +1016,11 @@ function InvoiceList({
           </div>
         ))}
       </div>
+      {hasMore ? (
+        <Button type="button" variant="secondary" size="sm" disabled={loadingMore} onClick={onMore}>
+          {loadingMore ? '불러오는 중…' : '이전 결제 보기'}
+        </Button>
+      ) : null}
       <Text variant="bodyMd" color="gray500">
         클랫 오류나 중복 결제라면 010-7324-7708로 문의해 주세요.
       </Text>

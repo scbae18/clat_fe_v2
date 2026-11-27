@@ -6,6 +6,8 @@ import type { User } from '@/types/user'
 import type { EnforcedBilling } from '@/lib/billingView'
 import type { BillingInvoice } from '@/services/billing'
 import ChevronRightIcon from '@/assets/icons/icon-chevron-right.svg'
+import Button from '@/components/common/Button'
+import { moneyLabel } from '@/lib/billingView'
 import * as styles from '../me.css'
 import {
   invoiceDateLabel,
@@ -21,9 +23,12 @@ type MeBillingPanelProps = {
   user: User
   enforced: EnforcedBilling | null
   invoices: BillingInvoice[]
+  hasOlder?: boolean
+  loadingOlder?: boolean
+  onLoadOlder?: () => void
 }
 
-export function MeBillingPanel({ user, enforced, invoices }: MeBillingPanelProps) {
+export function MeBillingPanel({ user, enforced, invoices, hasOlder, loadingOlder, onLoadOlder }: MeBillingPanelProps) {
   const renewal = enforced ? renewalLabel(enforced) : null
   const nextLine = enforced ? nextPayLine(enforced) : ''
   const usage = enforced ? messageUsage(enforced) : null
@@ -130,14 +135,26 @@ export function MeBillingPanel({ user, enforced, invoices }: MeBillingPanelProps
         {enforced && invoices.length > 0 ? (
           <div>
             {invoices.map((row) => {
-              const status = invoiceStatusLabel(row.status)
+              const status = invoiceStatusLabel(row)
               const date = invoiceDateLabel(row.paid_at)
+              const extra = row.overage_amount + row.carried_amount
+              const amount = row.plan_amount > 0 && extra > 0
+                ? `${wonLabel(row.total_amount)} · 구독료 ${moneyLabel(row.plan_amount)} + 초과 ${moneyLabel(extra)}`
+                : wonLabel(row.total_amount)
               return (
                 <div key={row.id} className={styles.invoiceRow}>
                   <span className={styles.invoiceName}>{invoiceTitle(row)}</span>
                   <span className={styles.invoiceDate}>{date}</span>
                   <span className={status.failed ? styles.failChip : styles.mutedChip}>{status.label}</span>
-                  <span className={styles.invoiceAmount}>{wonLabel(row.total_amount)}</span>
+                  <span className={styles.invoiceAmount}>{amount}</span>
+                  {row.refund_status === 'DONE' && row.refunded_amount != null ? (
+                    <span className={styles.invoiceDate}>
+                      {moneyLabel(row.refunded_amount)} 환불 · {invoiceDateLabel(row.refunded_at)}
+                    </span>
+                  ) : null}
+                  {row.refund_status === 'FAILED' && row.refund_failure_reason ? (
+                    <span className={styles.invoiceDate}>환불이 되지 않았어요. {row.refund_failure_reason}</span>
+                  ) : null}
                   {row.receipt_url ? (
                     <a className={styles.chevronLink} href={row.receipt_url} target="_blank" rel="noreferrer" aria-label="영수증">
                       <ChevronRightIcon width={16} height={16} />
@@ -150,6 +167,11 @@ export function MeBillingPanel({ user, enforced, invoices }: MeBillingPanelProps
                 </div>
               )
             })}
+            {hasOlder ? (
+              <Button type="button" variant="secondary" size="sm" disabled={loadingOlder} onClick={onLoadOlder}>
+                {loadingOlder ? '불러오는 중…' : '이전 결제 보기'}
+              </Button>
+            ) : null}
           </div>
         ) : null}
       </section>

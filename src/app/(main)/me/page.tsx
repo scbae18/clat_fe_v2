@@ -51,6 +51,9 @@ export default function MyProfilePage() {
             onStartWithdraw={profile.startWithdraw}
             enforced={billing.enforced}
             invoices={billing.invoices}
+            hasOlderInvoices={billing.hasOlderInvoices}
+            loadingOlderInvoices={billing.loadingOlderInvoices}
+            onLoadOlderInvoices={() => void billing.loadOlderInvoices()}
           />
         </div>
       </div>

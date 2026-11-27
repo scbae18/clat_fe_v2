@@ -10,7 +10,7 @@ import ConfirmModal from '@/components/common/ConfirmModal/ConfirmModal'
 import { AdminHeader } from '../_components/AdminUi'
 import { admin, adminErrorMessage, type AdminBenefitPlanCode } from '@/services/admin'
 import useToast from '@/hooks/useToast'
-import { formatMdHm } from '../_lib/format'
+import { formatMd, formatMdHm } from '../_lib/format'
 import * as styles from '../admin.css'
 
 const BENEFIT_PLANS: Array<{ code: AdminBenefitPlanCode; label: string }> = [
@@ -47,6 +47,9 @@ export default function AdminBillingPage() {
   const [refundAmount, setRefundAmount] = useState('')
   const [refundReason, setRefundReason] = useState('')
   const [refundAfter, setRefundAfter] = useState<'KEEP' | 'FREE' | 'REVERT_PLAN'>('FREE')
+  const [refundName, setRefundName] = useState('')
+  const [refundAsk, setRefundAsk] = useState(false)
+  const [timelineUserId, setTimelineUserId] = useState<number | null>(null)
 
   const precheckQuery = useQuery({
     queryKey: ['admin', 'billing', 'precheck', search],
@@ -66,6 +69,17 @@ export default function AdminBillingPage() {
   const refundsQuery = useQuery({
     queryKey: ['admin', 'billing', 'refunds'],
     queryFn: () => admin.billingRefunds(),
+    refetchOnWindowFocus: false,
+  })
+  const reviewQuery = useQuery({
+    queryKey: ['admin', 'billing', 'review'],
+    queryFn: () => admin.billingReview(),
+    refetchOnWindowFocus: false,
+  })
+  const timelineQuery = useQuery({
+    queryKey: ['admin', 'billing', 'timeline', timelineUserId],
+    queryFn: () => admin.billingTimeline(timelineUserId ?? 0),
+    enabled: timelineUserId != null,
     refetchOnWindowFocus: false,
   })
 
@@ -165,6 +179,45 @@ export default function AdminBillingPage() {
 
       <section className={styles.card}>
         <div className={styles.cardHeader}>
+          <h2 className={styles.cardTitle}>확인 필요</h2>
+        </div>
+        {reviewQuery.isLoading ? (
+          <p className={styles.loading}>확인이 필요한 결제를 불러오는 중…</p>
+        ) : (reviewQuery.data?.items.length ?? 0) === 0 ? (
+          <p className={styles.empty}>확인이 필요한 결제나 환불이 없습니다.</p>
+        ) : (
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th className={styles.th}>시각</th>
+                  <th className={styles.th}>구분</th>
+                  <th className={styles.th}>선생님</th>
+                  <th className={styles.th}>금액</th>
+                  <th className={styles.th}>이유</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reviewQuery.data?.items.map((item, index) => (
+                  <tr key={`${item.at}-${item.kind}-${index}`}>
+                    <td className={styles.td}>{formatMdHm(item.at)}</td>
+                    <td className={styles.td}>{item.kind}</td>
+                    <td className={styles.td}>
+                      {item.name}
+                      {item.email ? <span className={styles.mutedInline}> · {item.email}</span> : null}
+                    </td>
+                    <td className={styles.td}>{item.amount == null ? '-' : won(item.amount)}</td>
+                    <td className={styles.td}>{item.reason}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className={styles.card}>
+        <div className={styles.cardHeader}>
           <h2 className={styles.cardTitle}>매출</h2>
         </div>
         <div className={styles.formBody}>
@@ -211,7 +264,7 @@ export default function AdminBillingPage() {
                     </td>
                     <td className={styles.td}>{item.amount == null ? '-' : won(item.amount)}</td>
                     <td className={styles.td}>
-                      {item.invoice_id != null && item.amount != null ? (
+                      {item.invoice_id != null && item.amount != null && item.amount > 0 ? (
                         <Button
                           type="button"
                           size="sm"
@@ -222,6 +275,7 @@ export default function AdminBillingPage() {
                             setRefundAmount(String(item.amount))
                             setRefundReason('')
                             setRefundAfter('FREE')
+                            setRefundName(item.name)
                           }}
                         >
                           환불
@@ -256,15 +310,7 @@ export default function AdminBillingPage() {
                 error('금액과 이유를 적어 주세요.')
                 return
               }
-              void run(async () => {
-                await admin.refundInvoice(refundInvoiceId, {
-                  amount,
-                  reason: refundReason.trim(),
-                  after: refundAfter,
-                })
-                success('환불했습니다.')
-                setRefundInvoiceId(null)
-              })
+              setRefundAsk(true)
             }}
           >
             <Text variant="bodyMd" color="gray700" as="p">
@@ -483,10 +529,21 @@ export default function AdminBillingPage() {
                   <tr key={row.user_id}>
                     <td className={styles.td}>{row.user_id}</td>
                     <td className={styles.td}>
-                      {row.name}
+                      <Button type="button" size="sm" variant="ghost" onClick={() => setTimelineUserId(row.user_id)}>
+                        {row.name}
+                      </Button>
                       <span className={styles.mutedInline}> · {row.email}</span>
                     </td>
-                    <td className={styles.td}>{row.plan_name}</td>
+                    <td className={styles.td}>
+                      {row.plan_name}
+                      {row.subscription_status === 'PAST_DUE' ? (
+                        <span className={styles.mutedInline}>
+                          {' '}· 결제 대기{row.past_due_until ? `, ${formatMd(row.past_due_until)}까지` : ''}
+                        </span>
+                      ) : null}
+                      {row.cancel_at_period_end ? <span className={styles.mutedInline}> · 해지 예약</span> : null}
+                      {row.plan_name !== '무료' && !row.has_card ? <span className={styles.mutedInline}> · 카드 없음</span> : null}
+                    </td>
                     <td className={styles.td}>
                       {row.next_billing_at ? formatMdHm(row.next_billing_at) : '-'}
                       {row.no_charge_until ? (
@@ -531,6 +588,44 @@ export default function AdminBillingPage() {
         )}
       </section>
 
+      {timelineUserId != null ? (
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>{timelineQuery.data?.name ?? '선생님'} 기록</h2>
+          </div>
+          {timelineQuery.isLoading ? (
+            <p className={styles.loading}>기록을 불러오는 중…</p>
+          ) : (timelineQuery.data?.items.length ?? 0) === 0 ? (
+            <p className={styles.empty}>기록이 없습니다.</p>
+          ) : (
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th className={styles.th}>시각</th>
+                    <th className={styles.th}>구분</th>
+                    <th className={styles.th}>상태</th>
+                    <th className={styles.th}>금액</th>
+                    <th className={styles.th}>이유</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {timelineQuery.data?.items.map((item, index) => (
+                    <tr key={`${item.at}-${item.kind}-${index}`}>
+                      <td className={styles.td}>{formatMdHm(item.at)}</td>
+                      <td className={styles.td}>{item.label}</td>
+                      <td className={styles.td}>{item.status}</td>
+                      <td className={styles.td}>{item.amount == null ? '-' : won(item.amount)}</td>
+                      <td className={styles.td}>{item.reason ?? '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      ) : null}
+
       <ConfirmModal
         isOpen={confirm === 'on'}
         onClose={() => setConfirm(null)}
@@ -550,6 +645,35 @@ export default function AdminBillingPage() {
         title="한도 적용을 끌까요?"
         descriptions={['학생 추가와 알림톡을 다시 막지 않습니다. 잠금 기록은 남겨 두고, 다시 켜면 그 기준으로 계산합니다.']}
         confirmLabel="끄기"
+        confirmVariant="danger"
+      />
+      <ConfirmModal
+        isOpen={refundAsk}
+        onClose={() => setRefundAsk(false)}
+        onConfirm={() => {
+          if (refundInvoiceId == null) return
+          const amount = Number(refundAmount)
+          setRefundAsk(false)
+          void run(async () => {
+            await admin.refundInvoice(refundInvoiceId, {
+              amount,
+              reason: refundReason.trim(),
+              after: refundAfter,
+            })
+            success('환불했습니다.')
+            setRefundInvoiceId(null)
+          })
+        }}
+        title="이 금액으로 환불할까요?"
+        descriptions={[
+          `${refundName} · ${won(Number(refundAmount) || 0)}`,
+          refundAfter === 'KEEP'
+            ? '환불 뒤에도 구독은 유지합니다.'
+            : refundAfter === 'REVERT_PLAN'
+              ? '환불 뒤 이전 요금제로 바꿉니다.'
+              : '환불 뒤 무료로 바꿉니다.',
+        ]}
+        confirmLabel="환불하기"
         confirmVariant="danger"
       />
     </div>
